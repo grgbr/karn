@@ -1,0 +1,10 @@
+To build mapred, enter at command prompt:
+$ make build
+You'll find mapred binary in the build/ directory.
+
+To build source documentation, enter at command prompt:
+$ make doc
+This produces HTML fomatted source documentation into doc/ directory.
+
+Other build targets are available and briefly documented when typing:
+$ make help

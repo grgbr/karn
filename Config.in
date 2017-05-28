@@ -1,0 +1,27 @@
+config SLIST
+	bool "Singly linked list"
+	default n
+
+config SLIST_BUBBLE_SORT
+	bool "Bubble sort on singly linked list"
+	select SLIST
+	default y
+
+config SLIST_SELECTION_SORT
+	bool "Selection sort on singly linked list"
+	select SLIST
+	default y
+
+config SLIST_INSERTION_SORT
+	bool "Insertion sort on singly linked list"
+	select SLIST
+	default y
+
+config SLIST_MERGE_SORT
+	bool "Hybrid merge sort on singly linked list"
+	select SLIST
+	default y
+
+config BHEAP_FIXED
+	bool "Fixed length array based binary heap"
+	default y
