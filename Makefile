@@ -61,6 +61,8 @@ TEST     := $(CURDIR)/test
 PERF     := $(BUILD)/perf
 SCRIPT   := $(CURDIR)/script
 
+confdir  := $(CURDIR)/config
+
 docbuilddir    := $(BUILD)/doc
 sphinxbuilddir := $(docbuilddir)/sphinx
 doxybuilddir   := $(docbuilddir)/doxygen
@@ -180,9 +182,16 @@ help:
 	@echo "    help     - this help message"
 
 .PHONY: config
-config:
+config: | $(BUILD)
 	cd $(BUILD) && kconfig-mconf $(CURDIR)/Config.in
-	cd $(BUILD) && kconfig-conf --silentoldconfig $(CURDIR)/Config.in
+
+.PHONY: defconfig-%
+defconfig-%: $(confdir)/%.config | $(BUILD)
+	cp $< $(BUILD)/.config
+
+.PHONY: saveconfig-%
+saveconfig-%: $(BUILD)/.config
+	cp $< $(confdir)/$(subst saveconfig-,,$@).config
 
 .PHONY: build
 build: $(BUILD)/libkarn.a $(BUILD)/libkarn_dbg.a $(BUILD)/libkarn_ut.a \
@@ -242,11 +251,14 @@ $(BUILD)/karn_cov.xml: $(BUILD)/karn_ut.xml
 ################################################################################
 Makefile: $(BUILD)/include/config/auto.conf
 
-$(BUILD)/include/config/auto.conf: Config.in | \
+$(BUILD)/.config: $(CURDIR)/Config.in | $(BUILD)
+	cd $(BUILD) && kconfig-conf --alldefconfig $<
+
+$(BUILD)/include/generated/autoconf.h \
+$(BUILD)/include/config/auto.conf: $(BUILD)/.config | \
                                    $(BUILD)/include/config \
                                    $(BUILD)/include/generated
-	cd $(BUILD) && kconfig-mconf $(CURDIR)/$<
-	cd $(BUILD) && kconfig-conf --silentoldconfig $(CURDIR)/$<
+	cd $(BUILD) && kconfig-conf --silentoldconfig $(CURDIR)/Config.in
 
 ################################################################################
 # Build unit testing objects with optimization enabled.
