@@ -38,22 +38,22 @@ if [ $# -ne 1 ]; then
 fi
 
 objdir=$1
-gcov_cmd="gcovr --gcov-exclude='.*_ut' --keep --object-directory=$objdir \
+gcov_cmd="gcovr --exclude='.*_ut' --keep --object-directory=$objdir \
           --root=$(realpath $(dirname $0)/..) --sort-percentage"
 
 if [ $xml -gt 0 ]; then
 	# XML outputs both branch and line coverage stats
-	$gcov_cmd --xml-pretty || exit 1
+	eval $gcov_cmd --xml-pretty || exit 1
 	exit 0
 fi
 
 echo
 echo "                       GCC branch coverage statistic"
 echo "=============================================================================="
-$gcov_cmd --branch | sed '1,4d' || exit 1
+eval $gcov_cmd --branch | sed '1,4d' || exit 1
 
 echo
 echo
 echo "                       GCC line coverage statistics"
 echo "=============================================================================="
-$gcov_cmd | sed '1,4d' || exit 1
+eval $gcov_cmd | sed '1,4d' || exit 1

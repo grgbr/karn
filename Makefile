@@ -243,7 +243,7 @@ $(BUILD)/karn_ut.xml: $(BUILD)/karn_ut
 	$(BUILD)/karn_ut -x > $@
 	xmllint --noout -schema $(SCRIPT)/junit-jenkins.xsd $@
 
-$(BUILD)/karn_cov.xml: $(BUILD)/karn_ut.xml
+$(BUILD)/karn_cov.xml: $(BUILD)/karn_ut.xml $(SCRIPT)/gcov.sh
 	$(SCRIPT)/gcov.sh --xml $(BUILD)/ut > $@
 
 ################################################################################
