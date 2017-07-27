@@ -1,11 +1,13 @@
-*********************
-Developers guidelines
-*********************
+***************
+Developer notes
+***************
 
 .. sidebar:: Contribution memo
 
     * unit test
-        * doc
+    * coverage
+    * doc
+    * multiple build config
 
 ====================
 Documentation

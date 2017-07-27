@@ -2,7 +2,7 @@
 Getting started
 ###############
 
-Karn is a self instructional / training project aiming to provide realistic
+Karn is a self instructional / training project aiming to provide practical
 implementations of well known data structures such as the ones found onto
 Wikipedia's `List of data structures page
 <https://en.wikipedia.org/wiki/List_of_data_structures>`_.
@@ -93,13 +93,13 @@ To build library :
 
 * make
 * gcc
-* glibc (custom C library planned in the futur)
+* glibc (custom C library planned in the future)
 * kconfig frontends
 
 To build and run unit tests :
 
-* cgreen
-* gcov
+* cute
+* gcovr
 
 To run performance tests :
 
@@ -121,7 +121,7 @@ Build and install
 At present time, there is no complex / portable deployment mechanism
 implemented (this may evolve according to my spare time and contributions).
 
-First, checkout `Karn's git repository <https://github.com/grgbr/mapred.git>`_.
+First, checkout `Karn's git repository <https://github.com/grgbr/karn.git>`_.
 
 From the top level source directory, run following command to *configure the
 build process* :
