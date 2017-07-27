@@ -166,20 +166,25 @@ help:
 	@echo "Please, have a look at the README file stored in this directory"
 	@echo ""
 	@echo "Available targets:"
-	@echo "    build    - build library into $(BUILD)"
-	@echo "    test     - build unit test binaries into $(BUILD)"
-	@echo "    check    - run unit test and output results into "
-	      "$(BUILD)/karn_ut.xml"
-	@echo "    cov      - display and build coverage statistics into " \
-	      "$(BUILD)/karn_cov.xml"
-	@echo "    data     - build testing data sets into $(DATA)"
-	@echo "    perf     - run performance tests and output results into " \
-	      "$(PERF)"
-	@echo "    plot     - plot performance test results into $(PERF)"
-	@echo "    doc      - build documentation into $(sphinxbuilddir)"
-	@echo "    clean    - cleanup build objects"
-	@echo "    mrproper - cleanup everything"
-	@echo "    help     - this help message"
+	@echo "    config     - library build interactive configuration"
+	@echo "    defconfig  - select library build configuration scheme from" \
+	"$(confdir) directory"
+	@echo "    saveconfig - save library build configuration scheme into" \
+	"$(confdir) directory"
+	@echo "    build      - build library into $(BUILD)"
+	@echo "    test       - build unit test binaries into $(BUILD)"
+	@echo "    check      - run unit test and output results into" \
+	"$(BUILD)/karn_ut.xml"
+	@echo "    cov        - display and build coverage statistics into" \
+	"$(BUILD)/karn_cov.xml"
+	@echo "    data       - build testing data sets into $(DATA)"
+	@echo "    perf       - run performance tests and output results into" \
+	"$(PERF)"
+	@echo "    plot       - plot performance test results into $(PERF)"
+	@echo "    doc        - build documentation into $(sphinxbuilddir)"
+	@echo "    clean      - cleanup build objects"
+	@echo "    mrproper   - cleanup everything"
+	@echo "    help       - this help message"
 
 .PHONY: config
 config: | $(BUILD)
