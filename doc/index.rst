@@ -12,6 +12,7 @@
    :hidden:
    
    start
+   make
    data_struct
    sorting
    dev
