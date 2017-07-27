@@ -48,6 +48,12 @@ Singly linked list
 Hybrid merge sort
 =================
 
+.. sidebar:: Quick links
+
+    :c:func:`slist_merge_sort()`
+    :c:func:`slist_hybrid_merge_sort()`
+    :c:func:`slist_merge_presort()`
+
 Merge sorting implementation is based on an original idea attributed to
 Jon McCarthy and described
 `here <http://richardhartersworld.com/cri/2007/schoen.html>`_.
@@ -74,18 +80,62 @@ in :c:func:`slist_merge_sort()` . Tradeoffs:
 Insertion sort
 ==============
 
-.. todo:: complete me
+.. sidebar:: Quick links
+
+    :c:func:`silst_insertion_sort()`
+    :c:func:`silst_counted_insertion_sort()`
+
+Sort scheme based upon traditional algorithm depicted onto `Wikipedia's
+insertion sort page <https://en.wikipedia.org/wiki/Insertion_sort>`_.
+
+Noteworthy points:
+
+- simple implementation
+- very low swap (vs compare) cost for linked lists.
+
+Which makes it the best choice (even far better than merge sort) for slightly
+to mostly presorted data sets. It suffers from a *pathological* worst case
+behavior when first unsorted item :
+
+- should land at last position after sorting completion and,
+- is followed by items strictly sorted in order.
+
+The hybrid merge sort scheme tries to benefit from the very good insertion sort
+efficiency while mitigating its worst case behavior by taking advantage of the
+divide and conquer strategy.
 
 .. _sort-bubble:
 
 Bubble sort
 ==============
 
-.. todo:: complete me
+.. sidebar:: Quick links
+
+    :c:func:`silst_bubble_sort()`
+
+Sort scheme based upon traditional algorithm depicted onto `Wikipedia's
+bubble sort page <https://en.wikipedia.org/wiki/Bubble_sort>`_.
+
+Noteworthy points:
+
+- most complex implementation of all algorithm mentionned here,
 
 .. _sort-select:
 
 Selection sort
 ==============
 
-.. todo:: complete me
+.. sidebar:: Quick links
+
+    :c:func:`silst_selection_sort()`
+
+Sort scheme based upon traditional algorithm depicted onto `Wikipedia's
+selection sort page <https://en.wikipedia.org/wiki/Selection_sort>`_.
+
+Noteworthy points:
+
+- simple implementation although a bit more complex than insertion sort,
+- worst time efficiency of all algorithm,
+- deterministic.
+
+Only there for reference purpose : **don't use it**.

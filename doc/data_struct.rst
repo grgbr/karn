@@ -75,10 +75,3 @@ where each key is located into a traditional C array slot.
 *Peeking* operation by *reference*.
 
 *Key comparison* implementation delegated to user.
-
-Testing
--------
-
-.. doxygengroup:: bheaput_fixed
-        :content-only:
-        :members:
