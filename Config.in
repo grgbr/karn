@@ -20,6 +20,7 @@ config SLIST_INSERTION_SORT
 config SLIST_MERGE_SORT
 	bool "Hybrid merge sort on singly linked list"
 	select SLIST
+	select SLIST_INSERTION_SORT
 	default y
 
 config BHEAP_FIXED
