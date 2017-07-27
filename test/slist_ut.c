@@ -43,7 +43,6 @@ static struct slist       slistut_list;
 static struct slist_node  slistut_nodes[4];
 static unsigned int       slistut_nr;
 static slistut_sort_fn   *slistut_sort;
-static unsigned int       slistut_merge_run_len;
 
 static void
 slistut_init_entries(struct slistut_entry entries[], unsigned int count)
@@ -66,13 +65,6 @@ slistut_compare_entries(const struct slist_node *a, const struct slist_node *b)
 }
 
 static void
-slistut_hybrid_merge_sort(struct slist *list, slist_compare_fn *compare)
-{
-	slist_hybrid_merge_sort(list, slistut_merge_run_len, slistut_nr,
-	                        compare);
-}
-
-static void
 slistut_check_nodes(const struct slist_node *const check_nodes[],
                     unsigned int                   count)
 {
@@ -90,36 +82,6 @@ slistut_check_nodes(const struct slist_node *const check_nodes[],
 	cute_ensure(cnt == count);
 	cute_ensure(slist_first(&slistut_list) == check_nodes[0]);
 	cute_ensure(slist_last(&slistut_list) == check_nodes[count - 1]);
-}
-
-static void slistut_setup_bubble_sort(void)
-{
-	slistut_sort = slist_bubble_sort;
-}
-
-static void slistut_setup_insertion_sort(void)
-{
-	slistut_sort = slist_insertion_sort;
-}
-
-static void slistut_setup_selection_sort(void)
-{
-	slistut_sort = slist_selection_sort;
-}
-
-static void slistut_domerge_sort(struct slist *list, slist_compare_fn *compare)
-{
-	slist_merge_sort(list, slistut_nr, compare);
-}
-
-static void slistut_setup_merge_sort(void)
-{
-	slistut_sort = slistut_domerge_sort;
-}
-
-static void slistut_setup_runlen_merge_sort(void)
-{
-	slistut_sort = slistut_hybrid_merge_sort;
 }
 
 static void slistut_sort_single(void)
@@ -715,6 +677,13 @@ CUTE_PNP_TEST(slistut_delete_penultimate, &slistut_delete)
 	slistut_check_nodes(check_nodes, array_nr(check_nodes));
 }
 
+#if defined(CONFIG_SLIST_BUBBLE_SORT)
+
+static void slistut_setup_bubble_sort(void)
+{
+	slistut_sort = slist_bubble_sort;
+}
+
 static CUTE_PNP_FIXTURED_SUITE(slistut_bubble_sort, &slistut,
                                slistut_setup_bubble_sort, NULL);
 
@@ -820,6 +789,15 @@ CUTE_PNP_TEST(slistut_bubble_sort_worstins_sorted, &slistut_bubble_sort)
 CUTE_PNP_TEST(slistut_bubble_sort_large_mix, &slistut_bubble_sort)
 {
 	slistut_sort_large_mix();
+}
+
+#endif /* defined(CONFIG_SLIST_BUBBLE_SORT) */
+
+#if defined(CONFIG_SLIST_SELECTION_SORT)
+
+static void slistut_setup_selection_sort(void)
+{
+	slistut_sort = slist_selection_sort;
 }
 
 static CUTE_PNP_FIXTURED_SUITE(slistut_selection_sort, &slistut,
@@ -930,6 +908,15 @@ CUTE_PNP_TEST(slistut_selection_sort_large_mix, &slistut_selection_sort)
 	slistut_sort_large_mix();
 }
 
+#endif /* defined(CONFIG_SLIST_SELECTION_SORT) */
+
+#if defined(CONFIG_SLIST_INSERTION_SORT)
+
+static void slistut_setup_insertion_sort(void)
+{
+	slistut_sort = slist_insertion_sort;
+}
+
 static CUTE_PNP_FIXTURED_SUITE(slistut_insertion_sort, &slistut,
                                slistut_setup_insertion_sort, NULL);
 
@@ -1036,6 +1023,34 @@ CUTE_PNP_TEST(slistut_insertion_sort_worstins_sorted, &slistut_insertion_sort)
 CUTE_PNP_TEST(slistut_insertion_sort_large_mix, &slistut_insertion_sort)
 {
 	slistut_sort_large_mix();
+}
+
+#endif /* defined(CONFIG_SLIST_INSERTION_SORT) */
+
+#if defined(CONFIG_SLIST_MERGE_SORT)
+
+static unsigned int slistut_merge_run_len;
+
+static void slistut_domerge_sort(struct slist *list, slist_compare_fn *compare)
+{
+	slist_merge_sort(list, slistut_nr, compare);
+}
+
+static void slistut_setup_merge_sort(void)
+{
+	slistut_sort = slistut_domerge_sort;
+}
+
+static void
+slistut_hybrid_merge_sort(struct slist *list, slist_compare_fn *compare)
+{
+	slist_hybrid_merge_sort(list, slistut_merge_run_len, slistut_nr,
+	                        compare);
+}
+
+static void slistut_setup_runlen_merge_sort(void)
+{
+	slistut_sort = slistut_hybrid_merge_sort;
 }
 
 static CUTE_PNP_FIXTURED_SUITE(slistut_merge_sort, &slistut,
@@ -1339,3 +1354,5 @@ CUTE_PNP_TEST(slistut_runlen128_merge_sort, &slistut_runlen_merge_sort)
 	slistut_merge_run_len = 128;
 	slistut_dosort_large_mix();
 }
+
+#endif /* defined(CONFIG_SLIST_MERGE_SORT) */
