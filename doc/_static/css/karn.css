@@ -1,0 +1,110 @@
+body {
+	color: #a6a6a6;
+	background: #3a3a3a;
+}
+
+div {
+	border-radius: 2px;
+}
+
+h1 {
+	color: #ffffff;
+	margin-bottom: 25px;
+}
+
+h2, h3 {
+	color: #bbbbbb;
+	border-bottom-color: #585858;
+}
+
+div.sidebar[role=navigation] {
+	border=none;
+	margin: 0;
+	padding: 0;
+	background: none;
+	width: 100%;
+	float: none;
+}
+
+pre {
+	color: #bbbbbb;
+	background-color: #585858;
+	border-color: #585858;
+	border-radius: 2px;
+}
+
+.search-query, .search-query:enabled {
+	color: white;
+	border-color: #585858;
+	background: #585858;
+	border-radius: 2px;
+}
+
+.search-query::placeholder {
+	color: #767676
+}
+
+.btn {
+	background: #767676;
+	color: white;
+	border-radius: 2px;
+}
+
+.highlight .go {
+	color: #bbbbbb;
+}
+
+.hll .go {
+	color: #262626;
+	background: #ffe173;
+}
+
+.gp {
+	color: #ffe173;
+}
+
+a, a:hover {
+	color: #af5fff;
+}
+
+.internal {
+	color: #dfafff;
+}
+
+#navbar-top {
+	background: #262626;
+}
+
+#navbar-related {
+	background: #585858;
+}
+
+div.admonition-todo {
+	padding: 0 0 2px 0;
+	color: #262626;
+	background: #ffe173;
+	border: 0;
+	border-radius: 2px;
+}
+
+.first.admonition-title {
+	color: white;
+	background: #af5f00;
+}
+
+div.sidebar {
+	padding: 0 0 2px 0;
+	background: #585858;
+	border: 0;
+	float: right;
+}
+
+.first.sidebar-title {
+	padding: 0.1em 0 0.1em 0.5em;
+	color: white;
+	background: #262626;
+}
+
+.last {
+	margin: 0.5em 1em 0.5em 1em;
+}

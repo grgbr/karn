@@ -9,7 +9,6 @@
 
 .. toctree::
    :maxdepth: 2
-   :hidden:
    
    start
    make

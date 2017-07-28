@@ -43,7 +43,7 @@ First, checkout `Karn's git repository <https://github.com/grgbr/karn.git>`_.
 From the top level source directory, run following command to *configure the
 build process* :
 
-.. code-block:: shell
+.. code-block:: console
 
     $ make config
 
@@ -54,7 +54,7 @@ You'll get an ncurses UI allowing selection of software components to build :
 
 Select the components you're interested in, then build Karn library :
 
-.. code-block:: shell
+.. code-block:: console
 
     $ make build
 
