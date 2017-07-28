@@ -15,5 +15,6 @@
    make
    data_struct
    sorting
+   test
    dev
    api
