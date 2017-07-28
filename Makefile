@@ -226,7 +226,7 @@ plot: $(foreach a,$(intpt_algo),$(PERF)/type-int_algo-$(a).png) \
       $(foreach p,$(intpt_presort),$(PERF)/type-int_presort-$(p).png)
 
 .PHONY: doc
-doc: | $(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir)
+doc: plot | $(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir)
 	env SRC="$(SRC) $(TEST)" DOCBUILD=$(doxybuilddir) doxygen \
 		$(DOC)/Doxyfile
 	rsync -rlpt --delete $(DOC)/* $(sphinxsrcdir)
