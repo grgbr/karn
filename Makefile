@@ -64,7 +64,8 @@ SCRIPT   := $(CURDIR)/script
 confdir  := $(CURDIR)/config
 
 docbuilddir    := $(BUILD)/doc
-sphinxbuilddir := $(docbuilddir)/sphinx
+sphinxbuilddir := $(docbuilddir)/build
+sphinxsrcdir   := $(docbuilddir)/sphinx
 doxybuilddir   := $(docbuilddir)/doxygen
 
 AR := gcc-ar
@@ -225,10 +226,13 @@ plot: $(foreach a,$(intpt_algo),$(PERF)/type-int_algo-$(a).png) \
       $(foreach p,$(intpt_presort),$(PERF)/type-int_presort-$(p).png)
 
 .PHONY: doc
-doc: | $(doxybuilddir) $(sphinxbuilddir)
+doc: | $(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir)
 	env SRC="$(SRC) $(TEST)" DOCBUILD=$(doxybuilddir) doxygen \
 		$(DOC)/Doxyfile
-	env DOXYBUILD=$(doxybuilddir)/xml sphinx-build $(DOC) $(sphinxbuilddir)
+	rsync -rlpt --delete $(DOC)/* $(sphinxsrcdir)
+	rsync -lpt $(PERF)/*.png $(sphinxsrcdir)/images
+	env DOXYBUILD=$(doxybuilddir)/xml sphinx-build \
+		$(sphinxsrcdir) $(sphinxbuilddir)
 
 .PHONY: dev
 dev: | $(BUILD)
@@ -374,7 +378,7 @@ $(PERF)/type-int_presort-%.png: $(SCRIPT)/slist_plot_presort_pt.py \
 
 $(BUILD) $(BUILD)/ut $(BUILD)/dbg $(BUILD)/utdbg $(BUILD)/pt \
 $(DOCBUILD) $(DATA) $(PERF) $(BUILD)/include/config $(BUILD)/include/generated \
-$(doxybuilddir) $(sphinxbuilddir):
+$(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir):
 	mkdir -p $@
 
 -include $(wildcard $(BUILD)/*.d)
