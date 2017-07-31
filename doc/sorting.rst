@@ -2,6 +2,8 @@
 Sorting
 *******
 
+.. _sort-slist:
+
 ==================
 Singly linked list
 ==================

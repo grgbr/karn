@@ -9,10 +9,6 @@ Developer notes
     * doc
     * multiple build config
 
-====================
-Documentation
-====================
-
 Structuring reStructuredText documentation:
 
 * document title: # with over-line
