@@ -1,20 +1,50 @@
+ {
+	font-size: medium;
+}
+
 body {
-	color: #a6a6a6;
-	background: #3a3a3a;
+	color: #657b83;
+	background: #fdf6e3;
+	max-width: 1100px;
+}
+
+div#sidebar-wrapper {
+	position: fixed;
+	width: 300px;
+}
+
+div#content-wrapper {
+	margin-left: 300px;
+	max-width: 800px;
+}
+
+div.genindex-jumpbox {
+	border-color: #93a1a1;
+}
+
+div.toctree-wrapper {
+	display: none;
+}
+
+dt:target {
+	background: #fdf6e3;
 }
 
 div {
 	border-radius: 2px;
+	max-width: 1100px;
 }
 
 h1 {
-	color: #ffffff;
-	margin-bottom: 25px;
+	color: #586e75;
+	margin-bottom: 30px;
 }
 
-h2, h3 {
-	color: #bbbbbb;
-	border-bottom-color: #585858;
+h2, h3, h4, h5 {
+	color: #b58900;
+	border-bottom: none;
+	margin-top: 30px;
+	margin-bottom: 0px;
 }
 
 div.sidebar[role=navigation] {
@@ -24,87 +54,190 @@ div.sidebar[role=navigation] {
 	background: none;
 	width: 100%;
 	float: none;
+	max-width: none;
+}
+
+div.sidebar[role=navigation] h3 a {
+	color: #586e75;
+}
+
+div.sidebar[role=navigation] h3 {
+	color: #586e75;
 }
 
 pre {
-	color: #bbbbbb;
-	background-color: #585858;
-	border-color: #585858;
+	color: #073642;
+	background-color: #eee8d5;
+	border-color: #eee8d5;
 	border-radius: 2px;
 }
 
 .search-query, .search-query:enabled {
-	color: white;
-	border-color: #585858;
-	background: #585858;
+	color: #657b83;
+	border-color: #eee8d5;
+	background: #eee8d5;
 	border-radius: 2px;
 }
 
 .search-query::placeholder {
-	color: #767676
+	color: #93a1a1;
+}
+
+.search-query::-webkit-input-placeholder {
+	color: #93a1a1;
+}
+
+.search-query::-ms-input-placeholder {
+	color: #93a1a1;
+}
+
+.search-query::-moz-placeholder {
+	color: #93a1a1;
 }
 
 .btn {
-	background: #767676;
+	background: #93a1a1;
 	color: white;
 	border-radius: 2px;
 }
 
 .highlight .go {
-	color: #bbbbbb;
+	color: #073642;
 }
 
 .hll .go {
-	color: #262626;
-	background: #ffe173;
+	color: #eee8d5;
+	background: #073642;
 }
 
 .gp {
-	color: #ffe173;
+	color: #b58900;
 }
 
-a, a:hover {
-	color: #af5fff;
+a, a:hover, a:focus {
+	color: #d33682;
 }
 
 .internal {
-	color: #dfafff;
+	color: #d33682;
 }
 
-#navbar-top {
-	background: #262626;
+code.xref {
+	color: #859900;
+}
+
+code {
+	color: #6c71c4;
+	background: #eee8d5;
+	border-radius: 2px;
+	margin: 0 3px 0 0;
+}
+
+code.descname {
+	color: #859900;
+}
+
+a.reference.internal[title]:hover {
+	color: #cb4b16;
+}
+
+a.reference.internal[title] {
+	color: #cb4b16;
+}
+
+div.navbar-fixed-top {
+	background: #eee8d5;
+	border: none;
+}
+
+.navbar-inverse .navbar-collapse, .navbar-inverse {
+	background: #eee8d5;
+	border: none;
+}
+
+.navbar-inverse .navbar-brand {
+	background: #eee8d5;
+	color: #b58900;
+}
+
+.navbar-inverse .navbar-brand:hover, .navbar-inverse .navbar-brand:focus {
+	background: #eee8d5;
+	color: #b58900;
+}
+
+.navbar .nav > li > a {
+	color: #b58900;
+}
+
+.navbar .nav > li > a:hover {
+	color: #b58900;
+	text-decoration: underline;
 }
 
 #navbar-related {
-	background: #585858;
+	background: #eee8d5;
+	margin-top: 70px;
+	border: none;
 }
 
 div.admonition-todo {
 	padding: 0 0 2px 0;
-	color: #262626;
-	background: #ffe173;
+	color: #657b83;
+	background: #eee8d5;
 	border: 0;
 	border-radius: 2px;
 }
 
 .first.admonition-title {
 	color: white;
-	background: #af5f00;
+	background: #cb4b16;
 }
 
 div.sidebar {
 	padding: 0 0 2px 0;
-	background: #585858;
+	background: #eee8d5;
 	border: 0;
 	float: right;
+	width: auto;
+	min-width:15%;
+	max-width:45%;
+	margin: 1em 1em 1em 1em;
 }
 
 .first.sidebar-title {
-	padding: 0.1em 0 0.1em 0.5em;
-	color: white;
-	background: #262626;
+	padding: 0.1em 0.5em 0.1em 0.5em;
+	color: #eee8d5;
+	background: #93a1a1;
 }
 
 .last {
 	margin: 0.5em 1em 0.5em 1em;
+}
+
+dl.docutils > dt > strong {
+	color: #268bd2;
+	font-weight: normal;
+}
+
+dl.class > dd > div > p {
+	color: #268bd2;
+	font-weight: normal;
+}
+
+dl.function > dt {
+	border-top: 5px solid #93a1a1;
+	padding: 0.1em 0.1em 0.1em 0.5em;
+	background: #eee8d5;
+}
+
+dl.define > dt {
+	border-top: 5px solid #93a1a1;
+	padding: 0.1em 0.1em 0.1em 0.5em;
+	background: #eee8d5;
+}
+
+dl.class > dt {
+	border-top: 5px solid #93a1a1;
+	padding: 0.1em 0.1em 0.1em 0.5em;
+	background: #eee8d5;
 }
