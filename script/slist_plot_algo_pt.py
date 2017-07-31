@@ -8,6 +8,7 @@ import subprocess as subproc
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
+import plt_colors as clr
 
 class SlistPerfResult:
 	_avg_nsec = None
@@ -115,6 +116,7 @@ class SlistPerfResultAggregator:
 class SlistPerfResultPlotter:
 	def __init__(self, aggregator):
 		self._agg = aggregator
+		clr.light()
 
 	def plot_algo(self, dir_path, algorithm_name, interactive):
 		for algo, name in enumerate(self._agg.algorithms()):
@@ -154,7 +156,7 @@ class SlistPerfResultPlotter:
 					max_keys = keys[-1]
 				times = [r.average_time() * 1e-3
 				         for r in results[p]]
-				plt.plot(keys, times, 'o-', alpha = 0.6,
+				plt.plot(keys, times, 'o-',
 				         label = str(self._agg.presorts()[p]))
                                 
 			xaxis = axes.get_xaxis()
@@ -190,7 +192,8 @@ class SlistPerfResultPlotter:
 				plt.savefig(os.path.join(dir_path,
 				                         'type-int_algo-' +
 				                         algorithm_name +
-				                         '.png'))
+				                         '.png'),
+                                            transparent = True)
 
 
 if __name__ == '__main__':

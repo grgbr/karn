@@ -9,6 +9,7 @@ import struct
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
+import plt_colors as clr
 
 def perf_plot_order(keys, title, base_path):
 	if len(keys) > 1:
@@ -37,33 +38,33 @@ def perf_plot_order(keys, title, base_path):
 
 	plt.close()
 	fig, axes = plt.subplots(2)
-	fig.suptitle(title, y = 0.99, fontsize = 'large', fontweight = 'bold')
+	fig.suptitle(title, y = 0.99)
 	fig.subplots_adjust(top = 0.5)
 	fig.set_tight_layout(True)
 
 	axes[0].grid(True)
 	axes[0].set_xlabel('sequence number')
-	axes[0].set_ylabel('cumulative ordering', color = 'purple', alpha = 0.8)
+	axes[0].set_ylabel('cumulative ordering')
 	axes[0].set_ylim(ymin = min(cum) - 1, ymax = max(cum) + 1)
 	axes[0].xaxis.set_major_locator(tck.MaxNLocator(integer=True))
 	if len(keys) <= 8:
 		style = 'o-'
 	else:
 		style = '-'
-	axes[0].plot(seq, cum, style, color = 'purple', alpha = 0.8)
+	axes[0].plot(seq, cum, style, color = clr.COLOR["blue"])
 	axes[0].ticklabel_format(axis='both', style='sci', scilimits=(-3,3))
 
 	bins = range(min(lens), max(lens) + 2, 1)
 	axes[1].grid(True)
 	axes[1].set_xlabel('ordering length')
-	axes[1].set_ylabel('ordering length ratio', color = 'blue', alpha = 0.7)
+	axes[1].set_ylabel('ordering length ratio')
 	axes[1].set_ylim(ymax = 1.1)
 	axes[1].set_xlim(xmin = min(bins) - 0.5, xmax = max(bins) - 0.5)
 	axes[1].xaxis.set_major_locator(tck.MaxNLocator(integer=True))
 	axes[1].hist(lens, bins=bins, normed=True, align = 'left', rwidth=0.8,
-	             color = 'blue', alpha = 0.7)
+	             color = clr.COLOR["green"])
 
-	plt.savefig(base_path + ".png")
+	plt.savefig(base_path + ".png", transparent = True)
 
 
 class DataGenerator:
@@ -148,5 +149,6 @@ if __name__ == '__main__':
 		print(e)
 		sys.exit(1)
 
+	clr.light()
 	perf_plot_order(keys, 'presort: ' + presort + ' #keys: ' + str(key_nr),
 	                base_path)

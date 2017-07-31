@@ -71,6 +71,9 @@ doxybuilddir   := $(docbuilddir)/doxygen
 AR := gcc-ar
 CC := gcc
 
+pythonenv := env PYTHONPATH="$(CURDIR)/script:$(PYTHONPATH)" \
+                 PYTHONDONTWRITEBYTECODE="true"
+
 -include $(BUILD)/include/config/auto.conf
 
 common-cflags := -std=gnu99 -Wall -Wextra -MD -D_GNU_SOURCE \
@@ -230,7 +233,7 @@ doc: plot | $(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir)
 	env SRC="$(SRC) $(TEST)" DOCBUILD=$(doxybuilddir) doxygen \
 		$(DOC)/Doxyfile
 	rsync -rlpt --delete $(DOC)/* $(sphinxsrcdir)
-	rsync -lpt $(PERF)/*.png $(sphinxsrcdir)/images
+	rsync -lpt $(PERF)/*.png $(DATA)/*.png $(sphinxsrcdir)/images
 	env DOXYBUILD=$(doxybuilddir)/xml sphinx-build \
 		$(sphinxsrcdir) $(sphinxbuilddir)
 
@@ -352,7 +355,7 @@ $(BUILD)/karn_ut-cov.rst: $(BUILD)/karn_ut
 # Performance testing data sets and ploting.
 ################################################################################
 $(DATA)/type-int_%.dat: $(SCRIPT)/mkintdat.py | $(DATA)
-	$< $(dir $@) $(call dat_keynr,$@) $(call dat_presort,$@)
+	$(pythonenv) $< $(dir $@) $(call dat_keynr,$@) $(call dat_presort,$@)
 
 # This rule is a bit special: carefully look at the last prerequisite...
 # This rule relies upon prerequisite secondary expansion to derive performance
@@ -361,19 +364,19 @@ $(PERF)/type-int_%.txt: $(SCRIPT)/slist_run_pt.py \
                         $(BUILD)/slist_pt \
                         $(DATA)/type-int_$$(firstword $$(subst _algo-, ,%)).dat \
                         | $(PERF)
-	$< $(word 2,$^) $(DATA) $(call dat_keynr,$@) \
+	$(pythonenv) $< $(word 2,$^) $(DATA) $(call dat_keynr,$@) \
 		$(call dat_presort,$@) $(call dat_algo,$@) $(intpt_loopnr) > $@
 
 $(PERF)/type-int_algo-%.png: $(SCRIPT)/slist_plot_algo_pt.py \
                              $(addsuffix .txt,\
                                $(addprefix $(PERF)/,$(intpt_files)))
-	$< $(PERF) $(subst algo-,,\
+	$(pythonenv) $< $(PERF) $(subst algo-,,\
 	             $(word 2,$(subst _, ,$(notdir $(basename $@)))))
 
 $(PERF)/type-int_presort-%.png: $(SCRIPT)/slist_plot_presort_pt.py \
                                 $(addsuffix .txt,\
                                   $(addprefix $(PERF)/,$(intpt_files)))
-	$< $(PERF) $(subst presort-,,\
+	$(pythonenv) $< $(PERF) $(subst presort-,,\
 	             $(word 2,$(subst _, ,$(notdir $(basename $@)))))
 
 $(BUILD) $(BUILD)/ut $(BUILD)/dbg $(BUILD)/utdbg $(BUILD)/pt \
