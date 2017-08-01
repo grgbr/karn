@@ -1,0 +1,10 @@
+node {
+	deleteDir()
+	checkout scm
+	
+	karn = load 'test/jenkins/karn.groovy'
+	withEnv(['PKG_CONFIG_PATH=/home/greg/local/lib/pkgconfig',
+	         'LD_LIBRARY_PATH=/home/greg/local/lib']) {
+		karn.run_stages(JOB_NAME)
+	}
+}
