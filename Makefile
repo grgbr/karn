@@ -264,13 +264,14 @@ $(BUILD)/karn_cov.xml: $(BUILD)/karn_ut.xml $(SCRIPT)/gcov.sh
 Makefile: $(BUILD)/include/config/auto.conf
 
 $(BUILD)/.config: $(CURDIR)/Config.in | $(BUILD)
-	cd $(BUILD) && kconfig-conf --alldefconfig $<
+	cd $(BUILD) && kconfig-conf --alldefconfig $< >/dev/null
 
 $(BUILD)/include/generated/autoconf.h \
 $(BUILD)/include/config/auto.conf: $(BUILD)/.config | \
                                    $(BUILD)/include/config \
                                    $(BUILD)/include/generated
-	cd $(BUILD) && kconfig-conf --silentoldconfig $(CURDIR)/Config.in
+	cd $(BUILD) && \
+		kconfig-conf --silentoldconfig $(CURDIR)/Config.in >/dev/null
 
 ################################################################################
 # Build unit testing objects with optimization enabled.
