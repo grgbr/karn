@@ -305,19 +305,24 @@ void slist_bubble_sort(struct slist *list, slist_compare_fn *compare)
 		while (true) {
 			/*
 			 * Find the next swap location by progressing along the
-			 * list untill either end of list or head of sorted
-			 * sublist (i.e., end of unsorted sublist) has been
-			 * reached.
+			 * list untill end of list.
 			 */
 			do {
 				prev = cur;
 				cur = slist_next(cur);
 				nxt = slist_next(cur);
 				if (nxt == head)
-					/* End of unsorted sublist. */
 					nxt = NULL;
-			} while (nxt &&                     /* End of list. */
-			         (compare(cur, nxt) <= 0)); /* Swap required. */
+
+				if (!nxt)
+					/* End of sublist. */
+					break;
+
+				slist_account_compare_event();
+				if (compare(cur, nxt) > 0)
+					/* Swap required. */
+					break;
+			} while (true);
 
 			if (!nxt) {
 				/* End of current pass. */
@@ -334,10 +339,19 @@ void slist_bubble_sort(struct slist *list, slist_compare_fn *compare)
 				prev = cur;
 				cur = slist_next(cur);
 				if (cur == head)
-					/* End of unsorted sublist. */
 					cur = NULL;
-			} while (cur && (compare(swap, cur) > 0));
 
+				if (!cur)
+					/* End of sublist. */
+					break;
+
+				slist_account_compare_event();
+				if (compare(swap, cur) <= 0)
+					/* Swap location found. */
+					break;
+			} while (true);
+
+			slist_account_swap_event();
 			slist_append(list, prev, swap);
 
 			if (!cur) {
