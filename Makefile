@@ -85,7 +85,7 @@ common-cflags := -std=gnu99 -Wall -Wextra -MD -D_GNU_SOURCE \
 BUILD_CFLAGS := $(common-cflags) -flto -fpic -DNDEBUG -O2
 DBG_CFLAGS   := $(common-cflags) -fpic -ggdb3
 UT_CFLAGS    := $(common-cflags) -flto -O2 -ggdb3 -ftest-coverage -fprofile-arcs
-PT_CFLAGS    := $(BUILD_CFLAGS) -DCONFIG_SLIST_PERF_EVENTS -flto -pie \
+PT_CFLAGS    := $(BUILD_CFLAGS) -flto -pie \
                 -Wl,--relax -Wl,--sort-common -Wl,--strip-all \
                 -Wl,-z,combreloc -Wl,-z,noexecstack -Wl,-z,now \
                 -Wl,-z,loadfltr -Wl,-z,relro
@@ -107,10 +107,14 @@ intpt_files   =
 lib_src =
 # Unit test source files located into $(TEST)
 ut_src  = karn_ut.c utils_ut.c
+# Performance test binaries
+pt_bin  = array_fixed_pt
 
 ifeq ($(CONFIG_SLIST),y)
-lib_src += slist.c
-ut_src  += slist_ut.c
+lib_src   += slist.c
+ut_src    += slist_ut.c
+pt_bin    += slist_pt
+PT_CFLAGS += -DCONFIG_SLIST_PERF_EVENTS
 endif
 
 ifeq ($(CONFIG_SLIST_INSERTION_SORT),y)
@@ -208,7 +212,7 @@ build: $(BUILD)/libkarn.a $(BUILD)/libkarn_dbg.a $(BUILD)/libkarn_ut.a \
 
 .PHONY: test
 test: $(BUILD)/karn_ut $(BUILD)/karn_utdbg \
-      $(BUILD)/slist_pt $(BUILD)/array_fixed_pt
+      $(addprefix $(BUILD)/,$(pt_bin))
 
 .PHONY: check
 check: $(BUILD)/karn_ut.xml
