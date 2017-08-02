@@ -78,14 +78,25 @@ def solarize(mode="dark"):
               "grid.color": rebase["0"],  # 'k'
               "figure.edgecolor": rebase["03"],  # 'w'
               "figure.facecolor": rebase["02"],  # '0.75'
-              "axes.prop_cycle": cycler('color', [COLOR["blue"], COLOR["green"], COLOR["red"],
-                                   COLOR["cyan"], COLOR["magenta"],
-                                   COLOR["yellow"], rebase["0"]]),
               # ['b', 'g', 'r', 'c', 'm', 'y', 'k']
               "axes.edgecolor": rebase["0"],  # 'k'
               "axes.facecolor": rebase["03"],  # 'w'
               "axes.labelcolor": rebase["0"],  # 'k'
               }
+
+    # color_cycle key is deprecated in Matplotlib 1.5 and upper versions, use
+    # proc_cycle as default.
+    if 'axes.prop_cycle' in plt.rcParams:
+        params["axes.prop_cycle"] = cycler('color',
+                                           [COLOR["blue"], COLOR["green"],
+                                            COLOR["red"], COLOR["cyan"],
+                                            COLOR["magenta"], COLOR["yellow"],
+                                            rebase["0"]])
+    else:
+        params["axes.color_cycle"] = [COLOR["blue"], COLOR["green"],
+                                      COLOR["red"], COLOR["cyan"],
+                                      COLOR["magenta"], COLOR["yellow"],
+                                      rebase["0"]]
 
     plt.rcParams.update(params)
 
