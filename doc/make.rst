@@ -16,13 +16,14 @@ To build library :
 To build and run unit tests :
 
 * cute
-* gcovr
+* gcovr >= 3.3
 
 To run performance tests :
 
 * python3
 * python numpy library
 * python matplot library
+* python cycler, the composable kwarg iterator
 
 To build documentation :
 
