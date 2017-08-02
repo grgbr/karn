@@ -1,5 +1,6 @@
 #include "slist.h"
 #include "utils.h"
+#include "array.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -15,21 +16,7 @@ static unsigned int run_len = 0;
 
 typedef void (sort_fn)(struct slist *, unsigned int, slist_compare_fn *);
 
-static void
-insertion_sort(struct slist     *list,
-               unsigned int      nr __unused,
-               slist_compare_fn *compare)
-{
-	slist_insertion_sort(list, compare);
-}
-
-static void
-selection_sort(struct slist     *list,
-               unsigned int      nr __unused,
-               slist_compare_fn *compare)
-{
-	slist_selection_sort(list, compare);
-}
+#if defined(CONFIG_SLIST_BUBBLE_SORT)
 
 static void
 bubble_sort(struct slist     *list,
@@ -39,6 +26,103 @@ bubble_sort(struct slist     *list,
 	slist_bubble_sort(list, compare);
 }
 
+static sort_fn *
+setup_bubble_sort(const char *scheme)
+{
+	if (!strcmp(scheme, "bubble"))
+		return bubble_sort;
+
+	errno = EINVAL;
+	return NULL;
+}
+
+#else /* !defined(CONFIG_SLIST_BUBBLE_SORT) */
+
+static sort_fn *
+setup_bubble_sort(const char *scheme __unused)
+{
+	if (!strcmp(scheme, "bubble"))
+		errno = ENOSYS;
+	else
+		errno = EINVAL;
+
+	return NULL;
+}
+
+#endif /* defined(CONFIG_SLIST_BUBBLE_SORT) */
+
+#if defined(CONFIG_SLIST_SELECTION_SORT)
+
+static void
+selection_sort(struct slist     *list,
+               unsigned int      nr __unused,
+               slist_compare_fn *compare)
+{
+	slist_selection_sort(list, compare);
+}
+
+static sort_fn *
+setup_selection_sort(const char *scheme)
+{
+	if (!strcmp(scheme, "selection"))
+		return selection_sort;
+
+	errno = EINVAL;
+	return NULL;
+}
+
+#else /* !defined(CONFIG_SLIST_SELECTION_SORT) */
+
+static sort_fn *
+setup_selection_sort(const char *scheme __unused)
+{
+	if (!strcmp(scheme, "selection"))
+		errno = ENOSYS;
+	else
+		errno = EINVAL;
+
+	return NULL;
+}
+
+#endif /* defined(CONFIG_SLIST_SELECTION_SORT) */
+
+#if defined(CONFIG_SLIST_INSERTION_SORT)
+
+static void
+insertion_sort(struct slist     *list,
+               unsigned int      nr __unused,
+               slist_compare_fn *compare)
+{
+	slist_insertion_sort(list, compare);
+}
+
+static sort_fn *
+setup_insertion_sort(const char *scheme)
+{
+	if (!strcmp(scheme, "insertion"))
+		return insertion_sort;
+
+	errno = EINVAL;
+	return NULL;
+}
+
+#else /* !defined(CONFIG_SLIST_INSERTION_SORT) */
+
+static sort_fn *
+setup_insertion_sort(const char *scheme __unused)
+{
+	if (!strcmp(scheme, "insertion"))
+		errno = ENOSYS;
+	else
+		errno = EINVAL;
+
+	return NULL;
+}
+
+#endif /* defined(CONFIG_SLIST_INSERTION_SORT) */
+
+#if defined(CONFIG_SLIST_MERGE_SORT)
+
 static void
 merge_sort(struct slist *list, unsigned int nr, slist_compare_fn *compare)
 {
@@ -46,6 +130,58 @@ merge_sort(struct slist *list, unsigned int nr, slist_compare_fn *compare)
 		slist_merge_sort(list, nr, compare);
 	else
 		slist_hybrid_merge_sort(list, nr, run_len, compare);
+}
+
+static sort_fn *
+setup_merge_sort(const char *scheme)
+{
+	if (!strcmp(scheme, "merge"))
+		return merge_sort;
+
+	errno = EINVAL;
+	return NULL;
+}
+
+#else /* !defined(CONFIG_SLIST_MERGE_SORT) */
+
+static sort_fn *
+setup_merge_sort(const char *scheme __unused)
+{
+	if (!strcmp(scheme, "merge"))
+		errno = ENOSYS;
+	else
+		errno = EINVAL;
+
+	return NULL;
+}
+
+#endif /* defined(CONFIG_SLIST_MERGE_SORT) */
+
+static sort_fn *
+setup_sort(const char *scheme)
+{
+	typedef sort_fn * (setup_sort_fn)(const char *);
+	static setup_sort_fn * const setup[] = {
+		setup_bubble_sort,
+		setup_selection_sort,
+		setup_insertion_sort,
+		setup_merge_sort
+	};
+	unsigned int                 s;
+
+	for (s = 0; s < array_nr(setup); s++) {
+		sort_fn *sort;
+
+		sort = setup[s](scheme);
+		if (sort)
+			return sort;
+
+		if (errno == ENOSYS)
+			return NULL;
+	}
+
+	errno = EINVAL;
+	return NULL;
 }
 
 struct slist_uint {
@@ -192,17 +328,10 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!strcmp(argv[optind + 1], "insertion"))
-		sort = insertion_sort;
-	else if (!strcmp(argv[optind + 1], "selection"))
-		sort = selection_sort;
-	else if (!strcmp(argv[optind + 1], "bubble"))
-		sort = bubble_sort;
-	else if (!strcmp(argv[optind + 1], "merge"))
-		sort = merge_sort;
-	else {
-		fprintf(stderr, "Invalid sort algorithm \"%s\"\n",
-		        argv[optind + 1]);
+	sort = setup_sort(argv[optind + 1]);
+	if (!sort) {
+		fprintf(stderr, "Invalid \"%s\" sort algorithm: %s\n",
+		        argv[optind + 1], strerror(errno));
 		return EXIT_FAILURE;
 	}
 
