@@ -161,7 +161,7 @@ array_fixed_item_index(const struct array_fixed *array,
 	array_assert(array);
 	assert(item_size);
 	assert(item >= &array->arr_items[0]);
-	assert(item < &array->arr_items[array->arr_nr]);
+	assert(item < &array->arr_items[item_size * array->arr_nr]);
 	assert(!((size_t)item % item_size));
 
 	return (item - &array->arr_items[0]) / item_size;
