@@ -98,3 +98,57 @@ CUTE_PNP_TEST(bheaput_extract_single, &bheaput_empty)
 
 	cute_ensure(enode == 11U);
 }
+
+static CUTE_PNP_SUITE(bheaput_multiple, &bheaput);
+
+static void bheaput_check_nodes(const struct bheap_fixed *heap,
+                                unsigned int              nr)
+{
+	unsigned int n;
+
+	for (n = 1; n < nr; n++) {
+		const int *node = (int *)
+		                  array_fixed_item(&heap->bheap_tree.bst_nodes,
+			                               sizeof(*node), n);
+		cute_ensure(*((int *)
+		              bstree_fixed_parent(&heap->bheap_tree, sizeof(*node),
+		                                  (char *)node)) <= *node);
+	}
+}
+
+static void bheap_check_inorder(const int *nodes, unsigned int nr)
+{
+	int i, j;
+
+	for (i = 1; (unsigned int)i < nr; i++) {
+		bheap_init_fixed(&bheaput_heap, (char *)bheaput_nodes,
+		                 sizeof(bheaput_nodes[0]), array_nr(bheaput_nodes));
+
+		for (j = 0; j < i; j++)
+			bheap_insert_fixed(&bheaput_heap, (char *)&nodes[j],
+			                   bheaput_compare_min);
+
+		bheaput_check_nodes(&bheaput_heap, i);
+	}
+}
+
+CUTE_PNP_TEST(bheaput_inorder, &bheaput_multiple)
+{
+	int nodes[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+	bheap_check_inorder(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_revorder, &bheaput_multiple)
+{
+	int nodes[] = { 8, 7, 6, 5, 4, 3, 2, 1 };
+
+	bheap_check_inorder(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_mixorder, &bheaput_multiple)
+{
+	int nodes[] = { 8, 6, 7, 5, 1, 3, 2, 4 };
+
+	bheap_check_inorder(nodes, array_nr(nodes));
+}
