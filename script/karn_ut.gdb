@@ -1,4 +1,5 @@
 source slist.gdb
+source array.gdb
 
 define pent
 	printf "%u\n", ($arg0).value
