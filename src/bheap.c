@@ -66,23 +66,20 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
 	assert(node);
 	assert(compare);
 
-	char   *cnode;
 	size_t  nodesz = heap->node_size;
+	char   *cnode = bstree_fixed_root(&heap->bheap_tree, nodesz);
+	char   *pnode;
 
-	memcpy(node, bstree_fixed_root(&heap->bheap_tree, nodesz),
-	       nodesz);
+	memcpy(node, cnode, nodesz);
 
 	node = bstree_fixed_last(&heap->bheap_tree, nodesz);
-	cnode = bstree_fixed_root(&heap->bheap_tree, nodesz);
 
-	do {
-		struct bstree_siblings sibs;
+	while (true) {
+		struct bstree_siblings  sibs;
 
-		memcpy(cnode, node, nodesz);
+		pnode = cnode;
 
-		node = cnode;
-		sibs = bstree_fixed_siblings(&heap->bheap_tree, nodesz, node);
-
+		sibs = bstree_fixed_siblings(&heap->bheap_tree, nodesz, pnode);
 		if (!(sibs.bst_left || sibs.bst_right))
 			break;
 
@@ -93,7 +90,14 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
 		else
 			cnode = (compare(sibs.bst_left, sibs.bst_right) <= 0) ?
 			        sibs.bst_left : sibs.bst_right;
-	} while (compare(node, cnode) > 0);
+
+		if (compare(node, cnode) <= 0)
+			break;
+
+		memcpy(pnode, cnode, nodesz);
+	}
+
+	memcpy(pnode, node, nodesz);
 
 	bstree_fixed_debit(&heap->bheap_tree);
 }
