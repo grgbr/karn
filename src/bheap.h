@@ -141,6 +141,24 @@ extern void bheap_extract_fixed(struct bheap_fixed *heap,
                                 array_compare_fn   *compare);
 
 /**
+ * Build / heapify a bheap_fixed initialized with unsorted data
+ *
+ * @param heap      heap to heapify
+ * @param count     count of nodes to heapify
+ * @param compare   comparison function used to locate the right array slot to
+ *                  insert data into
+ *
+ * Build @p heap bheap_fixed from an the array passed as argument to
+ * bheap_init_fixed() according to Floyd algorithm in O(n) time complexity.
+ *
+ * @warning Behavior is undefined if @p count is zero.
+ *
+ * @ingroup bheap_fixed
+ */
+extern void bheap_build_fixed(struct bheap_fixed *heap,
+                              unsigned int        count,
+                              array_compare_fn   *compare);
+/**
  * Initialize a bheap_fixed
  *
  * @param heap      heap to initialize

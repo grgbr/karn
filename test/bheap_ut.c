@@ -615,3 +615,106 @@ CUTE_PNP_TEST(bheaput_created_mixorder20, &bheaput_create)
 
 	bheaput_check_extract(bheaput_created, nodes, array_nr(nodes));
 }
+
+static CUTE_PNP_SUITE(bheaput_build, &bheaput);
+
+static void bheaput_check_build(int *nodes, int nr)
+{
+	struct bheap_fixed heap;
+	int                check[nr];
+	int                n;
+
+	memcpy(check, nodes, nr * sizeof(*nodes));
+	qsort(check, nr, sizeof(*nodes), bheaput_qsort_compare_min);
+
+	bheap_init_fixed(&heap, (char *)nodes, sizeof(*nodes), nr);
+	bheap_build_fixed(&heap, nr, bheaput_compare_min);
+
+	for (n = 0; n < nr; n++) {
+		int curr = -1;
+
+		bheaput_check_nodes(&heap, nr - n);
+		cute_ensure(*(int *)bheap_peek_fixed(&heap) == check[n]);
+
+		bheap_extract_fixed(&heap, (char *)&curr, bheaput_compare_min);
+		cute_ensure(curr == check[n]);
+	}
+}
+
+CUTE_PNP_TEST(bheaput_build_single, &bheaput_build)
+{
+	int nodes[] = { 1 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_inorder2, &bheaput_build)
+{
+	int nodes[] = { 1, 2 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_revorder2, &bheaput_build)
+{
+	int nodes[] = { 2, 1 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_inorder3, &bheaput_build)
+{
+	int nodes[] = { 1, 2, 3 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_revorder3, &bheaput_build)
+{
+	int nodes[] = { 3, 2, 1 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_mixorder3_large_right, &bheaput_build)
+{
+	int nodes[] = { 2, 1, 3 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_mixorder3_large_left, &bheaput_build)
+{
+	int nodes[] = { 2, 3, 1 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_mixorder4, &bheaput_build)
+{
+	int nodes[] = { 2, 3, 1, 4 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_mixorder5, &bheaput_build)
+{
+	int nodes[] = { 2, 3, 1, 4, 2 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_mixorder7, &bheaput_build)
+{
+	int nodes[] = { 2, 4, 1, 3, 3, 2 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bheaput_build_mixorder20, &bheaput_build)
+{
+	int nodes[] = { 20, 19, 18, 17, 16, 16, 8, 4, 7, 5,
+	                1, 3, 2, 4, 10, 11, 12, 13, 19 };
+
+	bheaput_check_build(nodes, array_nr(nodes));
+}

@@ -86,6 +86,31 @@ bstree_fixed_full(const struct bstree_fixed *tree)
 }
 
 /**
+ * Retrieve bstree_fixed node specified by index
+ *
+ * @param tree      bstree_fixed to retrieve node from
+ * @param node_size size in bytes of a single node sitting into @p tree
+ * @param index     index identifying the node to retrieve
+ *
+ * @return pointer to node
+ *
+ * @warning Behavior is undefined if @p index is out of bounds.
+ *
+ * @ingroup bstree_fixed
+ */
+static inline char *
+bstree_fixed_node(const struct bstree_fixed *tree,
+                  size_t                     node_size,
+                  unsigned int               index)
+{
+	bstree_assert_fixed(tree);
+	assert(node_size);
+	assert(index < array_fixed_nr(&tree->bst_nodes));
+
+	return array_fixed_item(&tree->bst_nodes, node_size, index);
+}
+
+/**
  * Retrieve root node of specified bstree_fixed
  *
  * @param tree      bstree_fixed to retrieve root from

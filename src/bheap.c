@@ -37,23 +37,67 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
 	assert(node);
 	assert(compare);
 
-	char   *cnode;
-	char   *pnode;
+	char   *child;
+	char   *parent;
 	size_t  nodesz = heap->node_size;
 
-	cnode = bstree_fixed_bottom(&heap->bheap_tree, nodesz);
-	pnode = bstree_fixed_parent(&heap->bheap_tree, nodesz, cnode);
+	child = bstree_fixed_bottom(&heap->bheap_tree, nodesz);
+	parent = bstree_fixed_parent(&heap->bheap_tree, nodesz, child);
 
-	while (pnode && compare(node, pnode) <= 0) {
-		memcpy(cnode, pnode, nodesz);
+	while (parent && compare(node, parent) <= 0) {
+		memcpy(child, parent, nodesz);
 
-		cnode = pnode;
-		pnode = bstree_fixed_parent(&heap->bheap_tree, nodesz, cnode);
+		child = parent;
+		parent = bstree_fixed_parent(&heap->bheap_tree, nodesz, child);
 	}
 
-	memcpy(cnode, node, nodesz);
+	memcpy(child, node, nodesz);
 
 	bstree_fixed_credit(&heap->bheap_tree);
+}
+
+static char * bheap_fixed_unorder_child(const struct bstree_fixed *tree,
+                                        const char                *parent,
+                                        const char                *node,
+                                        size_t                     node_size,
+                                        array_compare_fn          *compare)
+{
+		struct bstree_siblings  sibs;
+		char                   *child;
+
+		sibs = bstree_fixed_siblings(tree, node_size, parent);
+
+		if (!sibs.bst_left)
+			child = sibs.bst_right;
+		else if (!sibs.bst_right)
+			child = sibs.bst_left;
+		else if (compare(sibs.bst_left, sibs.bst_right) <= 0)
+			child = sibs.bst_left;
+		else
+			child = sibs.bst_right;
+
+		if (!child || (compare(node, child) <= 0))
+			return NULL;
+
+		return child;
+}
+
+static char * bheap_siftdown_fixed(const struct bstree_fixed *tree,
+                                   char                      *parent,
+                                   char                      *child,
+                                   const char                *node,
+                                   size_t                     node_size,
+                                   array_compare_fn          *compare)
+{
+	do {
+		memcpy(parent, child, node_size);
+
+		parent = child;
+		child = bheap_fixed_unorder_child(tree, parent, node, node_size,
+		                                  compare);
+	} while (child);
+
+	return parent;
 }
 
 void bheap_extract_fixed(struct bheap_fixed *heap,
@@ -61,45 +105,65 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
                          array_compare_fn   *compare)
 {
 	assert(heap);
-	assert(heap->node_size);
 	assert(!bstree_fixed_empty(&heap->bheap_tree));
 	assert(node);
 	assert(compare);
 
-	size_t  nodesz = heap->node_size;
-	char   *cnode = bstree_fixed_root(&heap->bheap_tree, nodesz);
-	char   *pnode;
+	size_t               nodesz = heap->node_size;
+	struct bstree_fixed *tree = &heap->bheap_tree;
+	char                *parent, *child;
+	const char          *last = bstree_fixed_last(tree, nodesz);
 
-	memcpy(node, cnode, nodesz);
+	parent = bstree_fixed_root(tree, nodesz);
+	memcpy(node, parent, nodesz);
 
-	node = bstree_fixed_last(&heap->bheap_tree, nodesz);
+	last = bstree_fixed_last(tree, nodesz);
+	child = bheap_fixed_unorder_child(tree, parent, last, nodesz, compare);
+	if (child)
+		parent = bheap_siftdown_fixed(tree, parent, child, last, nodesz,
+		                              compare);
 
-	while (true) {
-		struct bstree_siblings  sibs;
+	memcpy(parent, last, nodesz);
 
-		pnode = cnode;
+	bstree_fixed_debit(tree);
+}
 
-		sibs = bstree_fixed_siblings(&heap->bheap_tree, nodesz, pnode);
-		if (!(sibs.bst_left || sibs.bst_right))
-			break;
+void bheap_build_fixed(struct bheap_fixed *heap,
+                       unsigned int        count,
+                       array_compare_fn   *compare)
+{
+	assert(heap);
+	assert(count);
+	assert(count <= array_fixed_nr(&heap->bheap_tree.bst_nodes));
+	assert(compare);
 
-		if (!sibs.bst_left)
-			cnode = sibs.bst_right;
-		else if (!sibs.bst_right)
-			cnode = sibs.bst_left;
-		else
-			cnode = (compare(sibs.bst_left, sibs.bst_right) <= 0) ?
-			        sibs.bst_left : sibs.bst_right;
+	unsigned int         n;
+	size_t               nodesz = heap->node_size;
+	struct bstree_fixed *tree = &heap->bheap_tree;
 
-		if (compare(node, cnode) <= 0)
-			break;
+	/*
+	 * Update count immediatly to prevent siftdown from complaining about
+	 * empty heap.
+	 */
+	tree->bst_count = count;
 
-		memcpy(pnode, cnode, nodesz);
+	n = count / 2;
+	while (n--) {
+		char *node;
+		char *child;
+
+		node = bstree_fixed_node(tree, nodesz, n);
+
+		child = bheap_fixed_unorder_child(tree, node, node, nodesz, compare);
+		if (child) {
+			char tmp[nodesz];
+
+			memcpy(tmp, node, nodesz);
+			node = bheap_siftdown_fixed(tree, node, child, tmp, nodesz,
+			                            compare);
+			memcpy(node, tmp, nodesz);
+		}
 	}
-
-	memcpy(pnode, node, nodesz);
-
-	bstree_fixed_debit(&heap->bheap_tree);
 }
 
 void bheap_init_fixed(struct bheap_fixed *heap,
