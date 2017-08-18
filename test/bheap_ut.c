@@ -641,6 +641,11 @@ static void bheaput_check_build(int *nodes, int nr)
 	}
 }
 
+/**
+ * Build binary heap from external array composed of a sinle node.
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_single, &bheaput_build)
 {
 	int nodes[] = { 1 };
@@ -648,6 +653,12 @@ CUTE_PNP_TEST(bheaput_build_single, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 2 nodes sorted in
+ * order.
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_inorder2, &bheaput_build)
 {
 	int nodes[] = { 1, 2 };
@@ -655,6 +666,12 @@ CUTE_PNP_TEST(bheaput_build_inorder2, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 2 nodes sorted in
+ * reverse order.
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_revorder2, &bheaput_build)
 {
 	int nodes[] = { 2, 1 };
@@ -662,6 +679,12 @@ CUTE_PNP_TEST(bheaput_build_revorder2, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 3 nodes sorted in
+ * order.
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_inorder3, &bheaput_build)
 {
 	int nodes[] = { 1, 2, 3 };
@@ -669,6 +692,12 @@ CUTE_PNP_TEST(bheaput_build_inorder3, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 3 nodes sorted in reverse
+ * order.
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_revorder3, &bheaput_build)
 {
 	int nodes[] = { 3, 2, 1 };
@@ -676,20 +705,37 @@ CUTE_PNP_TEST(bheaput_build_revorder3, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
-CUTE_PNP_TEST(bheaput_build_mixorder3_large_right, &bheaput_build)
+/**
+ * Build binary heap from external array composed of 3 nodes in
+ * unsorted order with largest node last.
+ *
+ * @ingroup bheaput_fixed
+ */
+CUTE_PNP_TEST(bheaput_build_mixorder3_large, &bheaput_build)
 {
 	int nodes[] = { 2, 1, 3 };
 
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
-CUTE_PNP_TEST(bheaput_build_mixorder3_large_left, &bheaput_build)
+/**
+ * Build binary heap from external array composed of 3 nodes in
+ * unsorted order with smallest node last.
+ *
+ * @ingroup bheaput_fixed
+ */
+CUTE_PNP_TEST(bheaput_build_mixorder3_small, &bheaput_build)
 {
 	int nodes[] = { 2, 3, 1 };
 
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 4 nodes in unsorted order
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_mixorder4, &bheaput_build)
 {
 	int nodes[] = { 2, 3, 1, 4 };
@@ -697,6 +743,12 @@ CUTE_PNP_TEST(bheaput_build_mixorder4, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 5 nodes with duplicates
+ * in unsorted order
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_mixorder5, &bheaput_build)
 {
 	int nodes[] = { 2, 3, 1, 4, 2 };
@@ -704,6 +756,12 @@ CUTE_PNP_TEST(bheaput_build_mixorder5, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 7 nodes with duplicates
+ * in unsorted order
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_mixorder7, &bheaput_build)
 {
 	int nodes[] = { 2, 4, 1, 3, 3, 2 };
@@ -711,6 +769,12 @@ CUTE_PNP_TEST(bheaput_build_mixorder7, &bheaput_build)
 	bheaput_check_build(nodes, array_nr(nodes));
 }
 
+/**
+ * Build binary heap from external array composed of 20 nodes with duplicates
+ * in unsorted order
+ *
+ * @ingroup bheaput_fixed
+ */
 CUTE_PNP_TEST(bheaput_build_mixorder20, &bheaput_build)
 {
 	int nodes[] = { 20, 19, 18, 17, 16, 16, 8, 4, 7, 5,
