@@ -1,0 +1,8 @@
+* binary heaps:
+  * merge (shadow ?)
+  * decrease key
+* exclude measurement outliers and document this
+* enhance coverage
+* splint
+* metrics
+* check_patch
