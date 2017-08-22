@@ -166,6 +166,12 @@ lib_src += bheap.c
 ut_src  += bheap_ut.c
 endif
 
+ifeq ($(CONFIG_BNM_HEAP),y)
+lib_src += bnm_heap.c
+ut_src  += bnm_heap_ut.c
+endif
+
+
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:
 

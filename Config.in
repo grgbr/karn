@@ -26,3 +26,7 @@ config SLIST_MERGE_SORT
 config BHEAP_FIXED
 	bool "Fixed length array based binary heap"
 	default y
+
+config BNM_HEAP
+	bool "Binomial heap"
+	default y
