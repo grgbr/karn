@@ -117,6 +117,7 @@ bnm_heap_merge_trees(struct bnm_heap_node *first,
 {
 	assert(first);
 	assert(second);
+	assert(compare);
 
 	struct bnm_heap_node  *head, *tail;
 	struct bnm_heap_node **prev = &tail;
@@ -162,7 +163,6 @@ bnm_heap_merge_trees(struct bnm_heap_node *first,
 
 struct bnm_heap_node *
 bnm_heap_peek(const struct bnm_heap *heap, bnm_heap_compare_fn *compare)
-
 {
 	/* TODO: optimize by always keeping a pointer to minimum root. */
 	assert(heap->bnm_trees);
@@ -183,20 +183,49 @@ bnm_heap_peek(const struct bnm_heap *heap, bnm_heap_compare_fn *compare)
 struct bnm_heap_node *
 bnm_heap_extract(struct bnm_heap *heap, bnm_heap_compare_fn *compare)
 {
-	struct bnm_heap_node *key = bnm_heap_peek(heap, compare);
-	struct bnm_heap_node *node = key->bnm_eldest;
-	struct bnm_heap_node *roots = NULL;
+	assert(heap);
+	assert(heap->bnm_trees);
+	assert(heap->bnm_count);
+	assert(compare);
 
-	while (node) {
-		struct bnm_heap_node *nxt = node->bnm_sibling;
+	struct bnm_heap_node *key = heap->bnm_trees;
+	struct bnm_heap_node *key_prev = NULL;
+	struct bnm_heap_node *node = key;
+	struct bnm_heap_node *root = key->bnm_sibling;
 
-		node->bnm_sibling = roots;
-		roots = node;
+	while (root) {
+		if (compare(root, key) < 0) {
+			key_prev = node;
+			key = root;
+		}
 
-		node = nxt;
+		node = root;
+		root = root->bnm_sibling;
 	}
 
-	heap->bnm_trees = bnm_heap_merge_trees(heap->bnm_trees, roots, compare);
+	if (key_prev)
+		key_prev->bnm_sibling = key->bnm_sibling;
+	else
+		heap->bnm_trees = key->bnm_sibling;
+
+	node = key->bnm_eldest;
+	if (node) {
+		do {
+			struct bnm_heap_node *nxt = node->bnm_sibling;
+
+			node->bnm_parent = NULL;
+			node->bnm_sibling = root;
+			root = node;
+
+			node = nxt;
+		} while (node);
+
+		if (heap->bnm_trees)
+			heap->bnm_trees = bnm_heap_merge_trees(heap->bnm_trees,
+			                                       root, compare);
+		else
+			heap->bnm_trees = root;
+	}
 
 	heap->bnm_count--;
 
@@ -207,6 +236,14 @@ void bnm_heap_merge(struct bnm_heap     *result,
                     struct bnm_heap     *source,
                     bnm_heap_compare_fn *compare)
 {
+	assert(result);
+	assert(result->bnm_trees);
+	assert(result->bnm_count);
+	assert(source);
+	assert(source->bnm_trees);
+	assert(source->bnm_count);
+	assert(compare);
+
 	result->bnm_trees = bnm_heap_merge_trees(result->bnm_trees,
 	                                         source->bnm_trees, compare);
 
