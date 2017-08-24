@@ -120,14 +120,15 @@ bnm_heap_merge_trees(struct bnm_heap_node *first,
 	assert(compare);
 
 	struct bnm_heap_node  *head, *tail;
-	struct bnm_heap_node **prev = &tail;
+	struct bnm_heap_node **prev;
+	struct bnm_heap_node  *tmp;
+
 
 	head = bnm_heap_merge_roots(&first, &second, compare);
+	prev = &head;
 	tail = head;
 
 	while (first && second) {
-		struct bnm_heap_node *tmp;
-
 		tmp = bnm_heap_merge_roots(&first, &second, compare);
 
 		assert(tail->bnm_order <= tmp->bnm_order);
@@ -146,17 +147,16 @@ bnm_heap_merge_trees(struct bnm_heap_node *first,
 	if (!first)
 		first = second;
 
-	if (first) {
+	while (first && (tail->bnm_order == first->bnm_order)) {
 		assert(tail->bnm_order <= first->bnm_order);
 
-		if (tail->bnm_order == first->bnm_order) {
-			second = first->bnm_sibling;
-			*prev = bnm_heap_join_trees(tail, first, compare);
-			(*prev)->bnm_sibling = second;
-		}
-		else
-			tail->bnm_sibling = first;
+		tmp = first->bnm_sibling;
+		*prev = bnm_heap_join_trees(tail, first, compare);
+		tail = *prev;
+		first = tmp;
 	}
+
+	tail->bnm_sibling = first;
 
 	return head;
 }
