@@ -147,11 +147,15 @@ static void bnmhut_check_heap(struct bnm_heap     *heap,
 	bnmhut_check_roots(heap, count);
 
 	for (n = 0; n < count; n++) {
-		const struct bnm_heap_node *node;
+		const struct bnm_heap_node *node = NULL;
 		const struct bnmhut_node   *check = checks[n];
 
-		node = bnm_heap_extract(heap, bnmhut_compare_min);
+		node = bnm_heap_peek(heap, bnmhut_compare_min);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
 
+		node = NULL;
+		node = bnm_heap_extract(heap, bnmhut_compare_min);
 		cute_ensure(bnm_heap_count(heap) == count - n - 1);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
