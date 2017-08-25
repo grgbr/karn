@@ -1054,3 +1054,86 @@ CUTE_PNP_TEST(bnmhut_merge_mit, &bnmhut_merge)
 
 	bnmhut_check_heap_merge(fst, array_nr(fst), snd, array_nr(snd), checks);
 }
+
+static CUTE_PNP_FIXTURED_SUITE(bnmhut_update, &bnmhut, bnmhut_setup_empty,
+                               NULL);
+
+static void bnmhut_check_update(struct bnm_heap     *heap,
+                                unsigned int         new_index,
+                                int                  new_key,
+                                struct bnmhut_node  *nodes,
+                                struct bnmhut_node **checks,
+                                unsigned int         count)
+{
+	unsigned int n;
+
+	for (n = 0; n < count; n++) {
+		bnm_heap_insert(heap, &nodes[n].heap, bnmhut_compare_min);
+
+		cute_ensure(bnm_heap_count(heap) == (n + 1));
+	}
+
+	bnmhut_check_roots(heap, count);
+
+	nodes[new_index].key = new_key;
+	bnm_heap_update(heap, &nodes[new_index].heap, bnmhut_compare_min);
+
+	for (n = 0; n < count; n++) {
+		const struct bnm_heap_node *node = NULL;
+		const struct bnmhut_node   *check = checks[n];
+
+		node = bnm_heap_peek(heap, bnmhut_compare_min);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
+
+		node = NULL;
+		node = bnm_heap_extract(heap, bnmhut_compare_min);
+
+		cute_ensure(bnm_heap_count(heap) == count - n - 1);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
+	}
+}
+
+CUTE_PNP_TEST(bnmhut_update1, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(0)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[0]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 2, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_up2, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[1],
+		&nodes[0]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 1, 0, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down2, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[1],
+		&nodes[0]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 3, nodes, checks, array_nr(nodes));
+}

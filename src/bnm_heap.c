@@ -55,6 +55,121 @@ bnm_heap_join_trees(struct bnm_heap_node *first,
 	return root;
 }
 
+static void bnm_heap_swap(struct bnm_heap_node *parent,
+                          struct bnm_heap_node *node)
+{
+	assert(parent);
+	assert(node);
+
+	struct bnm_heap_node *tmp = parent->bnm_parent;
+
+	if (tmp)
+		/* parent is not a binomial tree root node. */
+		tmp->bnm_eldest = node;
+	node->bnm_parent = tmp;
+
+	tmp = node->bnm_eldest;
+	if (tmp)
+		/* node is not located at deepest level. */
+		tmp->bnm_parent = parent;
+	parent->bnm_eldest = tmp;
+
+	node->bnm_eldest = parent;
+	parent->bnm_parent = node;
+
+	tmp = node->bnm_sibling;
+	node->bnm_sibling = parent->bnm_sibling;
+	parent->bnm_sibling = tmp;
+
+	assert(parent->bnm_order > 0);
+	node->bnm_order++;
+	parent->bnm_order--;
+}
+
+void bnm_heap_update(struct bnm_heap      *heap,
+                     struct bnm_heap_node *key,
+                     bnm_heap_compare_fn  *compare)
+
+{
+	assert(heap);
+	assert(heap->bnm_trees);
+	assert(key);
+	assert(compare);
+
+	struct bnm_heap_node *prev;
+	struct bnm_heap_node *root;
+
+	if (key->bnm_parent && (compare(key->bnm_parent, key) > 0)) {
+		/* Bubble key up. */
+		do {
+			bnm_heap_swap(key->bnm_parent, key);
+		} while (key->bnm_parent &&
+		         (compare(key->bnm_parent, key) > 0));
+
+		if (key->bnm_parent)
+			return;
+
+		/*
+		 * Key bubbled up to root node location : rebuild list of root
+		 * nodes.
+		 */
+		root = heap->bnm_trees;
+		if (root == key->bnm_eldest) {
+			/* Key should be linked as first list node. */
+			heap->bnm_trees = key;
+			return;
+		}
+		/*
+		 * Iterate over the list of root nodes untill old root (the one
+		 * before last key swap) is found then restore proper link from
+		 * preceding list root node.
+		 */
+		do {
+			prev = root;
+			root = root->bnm_sibling;
+			assert(root);
+		} while (root != key->bnm_eldest);
+
+		prev->bnm_sibling = key;
+	}
+	else if (key->bnm_eldest && (compare(key, key->bnm_eldest) > 0)) {
+		/* Bubble key down. */
+		if (!key->bnm_parent) {
+			/*
+			 * Key is a root node and it will bubble down its own
+			 * tree: setup proper root nodes list links in advance.
+			 */
+			root = heap->bnm_trees;
+			if (root != key) {
+				/*
+				 * Iterate over the list of root nodes untill
+				 * key is found then setup proper (future) link
+				 * from preceding list root node.
+				 */
+				do {
+					prev = root;
+					root = root->bnm_sibling;
+					assert(root);
+				} while (root != key);
+
+				prev->bnm_sibling = key->bnm_eldest;
+			}
+			else
+				/*
+				 * First list node should point to key's
+				 * subtree since it will become root after
+				 * bubbling down.
+				 */
+				heap->bnm_trees = key->bnm_eldest;
+		}
+
+		do {
+			bnm_heap_swap(key, key->bnm_eldest);
+		} while (key->bnm_eldest &&
+		         (compare(key, key->bnm_eldest) > 0));
+	}
+}
+
 void bnm_heap_insert(struct bnm_heap      *heap,
                      struct bnm_heap_node *key,
                      bnm_heap_compare_fn  *compare)

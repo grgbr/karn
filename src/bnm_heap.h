@@ -62,6 +62,10 @@ extern void bnm_heap_merge(struct bnm_heap     *result,
                            struct bnm_heap     *source,
                            bnm_heap_compare_fn *compare);
 
+extern void bnm_heap_update(struct bnm_heap      *heap,
+                            struct bnm_heap_node *key,
+                            bnm_heap_compare_fn  *compare);
+
 
 static inline unsigned int
 bnm_heap_count(const struct bnm_heap* heap)
