@@ -1137,3 +1137,109 @@ CUTE_PNP_TEST(bnmhut_update_down2, &bnmhut_update)
 
 	bnmhut_check_update(&bnmhut_heap, 0, 3, nodes, checks, array_nr(nodes));
 }
+
+CUTE_PNP_TEST(bnmhut_update_still2, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[0],
+		&nodes[1]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 0, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_up3, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2),
+		BNMHUT_INIT_NODE(3)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[2],
+		&nodes[0],
+		&nodes[1]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 2, 0, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down3, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2),
+		BNMHUT_INIT_NODE(3)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[1],
+		&nodes[2],
+		&nodes[0]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 4, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_left_up4, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2),
+		BNMHUT_INIT_NODE(3),
+		BNMHUT_INIT_NODE(4)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[3],
+		&nodes[0],
+		&nodes[1],
+		&nodes[2]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 3, 0, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_right_up4, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2),
+		BNMHUT_INIT_NODE(3),
+		BNMHUT_INIT_NODE(4)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[1],
+		&nodes[0],
+		&nodes[2],
+		&nodes[3]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 1, 0, nodes, checks, array_nr(nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_update_left_down4, &bnmhut_update)
+{
+	static struct bnmhut_node nodes[] = {
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2),
+		BNMHUT_INIT_NODE(3),
+		BNMHUT_INIT_NODE(4)
+	};
+
+	static struct bnmhut_node *checks[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[3],
+		&nodes[2]
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 2, 5, nodes, checks, array_nr(nodes));
+}

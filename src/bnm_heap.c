@@ -62,6 +62,7 @@ static void bnm_heap_swap(struct bnm_heap_node *parent,
 	assert(node);
 
 	struct bnm_heap_node *tmp = parent->bnm_parent;
+	unsigned int          order;
 
 	if (tmp)
 		/* parent is not a binomial tree root node. */
@@ -82,8 +83,9 @@ static void bnm_heap_swap(struct bnm_heap_node *parent,
 	parent->bnm_sibling = tmp;
 
 	assert(parent->bnm_order > 0);
-	node->bnm_order++;
-	parent->bnm_order--;
+	order = node->bnm_order;
+	node->bnm_order = parent->bnm_order;
+	parent->bnm_order = order;
 }
 
 void bnm_heap_update(struct bnm_heap      *heap,
