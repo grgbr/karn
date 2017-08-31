@@ -341,8 +341,7 @@ extern void dlist_splice(struct dlist_node *restrict at,
  *
  * @ingroup dlist
  */
-
-#define slist_entry(_node, _type, _member) \
+#define dlist_entry(_node, _type, _member) \
 	containerof(_node, _type, _member)
 
 #endif

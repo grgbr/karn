@@ -20,6 +20,7 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
+#include <stddef.h>
 #include <limits.h>
 #include <assert.h>
 
