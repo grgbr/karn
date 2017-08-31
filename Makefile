@@ -161,6 +161,11 @@ intpt_files += $(call mk_intpt_files,merge,fullrev,1,20) \
                $(call mk_intpt_files,merge,random,12,20)
 endif
 
+ifeq ($(CONFIG_DLIST),y)
+lib_src   += dlist.c
+ut_src    += dlist_ut.c
+endif
+
 ifeq ($(CONFIG_BHEAP_FIXED),y)
 lib_src += bheap.c
 ut_src  += bheap_ut.c

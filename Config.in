@@ -23,6 +23,10 @@ config SLIST_MERGE_SORT
 	select SLIST_INSERTION_SORT
 	default y
 
+config DLIST
+	bool "Doubly linked list"
+	default n
+
 config BHEAP_FIXED
 	bool "Fixed length array based binary heap"
 	default y
