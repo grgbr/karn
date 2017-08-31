@@ -27,23 +27,27 @@
 #ifndef _KARN_BNM_HEAP_H
 #define _KARN_BNM_HEAP_H
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "dlist.h"
+#include <assert.h>
 
 struct bnm_heap_node {
+	struct dlist_node     bnm_sibling;
 	struct bnm_heap_node *bnm_parent;
-	struct bnm_heap_node *bnm_eldest;
-	struct bnm_heap_node *bnm_sibling;
+	struct dlist_node    *bnm_child;
 	unsigned int          bnm_order;
 };
 
 struct bnm_heap {
-	struct bnm_heap_node *bnm_trees;
-	unsigned int          bnm_count;
+	struct dlist_node bnm_roots;
+	unsigned int      bnm_count;
 };
 
+#define bnm_heap_assert(_heap)                                        \
+	assert(_heap);                                                \
+	assert(dlist_empty(&(_heap)->bnm_roots) ^ (_heap)->bnm_count)
+
 #define BNM_HEAP_INIT(_heap) \
-	{ .bnm_trees = NULL, .bnm_count = 0 }
+	{ .bnm_roots = DLIST_INIT((_heap).bnm_roots), .bnm_count = 0 }
 
 typedef int (bnm_heap_compare_fn)(const struct bnm_heap_node *first,
                                   const struct bnm_heap_node *second);
@@ -58,31 +62,45 @@ extern struct bnm_heap_node * bnm_heap_peek(const struct bnm_heap *heap,
 extern struct bnm_heap_node * bnm_heap_extract(struct bnm_heap     *heap,
                                                bnm_heap_compare_fn *compare);
 
-extern void bnm_heap_merge(struct bnm_heap     *result,
-                           struct bnm_heap     *source,
-                           bnm_heap_compare_fn *compare);
+extern void bnm_heap_merge_trees(struct dlist_node   *first,
+                                 struct dlist_node   *second,
+                                 bnm_heap_compare_fn *compare);
 
-extern void bnm_heap_update(struct bnm_heap      *heap,
-                            struct bnm_heap_node *key,
+extern void bnm_heap_update(struct bnm_heap_node *key,
                             bnm_heap_compare_fn  *compare);
-
 
 static inline unsigned int
 bnm_heap_count(const struct bnm_heap* heap)
 {
+	bnm_heap_assert(heap);
+
 	return heap->bnm_count;
 }
 
 static inline bool
 bnm_heap_empty(const struct bnm_heap* heap)
 {
+	bnm_heap_assert(heap);
+
 	return heap->bnm_count == 0;
+}
+
+static inline void
+bnm_heap_merge(struct bnm_heap     *result,
+               struct bnm_heap     *source,
+               bnm_heap_compare_fn *compare)
+{
+	bnm_heap_merge_trees(&result->bnm_roots, &source->bnm_roots, compare);
+
+	result->bnm_count += source->bnm_count;
 }
 
 static inline void
 bnm_heap_init(struct bnm_heap* heap)
 {
-	heap->bnm_trees = NULL;
+	assert(heap);
+
+	dlist_init(&heap->bnm_roots);
 	heap->bnm_count = 0;
 }
 

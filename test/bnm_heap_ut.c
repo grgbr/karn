@@ -35,15 +35,18 @@ struct bnmhut_node {
 	int                  key;
 };
 
-#define BNMHUT_INIT_NODE(_key)                                             \
-	{                                                                  \
-		.heap = {                                                  \
-			.bnm_parent  = (struct bnm_heap_node *)0xdeadbeef, \
-			.bnm_eldest  = (struct bnm_heap_node *)0xdeadbeef, \
-			.bnm_sibling = (struct bnm_heap_node *)0xdeadbeef, \
-			.bnm_order   = 0xdeadbeef                          \
-		},                                                         \
-		.key = _key                                                \
+#define BNMHUT_INIT_NODE(_key)                                                 \
+	{                                                                      \
+		.heap = {                                                      \
+			.bnm_sibling = {                                       \
+				.dlist_next = (struct dlist_node *)0xdeadbeef, \
+				.dlist_prev = (struct dlist_node *)0xbeefdead, \
+			},                                                     \
+			.bnm_parent  = (struct bnm_heap_node *)0xdeadbeef,     \
+			.bnm_child   = (struct dlist_node *)0xdeadbeef,        \
+			.bnm_order   = 0xdeadbeef                              \
+		},                                                             \
+		.key = _key                                                    \
 	}
 
 static struct bnm_heap bnmhut_heap;
@@ -77,10 +80,11 @@ CUTE_PNP_TEST(bnmhut_insert_single, &bnmhut_empty)
 	bnm_heap_insert(&bnmhut_heap, &node.heap, bnmhut_compare_min);
 
 	cute_ensure(bnm_heap_count(&bnmhut_heap) == 1U);
-	cute_ensure(bnmhut_heap.bnm_trees == &node.heap);
+	cute_ensure(dlist_next(&bnmhut_heap.bnm_roots) ==
+	            &node.heap.bnm_sibling);
+	cute_ensure(node.heap.bnm_child == NULL);
 	cute_ensure(node.heap.bnm_parent == NULL);
-	cute_ensure(node.heap.bnm_eldest == NULL);
-	cute_ensure(node.heap.bnm_sibling == NULL);
+	cute_ensure(dlist_empty(&node.heap.bnm_sibling) == false);
 	cute_ensure(node.heap.bnm_order == 0);
 }
 
@@ -105,16 +109,16 @@ CUTE_PNP_TEST(bnmhut_extract_single, &bnmhut_empty)
 	cute_ensure(bnm_heap_count(&bnmhut_heap) == 1U);
 	cute_ensure(bnm_heap_extract(&bnmhut_heap, bnmhut_compare_min) ==
 	            &node.heap);
-	cute_ensure(bnmhut_heap.bnm_trees == NULL);
+	cute_ensure(dlist_empty(&bnmhut_heap.bnm_roots));
 	cute_ensure(bnm_heap_count(&bnmhut_heap) == 0U);
 }
 
 static void bnmhut_check_roots(const struct bnm_heap* heap, unsigned int count)
 {
-	const struct bnm_heap_node *node = heap->bnm_trees;
+	const struct bnm_heap_node *node;
 	int                         order = -1;
 
-	while (node) {
+	dlist_foreach_entry(&heap->bnm_roots, node, bnm_sibling) {
 		while (!(count & 1)) {
 			count >>= 1;
 			order++;
@@ -124,8 +128,6 @@ static void bnmhut_check_roots(const struct bnm_heap* heap, unsigned int count)
 
 		cute_ensure(node->bnm_parent == NULL);
 		cute_ensure(node->bnm_order == (unsigned int)order);
-
-		node = node->bnm_sibling;
 	}
 
 	cute_ensure(count == 0);
@@ -1076,7 +1078,7 @@ static void bnmhut_check_update(struct bnm_heap     *heap,
 	bnmhut_check_roots(heap, count);
 
 	nodes[new_index].key = new_key;
-	bnm_heap_update(heap, &nodes[new_index].heap, bnmhut_compare_min);
+	bnm_heap_update(&nodes[new_index].heap, bnmhut_compare_min);
 
 	for (n = 0; n < count; n++) {
 		const struct bnm_heap_node *node = NULL;
@@ -1667,5 +1669,3 @@ CUTE_PNP_TEST(bnmhut_update_34, &bnmhut_update)
 	bnmhut_check_update(&bnmhut_heap, 0, 4, bnmhut_update_nodes, checks,
 	                    array_nr(checks));
 }
-
-

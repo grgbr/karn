@@ -33,4 +33,5 @@ config BHEAP_FIXED
 
 config BNM_HEAP
 	bool "Binomial heap"
+	select DLIST
 	default y

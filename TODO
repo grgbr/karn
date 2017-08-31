@@ -1,4 +1,5 @@
 * binary heaps:
+  * rename
   * merge (shadow ?)
   * decrease key
 * exclude measurement outliers and document this
