@@ -29,6 +29,7 @@
 #ifndef _SLIST_H
 #define _SLIST_H
 
+#include "utils.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -390,11 +391,8 @@ slist_splice(struct slist      *restrict result,
  *
  * @ingroup slist
  */
-#define slist_entry(_node, _type, _member)                         \
-	({                                                         \
-		const struct slist_node *__n = _node;              \
-		(_type *)((char *)__n - offsetof(_type, _member)); \
-	 })
+#define slist_entry(_node, _type, _member) \
+	containerof(_node, _type, _member)
 
 /**
  * Return type casted pointer to entry containing first node of specified slist.

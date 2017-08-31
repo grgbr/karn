@@ -39,6 +39,12 @@
 		(__a > __b) ? __a : __b; \
 	 })
 
+#define containerof(ptr, type, member)                          \
+	({                                                      \
+		const typeof(((type *)0)->member) *__p = ptr;   \
+		(type *)((char *)__p - offsetof(type, member)); \
+	 })
+
 static inline unsigned int
 lower_pow2(unsigned int value)
 {
