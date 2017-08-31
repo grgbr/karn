@@ -125,7 +125,7 @@ static inline struct slist_node * slist_head(struct slist *list)
 /**
  * Get node following specified node.
  *
- * @param node Node which to get the follower from.
+ * @param node Node which to get the successor from.
  *
  * @return Pointer to following node.
  *
