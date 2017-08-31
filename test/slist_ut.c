@@ -445,12 +445,9 @@ CUTE_PNP_TEST(slistut_isempty, &slistut_empty)
 CUTE_PNP_TEST(slistut_iterate_empty, &slistut_empty)
 {
 	struct slist_node *node;
-	unsigned int       cnt = 0;
 
 	slist_foreach_node(&slistut_list, node)
 		cute_fail("empty slist cannot be iterated over");
-
-	cute_ensure(cnt == 0);
 }
 
 /**
