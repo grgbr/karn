@@ -618,7 +618,7 @@ CUTE_PNP_TEST(slistut_append_middle, &slistut_append)
 	slistut_check_nodes(check_nodes, array_nr(check_nodes));
 }
 
-static CUTE_PNP_FIXTURED_SUITE(slistut_delete, &slistut,
+static CUTE_PNP_FIXTURED_SUITE(slistut_remove, &slistut,
                                slistut_setup_basic, NULL);
 
 /**
@@ -626,7 +626,7 @@ static CUTE_PNP_FIXTURED_SUITE(slistut_delete, &slistut,
  *
  * @ingroup slistut
  */
-CUTE_PNP_TEST(slistut_delete_first, &slistut_delete)
+CUTE_PNP_TEST(slistut_remove_first, &slistut_remove)
 {
 	const struct slist_node *const check_nodes[] = {
 		&slistut_nodes[1],
@@ -634,7 +634,7 @@ CUTE_PNP_TEST(slistut_delete_first, &slistut_delete)
 		&slistut_nodes[3]
 	};
 
-	slist_delete(&slistut_list, slist_head(&slistut_list),
+	slist_remove(&slistut_list, slist_head(&slistut_list),
 	             slist_first(&slistut_list));
 
 	slistut_check_nodes(check_nodes, array_nr(check_nodes));
@@ -645,7 +645,7 @@ CUTE_PNP_TEST(slistut_delete_first, &slistut_delete)
  *
  * @ingroup slistut
  */
-CUTE_PNP_TEST(slistut_delete_last, &slistut_delete)
+CUTE_PNP_TEST(slistut_remove_last, &slistut_remove)
 {
 	const struct slist_node *const check_nodes[] = {
 		&slistut_nodes[0],
@@ -653,7 +653,7 @@ CUTE_PNP_TEST(slistut_delete_last, &slistut_delete)
 		&slistut_nodes[2],
 	};
 
-	slist_delete(&slistut_list, &slistut_nodes[2],
+	slist_remove(&slistut_list, &slistut_nodes[2],
 	             slist_last(&slistut_list));
 
 	slistut_check_nodes(check_nodes, array_nr(check_nodes));
@@ -664,7 +664,7 @@ CUTE_PNP_TEST(slistut_delete_last, &slistut_delete)
  *
  * @ingroup slistut
  */
-CUTE_PNP_TEST(slistut_delete_penultimate, &slistut_delete)
+CUTE_PNP_TEST(slistut_remove_penultimate, &slistut_remove)
 {
 	const struct slist_node *const check_nodes[] = {
 		&slistut_nodes[0],
@@ -672,7 +672,7 @@ CUTE_PNP_TEST(slistut_delete_penultimate, &slistut_delete)
 		&slistut_nodes[3],
 	};
 
-	slist_delete(&slistut_list, &slistut_nodes[1], &slistut_nodes[2]);
+	slist_remove(&slistut_list, &slistut_nodes[1], &slistut_nodes[2]);
 
 	slistut_check_nodes(check_nodes, array_nr(check_nodes));
 }

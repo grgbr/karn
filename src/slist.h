@@ -215,7 +215,7 @@ static inline void slist_append(struct slist      *list,
  *
  * @ingroup slist
  */
-static inline void slist_delete(struct slist            *list,
+static inline void slist_remove(struct slist            *list,
                                 struct slist_node       *restrict previous,
                                 const struct slist_node *restrict node)
 {

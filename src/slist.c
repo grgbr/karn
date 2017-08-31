@@ -83,7 +83,7 @@ void slist_move(struct slist      *list,
                 struct slist_node *restrict previous,
                 struct slist_node *restrict node)
 {
-	slist_delete(list, previous, node);
+	slist_remove(list, previous, node);
 	slist_append(list, at, node);
 }
 
@@ -178,7 +178,7 @@ void slist_insertion_sort(struct slist *list, slist_compare_fn *compare)
 		if (compare(cur, prev) < 0) {
 			slist_account_swap_event();
 
-			slist_delete(list, prev, cur);
+			slist_remove(list, prev, cur);
 			slist_insert_inorder(list, cur, compare);
 
 			cur = slist_next(prev);
@@ -208,7 +208,7 @@ void slist_counted_insertion_sort(struct slist     *restrict result,
 		if (compare(cur, prev) < 0) {
 			slist_account_swap_event();
 
-			slist_delete(source, prev, cur);
+			slist_remove(source, prev, cur);
 			slist_insert_inorder(source, cur, compare);
 
 			cur = slist_next(prev);
@@ -331,7 +331,7 @@ void slist_bubble_sort(struct slist *list, slist_compare_fn *compare)
 			}
 
 			/* Extract out of order element. */
-			slist_delete(list, prev, cur);
+			slist_remove(list, prev, cur);
 
 			swap = cur;
 			cur = nxt;
