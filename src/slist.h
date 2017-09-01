@@ -441,7 +441,7 @@ slist_splice(struct slist      *restrict result,
  * Iterate over slist node container entries.
  *
  * @param _list   slist to iterate over.
- * @param _entry  Pointer to entry containing _list's current node.
+ * @param _entry  Pointer to entry containing @p _list's current node.
  * @param _member Member field of container structure pointing to slist node.
  *
  * @ingroup slist
@@ -450,8 +450,7 @@ slist_splice(struct slist      *restrict result,
 	for (_entry = slist_entry((_list)->slist_head.slist_next, \
 	                          typeof(*(_entry)), _member);    \
 	     &(_entry)->_member;                                  \
-	     _entry = slist_entry((_entry)->_member.slist_next,   \
-	                          typeof(*(_entry)), _member))
+	     _entry = slist_next_entry(_entry, _member))
 
 /******************************************************************************
  * Performance monitoring

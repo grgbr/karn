@@ -214,11 +214,24 @@ static inline void dlist_nqueue_back(struct dlist_node *restrict list,
  */
 static inline void dlist_remove(struct dlist_node *node)
 {
-	struct dlist_node *prev = node->dlist_prev;
 	struct dlist_node *next = node->dlist_next;
+	struct dlist_node *prev = node->dlist_prev;
 
 	prev->dlist_next = next;
 	next->dlist_prev = prev;
+}
+
+/**
+ * Remove then reinitialize a dlist_node from a doubly linked list.
+ *
+ * @param node Node to remove.
+ *
+ * @ingroup dlist
+ */
+static inline void dlist_remove_init(struct dlist_node *node)
+{
+	dlist_remove(node);
+	dlist_init(node);
 }
 
 /**
@@ -271,8 +284,8 @@ static inline void dlist_withdraw(const struct dlist_node *first,
 	assert(first);
 	assert(last);
 
-	struct dlist_node *prev = first->dlist_prev;
 	struct dlist_node *next = last->dlist_next;
+	struct dlist_node *prev = first->dlist_prev;
 
 	prev->dlist_next = next;
 	next->dlist_prev = prev;
@@ -343,5 +356,46 @@ extern void dlist_splice(struct dlist_node *restrict at,
  */
 #define dlist_entry(_node, _type, _member) \
 	containerof(_node, _type, _member)
+
+/**
+ * Return type casted pointer to entry following specified entry.
+ *
+ * @param _entry  Entry containing dlist node.
+ * @param _member Member field of container structure pointing to dlist node.
+ *
+ * @return Pointer to following entry.
+ *
+ * @ingroup dlist
+ */
+#define dlist_next_entry(_entry, _member) \
+	dlist_entry(dlist_next(&(_entry)->_member), typeof(*(_entry)), _member)
+
+/**
+ * Return type casted pointer to entry preceding specified entry.
+ *
+ * @param _entry  Entry containing dlist node.
+ * @param _member Member field of container structure pointing to dlist node.
+ *
+ * @return Pointer to preceding entry.
+ *
+ * @ingroup dlist
+ */
+#define dlist_prev_entry(_entry, _member) \
+	dlist_entry(dlist_prev(&(_entry)->_member), typeof(*(_entry)), _member)
+
+/**
+ * Iterate over dlist node container entries.
+ *
+ * @param _list   dlist to iterate over.
+ * @param _entry  Pointer to entry containing @p _list's current node.
+ * @param _member Member field of container structure pointing to dlist node.
+ *
+ * @ingroup dlist
+ */
+#define dlist_foreach_entry(_list, _entry, _member)            \
+	for (_entry = dlist_entry((_list)->dlist_next,         \
+	                          typeof(*(_entry)), _member); \
+	     &(_entry)->_member != (_list);                    \
+	     _entry = dlist_next_entry(_entry, _member))
 
 #endif

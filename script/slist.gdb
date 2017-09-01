@@ -1,5 +1,3 @@
-source common.gdb
-
 define print_slist
 	printf "[%p]", &(($arg0).slist_head)
 	echo $arg0:
