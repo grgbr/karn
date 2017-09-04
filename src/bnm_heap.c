@@ -262,22 +262,22 @@ bnm_heap_merge_trees(struct dlist_node   *result,
 	}
 }
 
-struct bnm_heap_node *
-bnm_heap_extract(struct bnm_heap *heap, bnm_heap_compare_fn *compare)
+static void
+bnm_heap_remove_key(struct bnm_heap      *heap,
+                    struct bnm_heap_node *key,
+                    bnm_heap_compare_fn  *compare)
 {
-	bnm_heap_assert(heap);
-	assert(heap->bnm_count);
+	assert(heap);
+	assert(key);
 	assert(compare);
 
-	struct dlist_node    *roots = &heap->bnm_roots;
-	struct dlist_node    *child;
-	struct bnm_heap_node *key;
+	struct dlist_node *child = key->bnm_child;
 
-	key = bnm_heap_inorder_child(dlist_next(roots), roots, compare);
 	dlist_remove(&key->bnm_sibling);
 
-	child = key->bnm_child;
 	if (child) {
+		struct dlist_node *roots = &heap->bnm_roots;
+
 		if (!dlist_empty(roots)) {
 			struct dlist_node children;
 
@@ -289,6 +289,21 @@ bnm_heap_extract(struct bnm_heap *heap, bnm_heap_compare_fn *compare)
 	}
 
 	heap->bnm_count--;
+}
+
+struct bnm_heap_node *
+bnm_heap_extract(struct bnm_heap *heap, bnm_heap_compare_fn *compare)
+{
+	bnm_heap_assert(heap);
+	assert(heap->bnm_count);
+	assert(compare);
+
+	struct dlist_node    *roots = &heap->bnm_roots;
+	struct bnm_heap_node *key;
+
+	key = bnm_heap_inorder_child(dlist_next(roots), roots, compare);
+
+	bnm_heap_remove_key(heap, key, compare);
 
 	return key;
 }
@@ -343,19 +358,33 @@ static void bnm_heap_swap(struct bnm_heap_node *parent,
 		parent->bnm_child = NULL;
 }
 
-void bnm_heap_update(struct bnm_heap_node *key, bnm_heap_compare_fn *compare)
+static void bnm_heap_siftup(struct bnm_heap_node *key,
+                            bnm_heap_compare_fn  *compare)
+{
+	do {
+		bnm_heap_swap(key->bnm_parent, key);
+	} while (key->bnm_parent && (compare(key->bnm_parent, key) > 0));
+}
 
+void bnm_heap_remove(struct bnm_heap      *heap,
+                     struct bnm_heap_node *key,
+                     bnm_heap_compare_fn  *heapify,
+                     bnm_heap_compare_fn  *compare)
+{
+	if (key->bnm_parent)
+		bnm_heap_siftup(key, heapify);
+
+	bnm_heap_remove_key(heap, key, compare);
+}
+
+void bnm_heap_update(struct bnm_heap_node *key, bnm_heap_compare_fn *compare)
 {
 	assert(key);
 	assert(compare);
 
 	if (key->bnm_parent && (compare(key->bnm_parent, key) > 0)) {
 		/* Bubble up. */
-		do {
-			bnm_heap_swap(key->bnm_parent, key);
-		} while (key->bnm_parent &&
-		         (compare(key->bnm_parent, key) > 0));
-
+		bnm_heap_siftup(key, compare);
 		return;
 	}
 
