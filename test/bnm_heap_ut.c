@@ -1669,3 +1669,105 @@ CUTE_PNP_TEST(bnmhut_update_34, &bnmhut_update)
 	bnmhut_check_update(&bnmhut_heap, 0, 4, bnmhut_update_nodes, checks,
 	                    array_nr(checks));
 }
+
+CUTE_PNP_TEST(bnmhut_update_down37, &bnmhut_update)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_update_nodes[4],
+		&bnmhut_update_nodes[0],
+		&bnmhut_update_nodes[6],
+		&bnmhut_update_nodes[7],
+		&bnmhut_update_nodes[2],
+		&bnmhut_update_nodes[5],
+		&bnmhut_update_nodes[3],
+		&bnmhut_update_nodes[1],
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 7, bnmhut_update_nodes, checks,
+	                    array_nr(checks));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down310, &bnmhut_update)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_update_nodes[4],
+		&bnmhut_update_nodes[6],
+		&bnmhut_update_nodes[0],
+		&bnmhut_update_nodes[7],
+		&bnmhut_update_nodes[2],
+		&bnmhut_update_nodes[5],
+		&bnmhut_update_nodes[3],
+		&bnmhut_update_nodes[1],
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 10, bnmhut_update_nodes, checks,
+	                    array_nr(checks));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down314, &bnmhut_update)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_update_nodes[4],
+		&bnmhut_update_nodes[6],
+		&bnmhut_update_nodes[7],
+		&bnmhut_update_nodes[0],
+		&bnmhut_update_nodes[2],
+		&bnmhut_update_nodes[5],
+		&bnmhut_update_nodes[3],
+		&bnmhut_update_nodes[1],
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 0, 14, bnmhut_update_nodes, checks,
+	                    array_nr(checks));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down1522, &bnmhut_update)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_update_nodes[0],
+		&bnmhut_update_nodes[4],
+		&bnmhut_update_nodes[6],
+		&bnmhut_update_nodes[7],
+		&bnmhut_update_nodes[5],
+		&bnmhut_update_nodes[3],
+		&bnmhut_update_nodes[2],
+		&bnmhut_update_nodes[1],
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 2, 22, bnmhut_update_nodes, checks,
+	                    array_nr(checks));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down619, &bnmhut_update)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_update_nodes[0],
+		&bnmhut_update_nodes[6],
+		&bnmhut_update_nodes[7],
+		&bnmhut_update_nodes[2],
+		&bnmhut_update_nodes[5],
+		&bnmhut_update_nodes[4],
+		&bnmhut_update_nodes[3],
+		&bnmhut_update_nodes[1],
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 4, 19, bnmhut_update_nodes, checks,
+	                    array_nr(checks));
+}
+
+CUTE_PNP_TEST(bnmhut_update_down610, &bnmhut_update)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_update_nodes[0],
+		&bnmhut_update_nodes[6],
+		&bnmhut_update_nodes[4],
+		&bnmhut_update_nodes[7],
+		&bnmhut_update_nodes[2],
+		&bnmhut_update_nodes[5],
+		&bnmhut_update_nodes[3],
+		&bnmhut_update_nodes[1],
+	};
+
+	bnmhut_check_update(&bnmhut_heap, 4, 10, bnmhut_update_nodes, checks,
+	                    array_nr(checks));
+}

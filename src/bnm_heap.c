@@ -25,10 +25,7 @@
  */
 
 /* TODO:
- *   - refactor sibling list iteration
- *   - refactor siftup
  *   - test subtree order consistency
- *   - test bubble down for each cases (8 nodes should be enough)
  *   - test root nodes linking when updating key
  *   - test remove node
  */
