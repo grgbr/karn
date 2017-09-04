@@ -247,6 +247,102 @@ CUTE_PNP_TEST(dlistut_back_lifo, &dlistut)
 	cute_ensure(dlist_empty(&dlistut_list) == true);
 }
 
+CUTE_PNP_TEST(dlistut_replace_first, &dlistut)
+{
+	unsigned int       n;
+	struct dlist_node  nodes[3];
+	struct dlist_node  replace;
+
+	for (n = 0; n < array_nr(nodes); n++)
+		dlist_nqueue_back(&dlistut_list, &nodes[n]);
+
+	cute_ensure(dlist_empty(&dlistut_list) == false);
+
+	dlist_replace(&nodes[0], &replace);
+
+	cute_ensure(dlist_next(&dlistut_list) == &replace);
+	cute_ensure(dlist_prev(&dlistut_list) == &nodes[2]);
+
+	cute_ensure(dlist_next(&replace) == &nodes[1]);
+	cute_ensure(dlist_prev(&replace) == &dlistut_list);
+
+	cute_ensure(dlist_next(&nodes[1]) == &nodes[2]);
+	cute_ensure(dlist_prev(&nodes[1]) == &replace);
+
+	cute_ensure(dlist_next(&nodes[2]) == &dlistut_list);
+	cute_ensure(dlist_prev(&nodes[2]) == &nodes[1]);
+}
+
+CUTE_PNP_TEST(dlistut_replace_last, &dlistut)
+{
+	unsigned int       n;
+	struct dlist_node  nodes[3];
+	struct dlist_node  replace;
+
+	for (n = 0; n < array_nr(nodes); n++)
+		dlist_nqueue_back(&dlistut_list, &nodes[n]);
+
+	cute_ensure(dlist_empty(&dlistut_list) == false);
+
+	dlist_replace(&nodes[2], &replace);
+
+	cute_ensure(dlist_next(&dlistut_list) == &nodes[0]);
+	cute_ensure(dlist_prev(&dlistut_list) == &replace);
+
+	cute_ensure(dlist_next(&nodes[0]) == &nodes[1]);
+	cute_ensure(dlist_prev(&nodes[0]) == &dlistut_list);
+
+	cute_ensure(dlist_next(&nodes[1]) == &replace);
+	cute_ensure(dlist_prev(&nodes[1]) == &nodes[0]);
+
+	cute_ensure(dlist_next(&replace) == &dlistut_list);
+	cute_ensure(dlist_prev(&replace) == &nodes[1]);
+}
+
+CUTE_PNP_TEST(dlistut_replace_middle, &dlistut)
+{
+	unsigned int       n;
+	struct dlist_node  nodes[3];
+	struct dlist_node  replace;
+
+	for (n = 0; n < array_nr(nodes); n++)
+		dlist_nqueue_back(&dlistut_list, &nodes[n]);
+
+	cute_ensure(dlist_empty(&dlistut_list) == false);
+
+	dlist_replace(&nodes[1], &replace);
+
+	cute_ensure(dlist_next(&dlistut_list) == &nodes[0]);
+	cute_ensure(dlist_prev(&dlistut_list) == &nodes[2]);
+
+	cute_ensure(dlist_next(&nodes[0]) == &replace);
+	cute_ensure(dlist_prev(&nodes[0]) == &dlistut_list);
+
+	cute_ensure(dlist_next(&replace) == &nodes[2]);
+	cute_ensure(dlist_prev(&replace) == &nodes[0]);
+
+	cute_ensure(dlist_next(&nodes[2]) == &dlistut_list);
+	cute_ensure(dlist_prev(&nodes[2]) == &replace);
+}
+
+CUTE_PNP_TEST(dlistut_replace_single, &dlistut)
+{
+	struct dlist_node orig;
+	struct dlist_node replace;
+
+	dlist_nqueue_back(&dlistut_list, &orig);
+
+	cute_ensure(dlist_empty(&dlistut_list) == false);
+
+	dlist_replace(&orig, &replace);
+
+	cute_ensure(dlist_next(&dlistut_list) == &replace);
+	cute_ensure(dlist_prev(&dlistut_list) == &replace);
+
+	cute_ensure(dlist_next(&replace) == &dlistut_list);
+	cute_ensure(dlist_prev(&replace) == &dlistut_list);
+}
+
 CUTE_PNP_TEST(dlistut_withdraw_empty, &dlistut)
 {
 	dlist_withdraw(&dlistut_list, &dlistut_list);

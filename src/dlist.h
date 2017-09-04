@@ -140,6 +140,8 @@ static inline void dlist_inject(struct dlist_node *prev,
 	assert(node);
 	assert(prev);
 	assert(next);
+	assert(node != prev);
+	assert(node != next);
 
 	next->dlist_prev = node;
 
@@ -268,6 +270,25 @@ static inline struct dlist_node * dlist_dqueue_back(struct dlist_node *list)
 	dlist_remove(node);
 
 	return node;
+}
+
+/**
+ * Replace old entry by new one.
+ *
+ * @param old  Node to replace.
+ * @param node New node to insert.
+ *
+ * @warning Behavior is unpredictable if @p old node is empty.
+ *
+ * @ingroup dlist
+ */
+static inline void dlist_replace(struct dlist_node *restrict old,
+                                 struct dlist_node *restrict node)
+{
+	assert(!dlist_empty(old));
+	assert(node);
+
+	dlist_inject(old->dlist_prev, node, old->dlist_next);
 }
 
 /**
