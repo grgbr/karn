@@ -37,6 +37,9 @@ struct bnm_heap_node {
 	unsigned int          bnm_order;
 };
 
+#define bnm_heap_entry(_node, _type, _member) \
+	containerof(_node, _type, _member)
+
 struct bnm_heap {
 	struct dlist_node bnm_roots;
 	unsigned int      bnm_count;

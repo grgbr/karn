@@ -7,6 +7,13 @@
 extern struct timespec pt_tspec_sub(const struct timespec *restrict a,
                                     const struct timespec *restrict b);
 
+static inline unsigned long long
+pt_tspec2ns(const struct timespec *tspec)
+{
+	return ((unsigned long long)tspec->tv_sec * 1000000000ULL) +
+	       (unsigned long long)tspec->tv_nsec;
+}
+
 extern int pt_parse_loop_nr(const char *arg, unsigned int *loop_nr);
 
 extern int pt_parse_sched_prio(const char *arg, int *priority);

@@ -176,6 +176,7 @@ endif
 ifeq ($(CONFIG_BNM_HEAP),y)
 lib_src += bnm_heap.c
 ut_src  += bnm_heap_ut.c
+pt_bin  += lnk_heap_pt
 endif
 
 
@@ -327,6 +328,9 @@ $(BUILD)/slist_pt: $(TEST)/slist_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
 $(BUILD)/array_fixed_pt: $(TEST)/array_fixed_pt.c $(BUILD)/libkarn_pt.a
+	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
+
+$(BUILD)/lnk_heap_pt: $(TEST)/lnk_heap_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
 $(BUILD)/pt/%_pt.o: $(TEST)/%_pt.c $(BUILD)/include/generated/autoconf.h | \
