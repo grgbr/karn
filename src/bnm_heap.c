@@ -358,27 +358,12 @@ static void bnm_heap_swap(struct bnm_heap_node *parent,
 		parent->bnm_child = NULL;
 }
 
-static void bnm_heap_siftup(struct bnm_heap_node *key,
-                            bnm_heap_compare_fn  *compare)
-{
-	do {
-		bnm_heap_swap(key->bnm_parent, key);
-	} while (key->bnm_parent && (compare(key->bnm_parent, key) > 0));
-}
-
-static int
-bnm_heap_minimize(const struct bnm_heap_node *parent __unused,
-                  const struct bnm_heap_node *key __unused)
-{
-	return 1;
-}
-
 void bnm_heap_remove(struct bnm_heap      *heap,
                      struct bnm_heap_node *key,
                      bnm_heap_compare_fn  *compare)
 {
-	if (key->bnm_parent)
-		bnm_heap_siftup(key, bnm_heap_minimize);
+	while (key->bnm_parent)
+		bnm_heap_swap(key->bnm_parent, key);
 
 	bnm_heap_remove_key(heap, key, compare);
 }
@@ -390,7 +375,11 @@ void bnm_heap_update(struct bnm_heap_node *key, bnm_heap_compare_fn *compare)
 
 	if (key->bnm_parent && (compare(key->bnm_parent, key) > 0)) {
 		/* Bubble up. */
-		bnm_heap_siftup(key, compare);
+		do {
+			bnm_heap_swap(key->bnm_parent, key);
+		} while (key->bnm_parent &&
+		         (compare(key->bnm_parent, key) > 0));
+
 		return;
 	}
 
