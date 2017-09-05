@@ -107,6 +107,8 @@ intpt_files   =
 lib_src =
 # Unit test source files located into $(TEST)
 ut_src  = karn_ut.c utils_ut.c
+# Common performance test source files located into $(TEST)
+pt_src  = karn_pt.c
 # Performance test binaries
 pt_bin  = array_fixed_pt
 
@@ -324,8 +326,8 @@ $(BUILD)/utdbg/%_ut.o: $(TEST)/%_ut.c $(BUILD)/include/generated/autoconf.h | \
 $(BUILD)/slist_pt: $(TEST)/slist_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
-$(BUILD)/array_fixed_pt: $(TEST)/array_fixed_pt.c
-	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $<
+$(BUILD)/array_fixed_pt: $(TEST)/array_fixed_pt.c $(BUILD)/libkarn_pt.a
+	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
 $(BUILD)/pt/%_pt.o: $(TEST)/%_pt.c $(BUILD)/include/generated/autoconf.h | \
                     $(BUILD)/pt
@@ -337,7 +339,8 @@ $(BUILD)/pt/%_pt.o: $(TEST)/%_pt.c $(BUILD)/include/generated/autoconf.h | \
 $(BUILD)/libkarn.a: $(addprefix $(BUILD)/,$(lib_src:.c=.o))
 $(BUILD)/libkarn_dbg.a: $(addprefix $(BUILD)/dbg/,$(lib_src:.c=.o))
 $(BUILD)/libkarn_ut.a: $(addprefix $(BUILD)/ut/,$(lib_src:.c=.o))
-$(BUILD)/libkarn_pt.a: $(addprefix $(BUILD)/pt/,$(lib_src:.c=.o))
+$(BUILD)/libkarn_pt.a: $(addprefix $(BUILD)/pt/,\
+                         $(lib_src:.c=.o) $(pt_src:.c=.o))
 
 $(BUILD)/%.a:
 	$(AR) crs $@ $(filter-out %.h,$^)

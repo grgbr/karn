@@ -1,16 +1,11 @@
+#include "karn_pt.h"
 #include "slist.h"
 #include "utils.h"
 #include "array.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <getopt.h>
 #include <errno.h>
-#include <time.h>
-#include <sched.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include <string.h>
+#include <stdint.h>
 
 static unsigned int run_len = 0;
 
@@ -189,22 +184,6 @@ struct slist_uint {
 	uint32_t          value;
 };
 
-static struct timespec
-tspec_sub(const struct timespec *restrict a, const struct timespec *restrict b)
-{
-	struct timespec res = {
-		.tv_sec  = a->tv_sec - b->tv_sec,
-		.tv_nsec = a->tv_nsec - b->tv_nsec
-	};
-
-	if (res.tv_nsec < 0) {
-		res.tv_sec--;
-		res.tv_nsec += 1000000000;
-	}
-
-	return res;
-}
-
 static int
 compare(const struct slist_node *a, const struct slist_node *b)
 {
@@ -213,29 +192,28 @@ compare(const struct slist_node *a, const struct slist_node *b)
 }
 
 static unsigned long long
-account_sort(FILE              *file,
-             struct slist      *list,
-             struct slist_uint *keys,
-             sort_fn           *sort,
-             unsigned int       key_nr)
+account_sort(const struct pt_entries *entries,
+             struct slist            *list,
+             struct slist_uint       *keys,
+             sort_fn                 *sort)
 {
 	struct slist_uint *k;
 	struct timespec    start, elapse;
 
-	rewind(file);
+	pt_init_entry_iter(entries);
 
 	slist_init(list);
 	k = keys;
-	while (fread(&k->value, sizeof(k->value), 1, file) == 1) {
+	while (!pt_iter_entry(entries, &k->value)) {
 		slist_nqueue(list, &k->node);
 		k++;
 	}
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
-	sort(list, key_nr, compare);
+	sort(list, entries->pt_nr, compare);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
-	elapse = tspec_sub(&elapse, &start);
+	elapse = pt_tspec_sub(&elapse, &start);
 
 	return ((long long)elapse.tv_sec * 1000000000LL) +
 	       (long long)elapse.tv_nsec;
@@ -255,14 +233,13 @@ usage(const char *me)
 
 int main(int argc, char *argv[])
 {
-	FILE               *file;
-	int                 nr;
+	struct pt_entries   entries;
 	char               *errstr;
 	unsigned int        loops = 0;
 	struct slist        list;
 	struct slist_uint  *keys;
 	struct slist_node  *n;
-	struct sched_param  parm = { 0, };
+	int                 prio = 0;
 	sort_fn            *sort;
 	long long           nsec;
 
@@ -282,9 +259,7 @@ int main(int argc, char *argv[])
 
 		switch (opt) {
 		case 'p': /* priority */
-			parm.sched_priority = (int)strtoul(optarg, &errstr, 0);
-			if (*errstr) {
-				fprintf(stderr, "Invalid priority\n");
+			if (pt_parse_sched_prio(optarg, &prio)) {
 				usage(argv[0]);
 				return EXIT_FAILURE;
 			}
@@ -335,43 +310,17 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	loops = strtoul(argv[optind + 2], &errstr, 0);
-	if (*errstr)
-		loops = 0;
-	if (!loops) {
-		fprintf(stderr, "Invalid number of loops\n");
+	if (pt_parse_loop_nr(argv[optind + 2], &loops))
 		return EXIT_FAILURE;
-	}
 
-	file = fopen(argv[optind], "r");
-	if (!file) {
-		fprintf(stderr, "Failed to open file %s: %s\n", argv[optind],
-		        strerror(errno));
+	if (pt_open_entries(argv[optind], &entries))
 		return EXIT_FAILURE;
-	}
 
-	if (fseek(file, 0, SEEK_END)) {
-		perror("Failed to probe file end");
-		return EXIT_FAILURE;
-	}
-
-	nr = ftell(file);
-	if (nr < 0) {
-		perror("Failed to probe file size");
-		return EXIT_FAILURE;
-	}
-
-	nr /= (int)sizeof(uint32_t);
-	if (nr <= 0) {
-		fprintf(stderr, "Invalid file content\n");
-		return EXIT_FAILURE;
-	}
-
-	keys = malloc(nr * sizeof(keys[0]));
+	keys = malloc(entries.pt_nr * sizeof(keys[0]));
 	if (!keys)
 		return EXIT_FAILURE;
 
-	account_sort(file, &list, keys, sort, nr);
+	account_sort(&entries, &list, keys, sort);
 
 	slist_foreach_node(&list, n) {
 		const struct slist_node *nxt = slist_next(n);
@@ -385,19 +334,15 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (parm.sched_priority) {
-		if (sched_setscheduler(getpid(), SCHED_FIFO, &parm)) {
-			perror("Failed set scheduling policy");
-			return EXIT_FAILURE;
-		}
-	}
+	if (pt_setup_sched_prio(prio))
+		return EXIT_FAILURE;
 
 	while (loops--) {
 		const struct slist_perf_events *evts;
 
 		slist_clear_perf_events();
 
-		nsec = account_sort(file, &list, keys, sort, nr);
+		nsec = account_sort(&entries, &list, keys, sort);
 
 		evts = slist_fetch_perf_events();
 		if (evts)
