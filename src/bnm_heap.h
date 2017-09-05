@@ -69,19 +69,9 @@ extern void bnm_heap_merge_trees(struct dlist_node   *first,
 extern void bnm_heap_update(struct bnm_heap_node *key,
                             bnm_heap_compare_fn  *compare);
 
-static inline int
-bnm_heap_minimize(const struct bnm_heap_node *first __unused,
-                  const struct bnm_heap_node *second __unused)
-{
-	return -1;
-}
-
-static inline int
-bnm_heap_maximize(const struct bnm_heap_node *first __unused,
-                  const struct bnm_heap_node *second __unused)
-{
-	return 1;
-}
+extern void bnm_heap_remove(struct bnm_heap      *heap,
+                            struct bnm_heap_node *key,
+                            bnm_heap_compare_fn  *compare);
 
 static inline unsigned int
 bnm_heap_count(const struct bnm_heap* heap)

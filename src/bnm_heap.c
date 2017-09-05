@@ -24,10 +24,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* TODO:
+/*
+ * TODO:
  *   - test subtree order consistency
  *   - test root nodes linking when updating key
- *   - test remove node
  */
 
 #include "dlist.h"
@@ -366,13 +366,19 @@ static void bnm_heap_siftup(struct bnm_heap_node *key,
 	} while (key->bnm_parent && (compare(key->bnm_parent, key) > 0));
 }
 
+static int
+bnm_heap_minimize(const struct bnm_heap_node *parent __unused,
+                  const struct bnm_heap_node *key __unused)
+{
+	return 1;
+}
+
 void bnm_heap_remove(struct bnm_heap      *heap,
                      struct bnm_heap_node *key,
-                     bnm_heap_compare_fn  *heapify,
                      bnm_heap_compare_fn  *compare)
 {
 	if (key->bnm_parent)
-		bnm_heap_siftup(key, heapify);
+		bnm_heap_siftup(key, bnm_heap_minimize);
 
 	bnm_heap_remove_key(heap, key, compare);
 }

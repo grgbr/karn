@@ -1085,7 +1085,6 @@ static void bnmhut_check_update(struct bnm_heap     *heap,
 		const struct bnmhut_node   *check = checks[n];
 
 		node = bnm_heap_peek(heap, bnmhut_compare_min);
-		//printf("%d %d\n", ((struct bnmhut_node *)node)->key, check->key);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
 
@@ -1770,4 +1769,265 @@ CUTE_PNP_TEST(bnmhut_update_down610, &bnmhut_update)
 
 	bnmhut_check_update(&bnmhut_heap, 4, 10, bnmhut_update_nodes, checks,
 	                    array_nr(checks));
+}
+
+static CUTE_PNP_FIXTURED_SUITE(bnmhut_remove, &bnmhut, bnmhut_setup_empty,
+                               NULL);
+
+static void bnmhut_check_remove(struct bnm_heap     *heap,
+                                unsigned int         index,
+                                struct bnmhut_node  *nodes,
+                                struct bnmhut_node **checks,
+                                unsigned int         count)
+{
+	unsigned int n;
+
+	for (n = 0; n < count; n++) {
+		bnm_heap_insert(heap, &nodes[n].heap, bnmhut_compare_min);
+
+		cute_ensure(bnm_heap_count(heap) == (n + 1));
+	}
+
+	bnmhut_check_roots(heap, count);
+
+	bnm_heap_remove(heap, &nodes[index].heap, bnmhut_compare_min);
+
+	for (n = 0; n < (count - 1); n++) {
+		const struct bnm_heap_node *node = NULL;
+		const struct bnmhut_node   *check = checks[n];
+
+		node = bnm_heap_peek(heap, bnmhut_compare_min);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
+
+		node = NULL;
+		node = bnm_heap_extract(heap, bnmhut_compare_min);
+
+		cute_ensure(bnm_heap_count(heap) == count - n - 2);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct bnmhut_node *)node)->key == check->key);
+	}
+}
+
+static struct bnmhut_node bnmhut_remove_nodes[] = {
+		BNMHUT_INIT_NODE(3),
+		BNMHUT_INIT_NODE(23),
+		BNMHUT_INIT_NODE(15),
+		BNMHUT_INIT_NODE(21),
+		BNMHUT_INIT_NODE(6),
+		BNMHUT_INIT_NODE(18),
+		BNMHUT_INIT_NODE(9),
+		BNMHUT_INIT_NODE(12),
+		BNMHUT_INIT_NODE(27),
+		BNMHUT_INIT_NODE(1),
+		BNMHUT_INIT_NODE(2)
+};
+
+CUTE_PNP_TEST(bnmhut_remove1, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 9, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove2, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 10, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove3, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 0, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove6, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 4, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove9, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 6, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove12, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 7, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove15, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 2, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove18, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 5, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove21, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[1],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 3, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove23, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[8]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 1, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(bnmhut_remove27, &bnmhut_remove)
+{
+	static struct bnmhut_node *checks[] = {
+		&bnmhut_remove_nodes[9],
+		&bnmhut_remove_nodes[10],
+		&bnmhut_remove_nodes[0],
+		&bnmhut_remove_nodes[4],
+		&bnmhut_remove_nodes[6],
+		&bnmhut_remove_nodes[7],
+		&bnmhut_remove_nodes[2],
+		&bnmhut_remove_nodes[5],
+		&bnmhut_remove_nodes[3],
+		&bnmhut_remove_nodes[1]
+	};
+
+	bnmhut_check_remove(&bnmhut_heap, 8, bnmhut_remove_nodes, checks,
+	                    array_nr(bnmhut_remove_nodes));
 }
