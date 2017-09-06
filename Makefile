@@ -76,7 +76,7 @@ pythonenv := env PYTHONPATH="$(CURDIR)/script:$(PYTHONPATH)" \
 
 -include $(BUILD)/include/config/auto.conf
 
-common-cflags := -std=gnu99 -Wall -Wextra -MD -D_GNU_SOURCE \
+common-cflags := -std=gnu99 -Wall -Wextra -Wstrict-aliasing -MD -D_GNU_SOURCE \
                  -fstrict-aliasing \
                  -fstack-protector-all -fstack-protector-strong \
                  -D_FORTIFY_SOURCE=2 -march=native \
@@ -173,10 +173,10 @@ lib_src += bheap.c
 ut_src  += bheap_ut.c
 endif
 
-ifeq ($(CONFIG_BNM_HEAP),y)
-lib_src += bnm_heap.c
-ut_src  += bnm_heap_ut.c
-pt_bin  += lnk_heap_pt
+ifeq ($(CONFIG_DBNM_HEAP),y)
+lib_src += dbnm_heap.c
+ut_src  += dbnm_heap_ut.c
+pt_bin  += heap_pt
 endif
 
 
@@ -330,7 +330,7 @@ $(BUILD)/slist_pt: $(TEST)/slist_pt.c $(BUILD)/libkarn_pt.a
 $(BUILD)/array_fixed_pt: $(TEST)/array_fixed_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
-$(BUILD)/lnk_heap_pt: $(TEST)/lnk_heap_pt.c $(BUILD)/libkarn_pt.a
+$(BUILD)/heap_pt: $(TEST)/heap_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
 $(BUILD)/pt/%_pt.o: $(TEST)/%_pt.c $(BUILD)/include/generated/autoconf.h | \
