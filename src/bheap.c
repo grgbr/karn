@@ -31,8 +31,7 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
                         const char         *node,
                         array_compare_fn   *compare)
 {
-	assert(heap);
-	assert(heap->node_size);
+	bheap_assert_fixed(heap);
 	assert(!bstree_fixed_full(&heap->bheap_tree));
 	assert(node);
 	assert(compare);
@@ -76,30 +75,30 @@ static char * bheap_fixed_unorder_child(const struct bstree_fixed *tree,
                                         size_t                     node_size,
                                         array_compare_fn          *compare)
 {
-		struct bstree_siblings  sibs;
-		char                   *child;
+	struct bstree_siblings  sibs;
+	char                   *child;
 
-		/* Fetch sibling, i.e. left and right children. */
-		sibs = bstree_fixed_siblings(tree, node_size, parent);
+	/* Fetch sibling, i.e. left and right children. */
+	sibs = bstree_fixed_siblings(tree, node_size, parent);
 
-		if (!sibs.bst_left)
-			/* No left child. */
-			child = sibs.bst_right;
-		else if (!sibs.bst_right)
-			/* No right child. */
-			child = sibs.bst_left;
-		else if (compare(sibs.bst_left, sibs.bst_right) <= 0)
-			/* First in order child is the left one. */
-			child = sibs.bst_left;
-		else
-			/* First in order child is the right one. */
-			child = sibs.bst_right;
+	if (!sibs.bst_left)
+		/* No left child. */
+		child = sibs.bst_right;
+	else if (!sibs.bst_right)
+		/* No right child. */
+		child = sibs.bst_left;
+	else if (compare(sibs.bst_left, sibs.bst_right) <= 0)
+		/* First in order child is the left one. */
+		child = sibs.bst_left;
+	else
+		/* First in order child is the right one. */
+		child = sibs.bst_right;
 
-		if (!child ||                    /* No child at all. */
-		    (compare(node, child) <= 0)) /* Child is in order. */
-			return NULL;
+	if (!child ||                    /* No child at all. */
+	    (compare(node, child) <= 0)) /* Child is in order. */
+		return NULL;
 
-		return child;
+	return child;
 }
 
 /*
@@ -142,7 +141,7 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
                          char               *node,
                          array_compare_fn   *compare)
 {
-	assert(heap);
+	bheap_assert_fixed(heap);
 	assert(!bstree_fixed_empty(&heap->bheap_tree));
 	assert(node);
 	assert(compare);
@@ -163,7 +162,7 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
 		parent = bheap_siftdown_fixed(tree, parent, child, last, nodesz,
 		                              compare);
 
-	/* Parent now points to location where to copy last (deepest) node into. */
+	/* Parent now points to location where to copy last node into. */
 	memcpy(parent, last, nodesz);
 
 	/* Update count of present nodes. */
@@ -174,7 +173,7 @@ void bheap_build_fixed(struct bheap_fixed *heap,
                        unsigned int        count,
                        array_compare_fn   *compare)
 {
-	assert(heap);
+	bheap_assert_fixed(heap);
 	assert(count);
 	assert(count <= array_fixed_nr(&heap->bheap_tree.bst_nodes));
 	assert(compare);
@@ -224,6 +223,7 @@ void bheap_init_fixed(struct bheap_fixed *heap,
                       size_t              node_size,
                       unsigned int        nr)
 {
+	assert(heap);
 	assert(node_size);
 
 	bstree_init_fixed(&heap->bheap_tree, nodes, nr);

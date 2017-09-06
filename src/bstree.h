@@ -258,9 +258,23 @@ bstree_fixed_siblings(const struct bstree_fixed *tree,
 }
 
 /**
+ * Remove all nodes from specified bstree_fixed
+ *
+ * @param tree bstree_fixed to clear
+ *
+ * @ingroup bstree_fixed
+ */
+static inline void bstree_clear_fixed(struct bstree_fixed *tree)
+{
+	bstree_assert_fixed(tree);
+
+	tree->bst_count = 0;
+}
+
+/**
  * Account for node insertion into specified bstree_fixed
  *
- * @param tree      bstree_fixed owning @p node
+ * @param tree bstree_fixed
  *
  * @warning Behavior is undefined if @p tree is full.
  *
@@ -269,7 +283,7 @@ bstree_fixed_siblings(const struct bstree_fixed *tree,
 static inline void bstree_fixed_credit(struct bstree_fixed *tree)
 {
 	assert(tree);
-	assert((tree)->bst_count < array_fixed_nr(&(tree)->bst_nodes));
+	assert(tree->bst_count < array_fixed_nr(&tree->bst_nodes));
 
 	tree->bst_count++;
 }
@@ -277,7 +291,7 @@ static inline void bstree_fixed_credit(struct bstree_fixed *tree)
 /**
  * Account for node removal from specified bstree_fixed
  *
- * @param tree      bstree_fixed owning @p node
+ * @param tree bstree_fixed
  *
  * @warning Behavior is undefined if @p tree is empty.
  *
@@ -286,7 +300,7 @@ static inline void bstree_fixed_credit(struct bstree_fixed *tree)
 static inline void bstree_fixed_debit(struct bstree_fixed *tree)
 {
 	bstree_assert_fixed(tree);
-	assert((tree)->bst_count > 0);
+	assert(tree->bst_count > 0);
 
 	tree->bst_count--;
 }
@@ -318,7 +332,7 @@ static inline void bstree_init_fixed(struct bstree_fixed *tree,
 /**
  * Release resources allocated by a bstree_fixed
  *
- * @param tree  bstree_fixed to release resources for
+ * @param tree bstree_fixed to release resources for
  *
  * @ingroup bstree_fixed
  */

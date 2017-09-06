@@ -43,6 +43,10 @@ struct bheap_fixed {
 	struct bstree_fixed bheap_tree;
 };
 
+#define bheap_assert_fixed(_heap)  \
+	assert(_heap);             \
+	assert((_heap)->node_size)
+
 /**
  * Indicate wether a fixed length array based binary heap is empty or not
  *
@@ -55,6 +59,8 @@ struct bheap_fixed {
  */
 static inline bool bheap_fixed_empty(struct bheap_fixed *heap)
 {
+	bheap_assert_fixed(heap);
+
 	return bstree_fixed_empty(&heap->bheap_tree);
 }
 
@@ -70,6 +76,8 @@ static inline bool bheap_fixed_empty(struct bheap_fixed *heap)
  */
 static inline bool bheap_fixed_full(struct bheap_fixed *heap)
 {
+	bheap_assert_fixed(heap);
+
 	return bstree_fixed_full(&heap->bheap_tree);
 }
 
@@ -92,8 +100,7 @@ static inline bool bheap_fixed_full(struct bheap_fixed *heap)
  */
 static inline char * bheap_peek_fixed(const struct bheap_fixed *heap)
 {
-	assert(heap);
-	assert(heap->node_size);
+	bheap_assert_fixed(heap);
 	assert(!bstree_fixed_empty(&heap->bheap_tree));
 
 	return bstree_fixed_root(&heap->bheap_tree, heap->node_size);
@@ -102,10 +109,10 @@ static inline char * bheap_peek_fixed(const struct bheap_fixed *heap)
 /**
  * Insert data into a fixed length array based binary heap
  *
- * @param heap      heap to insert into
- * @param node      data to insert
- * @param compare   comparison function used to locate the right array slot to
- *                  insert data into
+ * @param heap    heap to insert into
+ * @param node    data to insert
+ * @param compare comparison function used to locate the right array slot to
+ *                insert data into
  *
  * @p node is inserted by copy.
  *
@@ -116,12 +123,11 @@ extern void bheap_insert_fixed(struct bheap_fixed *heap,
                                array_compare_fn   *compare);
 
 /**
- * Insert data into a fixed length array based binary heap
+ * Extract data from a fixed length array based binary heap
  *
- * @param heap      heap to insert into
- * @param node      data to insert
- * @param compare   comparison function used to locate the right array slot to
- *                  insert data into
+ * @param heap    heap to extract from
+ * @param node    data location to extract into
+ * @param compare comparison function used to preserve heap properties
  *
  * @p node is inserted by copy.
  * Heap propery is preserved through array_compare_fn function pointer passed as
@@ -141,12 +147,26 @@ extern void bheap_extract_fixed(struct bheap_fixed *heap,
                                 array_compare_fn   *compare);
 
 /**
+ * Clear content of specified bheap_fixed
+ *
+ * @param heap heap to clear
+ *
+ * @ingroup bheap_fixed
+ */
+static inline void bheap_clear_fixed(struct bheap_fixed *heap)
+{
+	bheap_assert_fixed(heap);
+
+	bstree_clear_fixed(&heap->bheap_tree);
+}
+
+/**
  * Build / heapify a bheap_fixed initialized with unsorted data
  *
- * @param heap      heap to heapify
- * @param count     count of nodes to heapify
- * @param compare   comparison function used to locate the right array slot to
- *                  insert data into
+ * @param heap    heap to heapify
+ * @param count   count of nodes to heapify
+ * @param compare comparison function used to locate the right array slot to
+ *                insert data into
  *
  * Build @p heap bheap_fixed from an the array passed as argument to
  * bheap_init_fixed() according to Floyd algorithm in O(n) time complexity.
