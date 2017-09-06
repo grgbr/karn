@@ -20,8 +20,16 @@ static struct pt_entries hppt_entries;
  * Fixed array based binomial heap
  ******************************************************************************/
 
+#if defined(CONFIG_BHEAP_FIXED)
+
 static unsigned int       *hppt_bnr_keys;
 static struct bheap_fixed *hppt_bnr_heap;
+
+static void hppt_bnr_copy(char       *restrict dest,
+                          const char *restrict src)
+{
+	*((unsigned int *)dest) = *((unsigned int *)src);
+}
 
 static int hppt_bnr_compare_min(const char *restrict first,
                                 const char *restrict second)
@@ -38,7 +46,7 @@ hppt_bnr_insert_bulk(void)
 	bheap_clear_fixed(hppt_bnr_heap);
 
 	for (n = 0, k = hppt_bnr_keys; n < hppt_entries.pt_nr; n++, k++)
-		bheap_insert_fixed(hppt_bnr_heap, (char *)k,
+		bheap_insert_fixed(hppt_bnr_heap, (char *)k, hppt_bnr_copy,
 		                   hppt_bnr_compare_min);
 }
 
@@ -54,10 +62,11 @@ hppt_bnr_validate(void)
 
 	hppt_bnr_insert_bulk();
 
-	bheap_extract_fixed(hppt_bnr_heap, (char *)&old, hppt_bnr_compare_min);
+	bheap_extract_fixed(hppt_bnr_heap, (char *)&old, hppt_bnr_copy,
+	                    hppt_bnr_compare_min);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
-		bheap_extract_fixed(hppt_bnr_heap, (char *)&cur,
+		bheap_extract_fixed(hppt_bnr_heap, (char *)&cur, hppt_bnr_copy,
 		                    hppt_bnr_compare_min);
 
 		if (old > cur) {
@@ -118,7 +127,7 @@ hppt_bnr_extract(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
-		bheap_extract_fixed(hppt_bnr_heap, (char *)&cur,
+		bheap_extract_fixed(hppt_bnr_heap, (char *)&cur, hppt_bnr_copy,
 		                    hppt_bnr_compare_min);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
@@ -128,9 +137,13 @@ hppt_bnr_extract(unsigned long long *nsecs)
 	return;
 }
 
+#endif /* defined(CONFIG_BHEAP_FIXED) */
+
 /******************************************************************************
  * Singly linked list based binomial heap
  ******************************************************************************/
+
+#if defined(CONFIG_SBNM_HEAP)
 
 struct hppt_sbnm_key {
 	struct sbnm_heap_node node;
@@ -244,9 +257,13 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 	return;
 }
 
+#endif /* defined(CONFIG_SBNM_HEAP) */
+
 /******************************************************************************
  * Doubly linked list based binomial heap
  ******************************************************************************/
+
+#if defined(CONFIG_DBNM_HEAP)
 
 struct hppt_dbnm_key {
 	struct dbnm_heap_node node;
@@ -360,29 +377,37 @@ hppt_dbnm_extract(unsigned long long *nsecs)
 	return;
 }
 
+#endif /* defined(CONFIG_DBNM_HEAP) */
+
 /******************************************************************************
  * Main measurment task handling
  ******************************************************************************/
 
 static const struct hppt_iface hppt_algos[] = {
+#if defined(CONFIG_BHEAP_FIXED)
 	{
 		.hppt_name    = "bnr",
 		.hppt_load    = hppt_bnr_load,
 		.hppt_insert  = hppt_bnr_insert,
 		.hppt_extract = hppt_bnr_extract
 	},
+#endif
+#if defined(CONFIG_SBNM_HEAP)
 	{
 		.hppt_name    = "sbnm",
 		.hppt_load    = hppt_sbnm_load,
 		.hppt_insert  = hppt_sbnm_insert,
 		.hppt_extract = hppt_sbnm_extract
 	},
+#endif
+#if defined(CONFIG_DBNM_HEAP)
 	{
 		.hppt_name    = "dbnm",
 		.hppt_load    = hppt_dbnm_load,
 		.hppt_insert  = hppt_dbnm_insert,
 		.hppt_extract = hppt_dbnm_extract
-	}
+	},
+#endif
 };
 
 static const struct hppt_iface *

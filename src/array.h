@@ -64,6 +64,19 @@ typedef int (array_compare_fn)(const char *restrict first,
                                const char *restrict second);
 
 /**
+ * @typedef array_copy_fn
+ *
+ * @brief Array item copy function prototype
+ *
+ * @param destination array item to copy into
+ * @param source      array item to copy from
+ *
+ * @ingroup array_fixed
+ */
+typedef void (array_copy_fn)(char       *restrict destination,
+                             const char *restrict source);
+
+/**
  * Fixed length array
  *
  * @ingroup array_fixed
@@ -76,10 +89,10 @@ struct array_fixed {
 };
 
 /* Internal array_fixed consistency checker */
-#define array_assert(_array)       \
-	assert(_array);            \
-	assert(_array->arr_items); \
-	assert(_array->arr_nr)
+#define array_assert(_array)         \
+	assert(_array);              \
+	assert((_array)->arr_items); \
+	assert((_array)->arr_nr)
 
 /**
  * Retrieve the maximum number of items a array_fixed may contain

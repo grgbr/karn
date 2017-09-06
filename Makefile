@@ -104,13 +104,13 @@ intpt_algo    =
 intpt_files   =
 
 # Library source files located into $(SRC)
-lib_src =
+lib_src :=
 # Unit test source files located into $(TEST)
-ut_src  = karn_ut.c utils_ut.c
+ut_src  := karn_ut.c utils_ut.c
 # Common performance test source files located into $(TEST)
-pt_src  = karn_pt.c
+pt_src  := karn_pt.c
 # Performance test binaries
-pt_bin  = array_fixed_pt
+pt_bin  := array_fixed_pt
 
 ifeq ($(CONFIG_SLIST),y)
 lib_src   += slist.c
@@ -171,17 +171,19 @@ endif
 ifeq ($(CONFIG_BHEAP_FIXED),y)
 lib_src += bheap.c
 ut_src  += bheap_ut.c
+pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
 ifeq ($(CONFIG_SBNM_HEAP),y)
 lib_src += sbnm_heap.c
 ut_src  += sbnm_heap_ut.c
+pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
 ifeq ($(CONFIG_DBNM_HEAP),y)
 lib_src += dbnm_heap.c
 ut_src  += dbnm_heap_ut.c
-pt_bin  += heap_pt
+pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
 

@@ -29,11 +29,13 @@
 
 void bheap_insert_fixed(struct bheap_fixed *heap,
                         const char         *node,
+                        array_copy_fn      *copy,
                         array_compare_fn   *compare)
 {
 	bheap_assert_fixed(heap);
 	assert(!bstree_fixed_full(&heap->bheap_tree));
 	assert(node);
+	assert(copy);
 	assert(compare);
 
 	char   *child;
@@ -41,7 +43,8 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
 	size_t  nodesz = heap->node_size;
 
 	/*
-	 * Next free slot is located at the right of the deepest node in the heap.
+	 * Next free slot is located at the right of the deepest node in the
+	 * heap.
 	 */
 	child = bstree_fixed_bottom(&heap->bheap_tree, nodesz);
 
@@ -50,7 +53,7 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
 
 	while (parent && compare(node, parent) <= 0) {
 		/* Bubble current child up while out of order. */
-		memcpy(child, parent, nodesz);
+		copy(child, parent);
 
 		/* Go up one level. */
 		child = parent;
@@ -58,7 +61,7 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
 	}
 
 	/* Child now points to the location where to swap "node" node into. */
-	memcpy(child, node, nodesz);
+	copy(child, node);
 
 	/* Update count of present nodes. */
 	bstree_fixed_credit(&heap->bheap_tree);
@@ -112,6 +115,7 @@ static char * bheap_siftdown_fixed(const struct bstree_fixed *tree,
                                    char                      *child,
                                    const char                *node,
                                    size_t                     node_size,
+                                   array_copy_fn             *copy,
                                    array_compare_fn          *compare)
 {
 	assert(parent);
@@ -120,14 +124,14 @@ static char * bheap_siftdown_fixed(const struct bstree_fixed *tree,
 
 	do {
 		/* Bubble child up: child location is now free. */
-		memcpy(parent, child, node_size);
+		copy(parent, child);
 
 		/* Iterate down. */
 		parent = child;
 
 		/*
-		 * Detect wether both children are in order or not and select the
-		 * appropriate one.
+		 * Detect wether both children are in order or not and select
+		 * the appropriate one.
 		 */
 		child = bheap_fixed_unorder_child(tree, parent, node, node_size,
 		                                  compare);
@@ -139,31 +143,34 @@ static char * bheap_siftdown_fixed(const struct bstree_fixed *tree,
 
 void bheap_extract_fixed(struct bheap_fixed *heap,
                          char               *node,
+                         array_copy_fn      *copy,
                          array_compare_fn   *compare)
 {
 	bheap_assert_fixed(heap);
 	assert(!bstree_fixed_empty(&heap->bheap_tree));
 	assert(node);
+	assert(copy);
 	assert(compare);
 
 	size_t               nodesz = heap->node_size;
 	struct bstree_fixed *tree = &heap->bheap_tree;
 	char                *parent, *child;
-	const char          *last = bstree_fixed_last(tree, nodesz);
+	const char          *last;
 
 	/* Extract root and copy into node passed in argument. */
 	parent = bstree_fixed_root(tree, nodesz);
-	memcpy(node, parent, nodesz);
+
+	copy(node, parent);
 
 	/* Starting from root location, bubble nodes down while not in order. */
 	last = bstree_fixed_last(tree, nodesz);
 	child = bheap_fixed_unorder_child(tree, parent, last, nodesz, compare);
 	if (child)
 		parent = bheap_siftdown_fixed(tree, parent, child, last, nodesz,
-		                              compare);
+		                              copy, compare);
 
 	/* Parent now points to location where to copy last node into. */
-	memcpy(parent, last, nodesz);
+	copy(parent, last);
 
 	/* Update count of present nodes. */
 	bstree_fixed_debit(tree);
@@ -171,11 +178,13 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
 
 void bheap_build_fixed(struct bheap_fixed *heap,
                        unsigned int        count,
+                       array_copy_fn      *copy,
                        array_compare_fn   *compare)
 {
 	bheap_assert_fixed(heap);
 	assert(count);
 	assert(count <= array_fixed_nr(&heap->bheap_tree.bst_nodes));
+	assert(copy);
 	assert(compare);
 
 	unsigned int         n;
@@ -189,9 +198,9 @@ void bheap_build_fixed(struct bheap_fixed *heap,
 	tree->bst_count = count;
 
 	/*
-	 * Starting from the lowest heap level and moving upwards, shift the root
-	 * of each subtree downward as in the extraction algorithm until the heap
-	 * property is restored.
+	 * Starting from the lowest heap level and moving upwards, shift the
+	 * root of each subtree downward as in the extraction algorithm until
+	 * the heap property is restored.
 	 */
 	n = count / 2;
 	while (n--) {
@@ -202,18 +211,20 @@ void bheap_build_fixed(struct bheap_fixed *heap,
 
 		/*
 		 * Since subtrees located under "node" node have already been
-		 * heapified, the current subtree (located at "node" node) can be
-		 * heapified by sending its root down along the path of in ordered
-		 * children.
+		 * heapified, the current subtree (located at "node" node) can
+		 * be * heapified by sending its root down along the path of in
+		 * ordered * children.
 		 */
-		child = bheap_fixed_unorder_child(tree, node, node, nodesz, compare);
+		child = bheap_fixed_unorder_child(tree, node, node, nodesz,
+		                                  compare);
 		if (child) {
 			char tmp[nodesz];
 
-			memcpy(tmp, node, nodesz);
-			node = bheap_siftdown_fixed(tree, node, child, tmp, nodesz,
-			                            compare);
-			memcpy(node, tmp, nodesz);
+			copy(tmp, node);
+
+			node = bheap_siftdown_fixed(tree, node, child, tmp,
+			                            nodesz, copy, compare);
+			copy(node, tmp);
 		}
 	}
 }

@@ -120,6 +120,7 @@ static inline char * bheap_peek_fixed(const struct bheap_fixed *heap)
  */
 extern void bheap_insert_fixed(struct bheap_fixed *heap,
                                const char         *node,
+                               array_copy_fn      *copy,
                                array_compare_fn   *compare);
 
 /**
@@ -144,6 +145,7 @@ extern void bheap_insert_fixed(struct bheap_fixed *heap,
  */
 extern void bheap_extract_fixed(struct bheap_fixed *heap,
                                 char               *node,
+                                array_copy_fn      *copy,
                                 array_compare_fn   *compare);
 
 /**
@@ -177,6 +179,7 @@ static inline void bheap_clear_fixed(struct bheap_fixed *heap)
  */
 extern void bheap_build_fixed(struct bheap_fixed *heap,
                               unsigned int        count,
+                              array_copy_fn      *copy,
                               array_compare_fn   *compare);
 /**
  * Initialize a bheap_fixed
@@ -215,10 +218,10 @@ extern void bheap_fini_fixed(struct bheap_fixed *heap __unused);
  * @param nr        maximum number of nodes @p heap may contain
  *
  * Wrapper allocating and initializing a bheap_fixed.
- * 
+ *
  * @warning Behavior is undefined when called with a zero @p nr or a zero
  * @p node_size.
- * 
+ *
  * @return pointer to new created binary heap
  *
  * @ingroup bheap_fixed

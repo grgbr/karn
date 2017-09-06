@@ -35,6 +35,11 @@ static struct bheap_fixed bheaput_heap;
 
 static int bheaput_nodes[20];
 
+static void bheaput_copy(char *restrict dest, const char *restrict src)
+{
+	*(int *)dest = *(int *)src;
+}
+
 static int bheaput_compare_min(const char *first, const char *second)
 {
 	return *(int *)first - *(int *)second;
@@ -78,7 +83,8 @@ CUTE_PNP_TEST(bheaput_insert_single, &bheaput_empty)
 {
 	unsigned int node = 10;
 
-	bheap_insert_fixed(&bheaput_heap, (char *)&node, bheaput_compare_min);
+	bheap_insert_fixed(&bheaput_heap, (char *)&node,
+	                   bheaput_copy, bheaput_compare_min);
 	cute_ensure(bheap_fixed_empty(&bheaput_heap) == false);
 	cute_ensure(bheap_fixed_full(&bheaput_heap) == false);
 
@@ -95,12 +101,14 @@ CUTE_PNP_TEST(bheaput_extract_single, &bheaput_empty)
 	unsigned int inode = 11;
 	unsigned int enode = 0;
 
-	bheap_insert_fixed(&bheaput_heap, (char *)&inode, bheaput_compare_min);
+	bheap_insert_fixed(&bheaput_heap, (char *)&inode,
+	                   bheaput_copy, bheaput_compare_min);
 
 	cute_ensure(bheap_fixed_empty(&bheaput_heap) == false);
 	cute_ensure(bheap_fixed_full(&bheaput_heap) == false);
 
-	bheap_extract_fixed(&bheaput_heap, (char *)&enode, bheaput_compare_min);
+	bheap_extract_fixed(&bheaput_heap, (char *)&enode,
+	                    bheaput_copy, bheaput_compare_min);
 	cute_ensure(bheap_fixed_empty(&bheaput_heap) == true);
 	cute_ensure(bheap_fixed_full(&bheaput_heap) == false);
 
@@ -132,7 +140,8 @@ static void bheaput_check_insert(struct bheap_fixed *heap,
 	int n;
 
 	for (n = 0; n < nr; n++)
-		bheap_insert_fixed(heap, (char *)&nodes[n], bheaput_compare_min);
+		bheap_insert_fixed(heap, (char *)&nodes[n],
+		                   bheaput_copy, bheaput_compare_min);
 
 	bheaput_check_nodes(heap, nr);
 }
@@ -359,7 +368,8 @@ static void bheaput_check_extract(struct bheap_fixed *heap,
 	qsort(check, nr, sizeof(*nodes), bheaput_qsort_compare_min);
 
 	for (n = 0; n < nr; n++)
-		bheap_insert_fixed(heap, (char *)&nodes[n], bheaput_compare_min);
+		bheap_insert_fixed(heap, (char *)&nodes[n],
+		                   bheaput_copy, bheaput_compare_min);
 
 	for (n = 0; n < nr; n++) {
 		int curr = -1;
@@ -367,7 +377,8 @@ static void bheaput_check_extract(struct bheap_fixed *heap,
 		bheaput_check_nodes(heap, nr - n);
 		cute_ensure(*(int *)bheap_peek_fixed(heap) == check[n]);
 
-		bheap_extract_fixed(heap, (char *)&curr, bheaput_compare_min);
+		bheap_extract_fixed(heap, (char *)&curr,
+		                    bheaput_copy, bheaput_compare_min);
 		cute_ensure(curr == check[n]);
 	}
 }
@@ -628,7 +639,7 @@ static void bheaput_check_build(int *nodes, int nr)
 	qsort(check, nr, sizeof(*nodes), bheaput_qsort_compare_min);
 
 	bheap_init_fixed(&heap, (char *)nodes, sizeof(*nodes), nr);
-	bheap_build_fixed(&heap, nr, bheaput_compare_min);
+	bheap_build_fixed(&heap, nr, bheaput_copy, bheaput_compare_min);
 
 	for (n = 0; n < nr; n++) {
 		int curr = -1;
@@ -636,7 +647,8 @@ static void bheaput_check_build(int *nodes, int nr)
 		bheaput_check_nodes(&heap, nr - n);
 		cute_ensure(*(int *)bheap_peek_fixed(&heap) == check[n]);
 
-		bheap_extract_fixed(&heap, (char *)&curr, bheaput_compare_min);
+		bheap_extract_fixed(&heap, (char *)&curr,
+		                    bheaput_copy, bheaput_compare_min);
 		cute_ensure(curr == check[n]);
 	}
 }
