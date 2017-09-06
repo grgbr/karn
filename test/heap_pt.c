@@ -1,3 +1,4 @@
+#include "sbnm_heap.h"
 #include "dbnm_heap.h"
 #include "array.h"
 #include "karn_pt.h"
@@ -13,6 +14,130 @@ struct hppt_iface {
 };
 
 static struct pt_entries hppt_entries;
+
+/******************************************************************************
+ * Singly linked list based binomial heap
+ ******************************************************************************/
+
+struct hppt_sbnm_key {
+	struct sbnm_heap_node node;
+	unsigned int          value;
+};
+
+static struct hppt_sbnm_key *sbnm_heap_keys;
+
+static int
+sbnm_heap_compare_min(const struct sbnm_heap_node *first,
+                      const struct sbnm_heap_node *second)
+{
+	return ((struct hppt_sbnm_key *)first)->value -
+	       ((struct hppt_sbnm_key *)second)->value;
+}
+
+static void
+hppt_sbnm_insert_bulk(struct sbnm_heap *heap)
+{
+	int                   n;
+	struct hppt_sbnm_key *k;
+
+	sbnm_heap_init(heap);
+
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		sbnm_heap_insert(heap, &k->node, sbnm_heap_compare_min);
+}
+
+static int
+sbnm_heap_validate(void)
+{
+	struct sbnm_heap      heap;
+	struct hppt_sbnm_key *cur, *old;
+	int                   n;
+
+	hppt_sbnm_insert_bulk(&heap);
+
+	old = sbnm_heap_entry(sbnm_heap_extract(&heap, sbnm_heap_compare_min),
+	                      struct hppt_sbnm_key, node);
+
+	for (n = 1; n < hppt_entries.pt_nr; n++) {
+		cur = sbnm_heap_entry(sbnm_heap_extract(&heap,
+		                                        sbnm_heap_compare_min),
+		                      struct hppt_sbnm_key, node);
+
+		if (old->value > cur->value) {
+			fprintf(stderr, "Bogus heap scheme\n");
+			return EXIT_FAILURE;
+		}
+
+		old = cur;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_sbnm_load(const char *pathname)
+{
+	struct hppt_sbnm_key *k;
+
+	if (pt_open_entries(pathname, &hppt_entries))
+		return EXIT_FAILURE;
+
+	sbnm_heap_keys = malloc(hppt_entries.pt_nr * sizeof(*sbnm_heap_keys));
+	if (!sbnm_heap_keys)
+		return EXIT_FAILURE;
+
+	pt_init_entry_iter(&hppt_entries);
+
+	k = sbnm_heap_keys;
+	while (!pt_iter_entry(&hppt_entries, &k->value))
+		k++;
+
+	return sbnm_heap_validate();
+}
+
+static void
+hppt_sbnm_insert(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	struct sbnm_heap heap;
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	hppt_sbnm_insert_bulk(&heap);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	return;
+}
+
+static void
+hppt_sbnm_extract(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	struct sbnm_heap heap;
+	int              n;
+
+	hppt_sbnm_insert_bulk(&heap);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	for (n = 0; n < hppt_entries.pt_nr; n++)
+		sbnm_heap_extract(&heap, sbnm_heap_compare_min);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	return;
+}
+
+
+/******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************/
 
 /******************************************************************************
  * Doubly linked list based binomial heap
@@ -130,13 +255,23 @@ hppt_dbnm_extract(unsigned long long *nsecs)
 	return;
 }
 
+/******************************************************************************
+ * Main measurment task handling
+ ******************************************************************************/
+
 static const struct hppt_iface hppt_algos[] = {
+	{
+		.hppt_name    = "sbnm",
+		.hppt_load    = hppt_sbnm_load,
+		.hppt_insert  = hppt_sbnm_insert,
+		.hppt_extract = hppt_sbnm_extract
+	},
 	{
 		.hppt_name    = "dbnm",
 		.hppt_load    = hppt_dbnm_load,
 		.hppt_insert  = hppt_dbnm_insert,
 		.hppt_extract = hppt_dbnm_extract
-	},
+	}
 };
 
 static const struct hppt_iface *
