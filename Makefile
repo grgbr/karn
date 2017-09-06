@@ -162,8 +162,8 @@ intpt_files += $(call mk_intpt_files,merge,fullrev,1,20) \
 endif
 
 ifeq ($(CONFIG_DLIST),y)
-lib_src   += dlist.c
-ut_src    += dlist_ut.c
+lib_src += dlist.c
+ut_src  += dlist_ut.c
 endif
 
 ifeq ($(CONFIG_BHEAP_FIXED),y)
@@ -171,9 +171,9 @@ lib_src += bheap.c
 ut_src  += bheap_ut.c
 endif
 
-ifeq ($(CONFIG_BNM_HEAP),y)
-lib_src += bnm_heap.c
-ut_src  += bnm_heap_ut.c
+ifeq ($(CONFIG_SBNM_HEAP),y)
+lib_src += sbnm_heap.c
+ut_src  += sbnm_heap_ut.c
 endif
 
 

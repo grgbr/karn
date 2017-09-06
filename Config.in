@@ -31,6 +31,6 @@ config BHEAP_FIXED
 	bool "Fixed length array based binary heap"
 	default y
 
-config BNM_HEAP
-	bool "Binomial heap"
+config SBNM_HEAP
+	bool "Singly linked list based binomial heap"
 	default y
