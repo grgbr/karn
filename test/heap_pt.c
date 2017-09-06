@@ -1,3 +1,4 @@
+#include "bheap.h"
 #include "sbnm_heap.h"
 #include "dbnm_heap.h"
 #include "array.h"
@@ -16,6 +17,118 @@ struct hppt_iface {
 static struct pt_entries hppt_entries;
 
 /******************************************************************************
+ * Fixed array based binomial heap
+ ******************************************************************************/
+
+static unsigned int       *hppt_bnr_keys;
+static struct bheap_fixed *hppt_bnr_heap;
+
+static int hppt_bnr_compare_min(const char *restrict first,
+                                const char *restrict second)
+{
+	return *((unsigned int *)first) - *((unsigned int *)second);
+}
+
+static void
+hppt_bnr_insert_bulk(void)
+{
+	unsigned int *k;
+	int           n;
+
+	bheap_clear_fixed(hppt_bnr_heap);
+
+	for (n = 0, k = hppt_bnr_keys; n < hppt_entries.pt_nr; n++, k++)
+		bheap_insert_fixed(hppt_bnr_heap, (char *)k,
+		                   hppt_bnr_compare_min);
+}
+
+static int
+hppt_bnr_validate(void)
+{
+	unsigned int cur, old;
+	int          n;
+
+	hppt_bnr_heap = bheap_create_fixed(sizeof(cur), hppt_entries.pt_nr);
+	if (!hppt_bnr_heap)
+		return EXIT_FAILURE;
+
+	hppt_bnr_insert_bulk();
+
+	bheap_extract_fixed(hppt_bnr_heap, (char *)&old, hppt_bnr_compare_min);
+
+	for (n = 1; n < hppt_entries.pt_nr; n++) {
+		bheap_extract_fixed(hppt_bnr_heap, (char *)&cur,
+		                    hppt_bnr_compare_min);
+
+		if (old > cur) {
+			fprintf(stderr, "Bogus heap scheme\n");
+			return EXIT_FAILURE;
+		}
+
+		old = cur;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_bnr_load(const char *pathname)
+{
+	unsigned int *k;
+
+	if (pt_open_entries(pathname, &hppt_entries))
+		return EXIT_FAILURE;
+
+	hppt_bnr_keys = malloc(sizeof(*k) * hppt_entries.pt_nr);
+	if (!hppt_bnr_keys)
+		return EXIT_FAILURE;
+
+	pt_init_entry_iter(&hppt_entries);
+
+	k = hppt_bnr_keys;
+	while (!pt_iter_entry(&hppt_entries, k))
+		k++;
+
+	return hppt_bnr_validate();
+}
+
+static void
+hppt_bnr_insert(unsigned long long *nsecs)
+{
+	struct timespec start, elapse;
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	hppt_bnr_insert_bulk();
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	return;
+}
+
+static void
+hppt_bnr_extract(unsigned long long *nsecs)
+{
+	struct timespec start, elapse;
+	unsigned int    cur;
+	int             n;
+
+	hppt_bnr_insert_bulk();
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	for (n = 0; n < hppt_entries.pt_nr; n++)
+		bheap_extract_fixed(hppt_bnr_heap, (char *)&cur,
+		                    hppt_bnr_compare_min);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	return;
+}
+
+/******************************************************************************
  * Singly linked list based binomial heap
  ******************************************************************************/
 
@@ -27,7 +140,7 @@ struct hppt_sbnm_key {
 static struct hppt_sbnm_key *sbnm_heap_keys;
 
 static int
-sbnm_heap_compare_min(const struct sbnm_heap_node *first,
+hppt_sbnm_compare_min(const struct sbnm_heap_node *first,
                       const struct sbnm_heap_node *second)
 {
 	return ((struct hppt_sbnm_key *)first)->value -
@@ -43,11 +156,11 @@ hppt_sbnm_insert_bulk(struct sbnm_heap *heap)
 	sbnm_heap_init(heap);
 
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
-		sbnm_heap_insert(heap, &k->node, sbnm_heap_compare_min);
+		sbnm_heap_insert(heap, &k->node, hppt_sbnm_compare_min);
 }
 
 static int
-sbnm_heap_validate(void)
+hppt_sbnm_validate(void)
 {
 	struct sbnm_heap      heap;
 	struct hppt_sbnm_key *cur, *old;
@@ -55,12 +168,12 @@ sbnm_heap_validate(void)
 
 	hppt_sbnm_insert_bulk(&heap);
 
-	old = sbnm_heap_entry(sbnm_heap_extract(&heap, sbnm_heap_compare_min),
+	old = sbnm_heap_entry(sbnm_heap_extract(&heap, hppt_sbnm_compare_min),
 	                      struct hppt_sbnm_key, node);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
 		cur = sbnm_heap_entry(sbnm_heap_extract(&heap,
-		                                        sbnm_heap_compare_min),
+		                                        hppt_sbnm_compare_min),
 		                      struct hppt_sbnm_key, node);
 
 		if (old->value > cur->value) {
@@ -92,7 +205,7 @@ hppt_sbnm_load(const char *pathname)
 	while (!pt_iter_entry(&hppt_entries, &k->value))
 		k++;
 
-	return sbnm_heap_validate();
+	return hppt_sbnm_validate();
 }
 
 static void
@@ -122,7 +235,7 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
-		sbnm_heap_extract(&heap, sbnm_heap_compare_min);
+		sbnm_heap_extract(&heap, hppt_sbnm_compare_min);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -130,14 +243,6 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 
 	return;
 }
-
-
-/******************************************************************************
- ******************************************************************************
- ******************************************************************************
- ******************************************************************************
- ******************************************************************************
- ******************************************************************************/
 
 /******************************************************************************
  * Doubly linked list based binomial heap
@@ -151,7 +256,7 @@ struct hppt_dbnm_key {
 static struct hppt_dbnm_key *dbnm_heap_keys;
 
 static int
-dbnm_heap_compare_min(const struct dbnm_heap_node *first,
+hppt_dbnm_compare_min(const struct dbnm_heap_node *first,
                       const struct dbnm_heap_node *second)
 {
 	return ((struct hppt_dbnm_key *)first)->value -
@@ -167,11 +272,11 @@ hppt_dbnm_insert_bulk(struct dbnm_heap *heap)
 	dbnm_heap_init(heap);
 
 	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
-		dbnm_heap_insert(heap, &k->node, dbnm_heap_compare_min);
+		dbnm_heap_insert(heap, &k->node, hppt_dbnm_compare_min);
 }
 
 static int
-dbnm_heap_validate(void)
+hppt_dbnm_validate(void)
 {
 	struct dbnm_heap      heap;
 	struct hppt_dbnm_key *cur, *old;
@@ -179,12 +284,12 @@ dbnm_heap_validate(void)
 
 	hppt_dbnm_insert_bulk(&heap);
 
-	old = dbnm_heap_entry(dbnm_heap_extract(&heap, dbnm_heap_compare_min),
+	old = dbnm_heap_entry(dbnm_heap_extract(&heap, hppt_dbnm_compare_min),
 	                      struct hppt_dbnm_key, node);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
 		cur = dbnm_heap_entry(dbnm_heap_extract(&heap,
-		                                        dbnm_heap_compare_min),
+		                                        hppt_dbnm_compare_min),
 		                      struct hppt_dbnm_key, node);
 
 		if (old->value > cur->value) {
@@ -216,7 +321,7 @@ hppt_dbnm_load(const char *pathname)
 	while (!pt_iter_entry(&hppt_entries, &k->value))
 		k++;
 
-	return dbnm_heap_validate();
+	return hppt_dbnm_validate();
 }
 
 static void
@@ -246,7 +351,7 @@ hppt_dbnm_extract(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
-		dbnm_heap_extract(&heap, dbnm_heap_compare_min);
+		dbnm_heap_extract(&heap, hppt_dbnm_compare_min);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -260,6 +365,12 @@ hppt_dbnm_extract(unsigned long long *nsecs)
  ******************************************************************************/
 
 static const struct hppt_iface hppt_algos[] = {
+	{
+		.hppt_name    = "bnr",
+		.hppt_load    = hppt_bnr_load,
+		.hppt_insert  = hppt_bnr_insert,
+		.hppt_extract = hppt_bnr_extract
+	},
 	{
 		.hppt_name    = "sbnm",
 		.hppt_load    = hppt_sbnm_load,
