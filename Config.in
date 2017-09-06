@@ -31,6 +31,10 @@ config BHEAP_FIXED
 	bool "Fixed length array based binary heap"
 	default y
 
+config SBNM_HEAP
+	bool "Singly linked list based binomial heap"
+	default y
+
 config DBNM_HEAP
 	bool "Doubly linked list based binomial heap"
 	select DLIST
