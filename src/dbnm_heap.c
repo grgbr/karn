@@ -257,17 +257,17 @@ dbnm_heap_merge_trees(struct dlist_node   *result,
 }
 
 static void
-dbnm_heap_remove_key(struct dbnm_heap     *heap,
-                    struct dbnm_heap_node *key,
-                    dbnm_heap_compare_fn  *compare)
+dbnm_heap_remove_root(struct dbnm_heap            *heap,
+                      const struct dbnm_heap_node *root,
+                      dbnm_heap_compare_fn        *compare)
 {
 	assert(heap);
-	assert(key);
+	assert(root);
 	assert(compare);
 
-	struct dlist_node *child = key->dbnm_child;
+	struct dlist_node *child = root->dbnm_child;
 
-	dlist_remove(&key->dbnm_sibling);
+	dlist_remove(&root->dbnm_sibling);
 
 	if (child) {
 		struct dlist_node *roots = &heap->dbnm_roots;
@@ -292,12 +292,12 @@ dbnm_heap_extract(struct dbnm_heap *heap, dbnm_heap_compare_fn *compare)
 	assert(heap->dbnm_count);
 	assert(compare);
 
-	struct dlist_node    *roots = &heap->dbnm_roots;
+	struct dlist_node     *roots = &heap->dbnm_roots;
 	struct dbnm_heap_node *key;
 
 	key = dbnm_heap_inorder_child(dlist_next(roots), roots, compare);
 
-	dbnm_heap_remove_key(heap, key, compare);
+	dbnm_heap_remove_root(heap, key, compare);
 
 	return key;
 }
@@ -359,7 +359,7 @@ void dbnm_heap_remove(struct dbnm_heap      *heap,
 	while (key->dbnm_parent)
 		dbnm_heap_swap(key->dbnm_parent, key);
 
-	dbnm_heap_remove_key(heap, key, compare);
+	dbnm_heap_remove_root(heap, key, compare);
 }
 
 void dbnm_heap_update(struct dbnm_heap_node *key, dbnm_heap_compare_fn *compare)
