@@ -34,6 +34,21 @@
 #include <assert.h>
 
 static struct sbnm_heap_node *
+sbnm_heap_preceding_sibling(struct sbnm_heap_node       *eldest,
+                            const struct sbnm_heap_node *sibling)
+{
+	assert(eldest);
+	assert(sibling);
+
+	while (eldest->sbnm_sibling != sibling) {
+		eldest = eldest->sbnm_sibling;
+		assert(eldest);
+	}
+
+	return eldest;
+}
+
+static struct sbnm_heap_node *
 sbnm_heap_join_trees(struct sbnm_heap_node *first,
                      struct sbnm_heap_node *second,
                      sbnm_heap_compare_fn  *compare)
@@ -59,21 +74,6 @@ sbnm_heap_join_trees(struct sbnm_heap_node *first,
 	root->sbnm_order++;
 
 	return root;
-}
-
-static struct sbnm_heap_node *
-sbnm_heap_preceding_sibling(struct sbnm_heap_node       *eldest,
-                            const struct sbnm_heap_node *sibling)
-{
-	assert(eldest);
-	assert(sibling);
-
-	while (eldest->sbnm_sibling != sibling) {
-		eldest = eldest->sbnm_sibling;
-		assert(eldest);
-	}
-
-	return eldest;
 }
 
 static void
@@ -166,22 +166,14 @@ sbnm_heap_siftdown(struct sbnm_heap      *heap,
 		 * Key is a root node and it will bubble down its own
 		 * tree: setup proper root nodes list links in advance.
 		 */
-		if (key != root) {
-			struct sbnm_heap_node *prev;
-
+		if (key != root)
 			/*
 			 * Iterate over the list of root nodes untill
 			 * key is found then setup proper (future) link
 			 * from preceding list root node.
 			 */
-			do {
-				prev = root;
-				root = root->sbnm_sibling;
-				assert(root);
-			} while (root != key);
-
-			prev->sbnm_sibling = child;
-		}
+			sbnm_heap_preceding_sibling(root,
+			                            key)->sbnm_sibling = child;
 		else
 			/*
 			 * First list node should point to key's
@@ -212,7 +204,6 @@ sbnm_heap_update(struct sbnm_heap      *heap,
 	assert(key);
 	assert(compare);
 
-	struct sbnm_heap_node *prev;
 	struct sbnm_heap_node *root;
 
 	if (key->sbnm_parent && (compare(key->sbnm_parent, key) > 0)) {
@@ -245,13 +236,7 @@ sbnm_heap_update(struct sbnm_heap      *heap,
 		 * before last key swap) is found then restore proper link from
 		 * preceding list root node.
 		 */
-		do {
-			prev = root;
-			root = root->sbnm_sibling;
-			assert(root);
-		} while (root != old_root);
-
-		prev->sbnm_sibling = key;
+		sbnm_heap_preceding_sibling(root, old_root)->sbnm_sibling = key;
 	}
 
 	sbnm_heap_siftdown(heap, key, compare);
@@ -393,34 +378,6 @@ sbnm_heap_reverse_children(struct sbnm_heap_node *eldest)
 	return head;
 }
 
-static struct sbnm_heap_node *
-sbnm_heap_preceding_inorder_child(struct sbnm_heap_node  *eldest,
-                                  struct sbnm_heap_node **previous,
-                                  sbnm_heap_compare_fn   *compare)
-{
-	assert(eldest);
-	assert(previous);
-	assert(compare);
-
-	struct sbnm_heap_node *inorder = eldest;
-	struct sbnm_heap_node *prev = eldest;
-
-	*previous = NULL;
-
-	eldest = eldest->sbnm_sibling;
-	while (eldest) {
-		if (compare(eldest, inorder) < 0) {
-			*previous = prev;
-			inorder = eldest;
-		}
-
-		prev = eldest;
-		eldest = eldest->sbnm_sibling;
-	}
-
-	return inorder;
-}
-
 static void
 sbnm_heap_remove_root(struct sbnm_heap            *heap,
                       struct sbnm_heap_node       *previous,
@@ -475,6 +432,34 @@ sbnm_heap_remove(struct sbnm_heap      *heap,
 		root = NULL;
 
 	sbnm_heap_remove_root(heap, root, key, compare);
+}
+
+static struct sbnm_heap_node *
+sbnm_heap_preceding_inorder_child(struct sbnm_heap_node  *eldest,
+                                  struct sbnm_heap_node **previous,
+                                  sbnm_heap_compare_fn   *compare)
+{
+	assert(eldest);
+	assert(previous);
+	assert(compare);
+
+	struct sbnm_heap_node *inorder = eldest;
+	struct sbnm_heap_node *prev = eldest;
+
+	*previous = NULL;
+
+	eldest = eldest->sbnm_sibling;
+	while (eldest) {
+		if (compare(eldest, inorder) < 0) {
+			*previous = prev;
+			inorder = eldest;
+		}
+
+		prev = eldest;
+		eldest = eldest->sbnm_sibling;
+	}
+
+	return inorder;
 }
 
 struct sbnm_heap_node *
