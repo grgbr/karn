@@ -1704,3 +1704,380 @@ CUTE_PNP_TEST(sbnmhut_update_34, &sbnmhut_update)
 	sbnmhut_check_update(&sbnmhut_heap, 0, 4, sbnmhut_update_nodes, checks,
 	                     array_nr(checks));
 }
+
+CUTE_PNP_TEST(sbnmhut_update_down37, &sbnmhut_update)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_update_nodes[4],
+		&sbnmhut_update_nodes[0],
+		&sbnmhut_update_nodes[6],
+		&sbnmhut_update_nodes[7],
+		&sbnmhut_update_nodes[2],
+		&sbnmhut_update_nodes[5],
+		&sbnmhut_update_nodes[3],
+		&sbnmhut_update_nodes[1],
+	};
+
+	sbnmhut_check_update(&sbnmhut_heap, 0, 7, sbnmhut_update_nodes, checks,
+	                     array_nr(checks));
+}
+
+CUTE_PNP_TEST(sbnmhut_update_down310, &sbnmhut_update)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_update_nodes[4],
+		&sbnmhut_update_nodes[6],
+		&sbnmhut_update_nodes[0],
+		&sbnmhut_update_nodes[7],
+		&sbnmhut_update_nodes[2],
+		&sbnmhut_update_nodes[5],
+		&sbnmhut_update_nodes[3],
+		&sbnmhut_update_nodes[1],
+	};
+
+	sbnmhut_check_update(&sbnmhut_heap, 0, 10, sbnmhut_update_nodes, checks,
+	                     array_nr(checks));
+}
+
+CUTE_PNP_TEST(sbnmhut_update_down314, &sbnmhut_update)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_update_nodes[4],
+		&sbnmhut_update_nodes[6],
+		&sbnmhut_update_nodes[7],
+		&sbnmhut_update_nodes[0],
+		&sbnmhut_update_nodes[2],
+		&sbnmhut_update_nodes[5],
+		&sbnmhut_update_nodes[3],
+		&sbnmhut_update_nodes[1],
+	};
+
+	sbnmhut_check_update(&sbnmhut_heap, 0, 14, sbnmhut_update_nodes, checks,
+	                     array_nr(checks));
+}
+
+CUTE_PNP_TEST(sbnmhut_update_down1522, &sbnmhut_update)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_update_nodes[0],
+		&sbnmhut_update_nodes[4],
+		&sbnmhut_update_nodes[6],
+		&sbnmhut_update_nodes[7],
+		&sbnmhut_update_nodes[5],
+		&sbnmhut_update_nodes[3],
+		&sbnmhut_update_nodes[2],
+		&sbnmhut_update_nodes[1],
+	};
+
+	sbnmhut_check_update(&sbnmhut_heap, 2, 22, sbnmhut_update_nodes, checks,
+	                     array_nr(checks));
+}
+
+CUTE_PNP_TEST(sbnmhut_update_down619, &sbnmhut_update)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_update_nodes[0],
+		&sbnmhut_update_nodes[6],
+		&sbnmhut_update_nodes[7],
+		&sbnmhut_update_nodes[2],
+		&sbnmhut_update_nodes[5],
+		&sbnmhut_update_nodes[4],
+		&sbnmhut_update_nodes[3],
+		&sbnmhut_update_nodes[1],
+	};
+
+	sbnmhut_check_update(&sbnmhut_heap, 4, 19, sbnmhut_update_nodes, checks,
+	                     array_nr(checks));
+}
+
+CUTE_PNP_TEST(sbnmhut_update_down610, &sbnmhut_update)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_update_nodes[0],
+		&sbnmhut_update_nodes[6],
+		&sbnmhut_update_nodes[4],
+		&sbnmhut_update_nodes[7],
+		&sbnmhut_update_nodes[2],
+		&sbnmhut_update_nodes[5],
+		&sbnmhut_update_nodes[3],
+		&sbnmhut_update_nodes[1],
+	};
+
+	sbnmhut_check_update(&sbnmhut_heap, 4, 10, sbnmhut_update_nodes, checks,
+	                     array_nr(checks));
+}
+
+static CUTE_PNP_FIXTURED_SUITE(sbnmhut_remove, &sbnmhut, sbnmhut_setup_empty,
+                               NULL);
+
+static void sbnmhut_check_remove(struct sbnm_heap     *heap,
+                                 unsigned int          index,
+                                 struct sbnmhut_node  *nodes,
+                                 struct sbnmhut_node **checks,
+                                 unsigned int          count)
+{
+	unsigned int n;
+
+	for (n = 0; n < count; n++) {
+		sbnm_heap_insert(heap, &nodes[n].heap, sbnmhut_compare_min);
+
+		cute_ensure(sbnm_heap_count(heap) == (n + 1));
+	}
+
+	sbnmhut_check_roots(heap, count);
+
+	sbnm_heap_remove(heap, &nodes[index].heap, sbnmhut_compare_min);
+
+	for (n = 0; n < (count - 1); n++) {
+		const struct sbnm_heap_node *node = NULL;
+		const struct sbnmhut_node   *check = checks[n];
+
+		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
+
+		node = NULL;
+		node = sbnm_heap_extract(heap, sbnmhut_compare_min);
+
+		cute_ensure(sbnm_heap_count(heap) == count - n - 2);
+		cute_ensure(node == &check->heap);
+		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
+	}
+}
+
+static struct sbnmhut_node sbnmhut_remove_nodes[] = {
+		SBNMHUT_INIT_NODE(3),
+		SBNMHUT_INIT_NODE(23),
+		SBNMHUT_INIT_NODE(15),
+		SBNMHUT_INIT_NODE(21),
+		SBNMHUT_INIT_NODE(6),
+		SBNMHUT_INIT_NODE(18),
+		SBNMHUT_INIT_NODE(9),
+		SBNMHUT_INIT_NODE(12),
+		SBNMHUT_INIT_NODE(27),
+		SBNMHUT_INIT_NODE(1),
+		SBNMHUT_INIT_NODE(2)
+};
+
+CUTE_PNP_TEST(sbnmhut_remove_alone, &sbnmhut_remove)
+{
+	struct sbnmhut_node node = SBNMHUT_INIT_NODE(2);
+
+	sbnm_heap_insert(&sbnmhut_heap, &node.heap, sbnmhut_compare_min);
+
+	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
+
+	sbnm_heap_remove(&sbnmhut_heap, &node.heap, sbnmhut_compare_min);
+
+	cute_ensure(sbnmhut_heap.sbnm_trees == NULL);
+	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 0U);
+}
+
+CUTE_PNP_TEST(sbnmhut_remove1, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 9, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove2, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 10, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove3, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 0, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove6, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 4, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove9, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 6, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove12, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 7, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove15, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 2, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove18, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 5, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove21, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[1],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 3, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove23, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[8]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 1, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
+
+CUTE_PNP_TEST(sbnmhut_remove27, &sbnmhut_remove)
+{
+	struct sbnmhut_node *checks[] = {
+		&sbnmhut_remove_nodes[9],
+		&sbnmhut_remove_nodes[10],
+		&sbnmhut_remove_nodes[0],
+		&sbnmhut_remove_nodes[4],
+		&sbnmhut_remove_nodes[6],
+		&sbnmhut_remove_nodes[7],
+		&sbnmhut_remove_nodes[2],
+		&sbnmhut_remove_nodes[5],
+		&sbnmhut_remove_nodes[3],
+		&sbnmhut_remove_nodes[1]
+	};
+
+	sbnmhut_check_remove(&sbnmhut_heap, 8, sbnmhut_remove_nodes, checks,
+	                     array_nr(sbnmhut_remove_nodes));
+}
