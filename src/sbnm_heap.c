@@ -99,9 +99,9 @@ sbnm_heap_peek(const struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
 }
 
 static struct sbnm_heap_node *
-sbnm_heap_join_trees(struct sbnm_heap_node *first,
-                     struct sbnm_heap_node *second,
-                     sbnm_heap_compare_fn  *compare)
+sbnm_heap_join(struct sbnm_heap_node *first,
+               struct sbnm_heap_node *second,
+               sbnm_heap_compare_fn  *compare)
 {
 	assert(first->sbnm_order == second->sbnm_order);
 
@@ -130,50 +130,49 @@ static void
 sbnm_heap_swap(struct sbnm_heap_node *parent, struct sbnm_heap_node *node)
 {
 	assert(parent);
+	assert(parent->sbnm_order > 0);
 	assert(node);
 
 	struct sbnm_heap_node *tmp = parent->sbnm_parent;
-	unsigned int           order;
+	unsigned int           order = parent->sbnm_order;
+
+	node->sbnm_parent = tmp;
 
 	if (tmp) {
 		/* parent is not a binomial tree root node. */
-		if (tmp->sbnm_eldest == parent)
-			tmp->sbnm_eldest = node;
+		if (tmp->sbnm_eldest != parent) {
+			tmp = sbnm_heap_preceding_sibling(tmp->sbnm_eldest,
+			                                  parent);
+			tmp->sbnm_sibling = node;
+		}
 		else
-			sbnm_heap_preceding_sibling(tmp->sbnm_eldest,
-			                            parent)->sbnm_sibling = node;
+			tmp->sbnm_eldest = node;
 	}
-	node->sbnm_parent = tmp;
 
-	if (parent->sbnm_eldest == node) {
+	tmp = parent->sbnm_eldest;
+	parent->sbnm_eldest = node->sbnm_eldest;
+
+	if (tmp == node) {
 		tmp = node->sbnm_eldest;
 		if (tmp)
 			/* node is not located at deepest level. */
 			tmp->sbnm_parent = parent;
 		node->sbnm_eldest = parent;
-
-		parent->sbnm_parent = node;
-		parent->sbnm_eldest = tmp;
 	}
 	else {
-		tmp = parent->sbnm_eldest;
 		tmp->sbnm_parent = node;
-
 		sbnm_heap_preceding_sibling(tmp, node)->sbnm_sibling = parent;
-
-		parent->sbnm_parent = node;
-		parent->sbnm_eldest = node->sbnm_eldest;
 		node->sbnm_eldest = tmp;
 	}
 
-	tmp = node->sbnm_sibling;
-	node->sbnm_sibling = parent->sbnm_sibling;
-	parent->sbnm_sibling = tmp;
+	tmp = parent->sbnm_sibling;
 
-	assert(parent->sbnm_order > 0);
-	order = node->sbnm_order;
-	node->sbnm_order = parent->sbnm_order;
-	parent->sbnm_order = order;
+	parent->sbnm_sibling = node->sbnm_sibling;
+	parent->sbnm_parent = node;
+	parent->sbnm_order = node->sbnm_order;
+
+	node->sbnm_sibling = tmp;
+	node->sbnm_order = order;
 }
 
 static void
@@ -285,7 +284,7 @@ sbnm_heap_insert(struct sbnm_heap      *heap,
 			break;
 
 		nxt = cur->sbnm_sibling;
-		key = sbnm_heap_join_trees(key, cur, compare);
+		key = sbnm_heap_join(key, cur, compare);
 
 		cur = nxt;
 	}
@@ -310,7 +309,7 @@ sbnm_heap_merge_roots(struct sbnm_heap_node **first,
 		*first = (*first)->sbnm_sibling;
 		*second = (*second)->sbnm_sibling;
 
-		return sbnm_heap_join_trees(fst, snd, compare);
+		return sbnm_heap_join(fst, snd, compare);
 	}
 	else if (fst->sbnm_order < snd->sbnm_order) {
 		*first = (*first)->sbnm_sibling;
@@ -345,7 +344,7 @@ sbnm_heap_merge_trees(struct sbnm_heap_node *first,
 		assert(tail->sbnm_order <= tmp->sbnm_order);
 
 		if (tail->sbnm_order == tmp->sbnm_order) {
-			*prev = sbnm_heap_join_trees(tail, tmp, compare);
+			*prev = sbnm_heap_join(tail, tmp, compare);
 			tail = *prev;
 		}
 		else {
@@ -362,7 +361,7 @@ sbnm_heap_merge_trees(struct sbnm_heap_node *first,
 		assert(tail->sbnm_order <= first->sbnm_order);
 
 		tmp = first->sbnm_sibling;
-		*prev = sbnm_heap_join_trees(tail, first, compare);
+		*prev = sbnm_heap_join(tail, first, compare);
 		tail = *prev;
 		first = tmp;
 	}

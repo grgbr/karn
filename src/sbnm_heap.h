@@ -32,9 +32,9 @@
 #include <assert.h>
 
 struct sbnm_heap_node {
+	struct sbnm_heap_node *sbnm_eldest;
 	struct sbnm_heap_node *sbnm_sibling;
 	struct sbnm_heap_node *sbnm_parent;
-	struct sbnm_heap_node *sbnm_eldest;
 	unsigned int           sbnm_order;
 };
 
