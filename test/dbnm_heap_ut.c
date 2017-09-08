@@ -1861,6 +1861,20 @@ static struct dbnmhut_node dbnmhut_remove_nodes[] = {
 		DBNMHUT_INIT_NODE(2)
 };
 
+CUTE_PNP_TEST(dbnmhut_remove_alone, &dbnmhut_remove)
+{
+	struct dbnmhut_node node = DBNMHUT_INIT_NODE(2);
+
+	dbnm_heap_insert(&dbnmhut_heap, &node.heap, dbnmhut_compare_min);
+
+	cute_ensure(dbnm_heap_count(&dbnmhut_heap) == 1U);
+
+	dbnm_heap_remove(&dbnmhut_heap, &node.heap, dbnmhut_compare_min);
+
+	cute_ensure(dlist_empty(&dbnmhut_heap.dbnm_roots));
+	cute_ensure(dbnm_heap_count(&dbnmhut_heap) == 0U);
+}
+
 CUTE_PNP_TEST(dbnmhut_remove1, &dbnmhut_remove)
 {
 	struct dbnmhut_node *checks[] = {
