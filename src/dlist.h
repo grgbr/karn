@@ -214,7 +214,7 @@ static inline void dlist_nqueue_back(struct dlist_node *restrict list,
  *
  * @ingroup dlist
  */
-static inline void dlist_remove(struct dlist_node *node)
+static inline void dlist_remove(const struct dlist_node *node)
 {
 	struct dlist_node *next = node->dlist_next;
 	struct dlist_node *prev = node->dlist_prev;
