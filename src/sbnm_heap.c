@@ -24,12 +24,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * TODO:
- *   - refactor sibling list iteration
- *   - refactor siftup
- */
-
 #include "sbnm_heap.h"
 #include <assert.h>
 
@@ -46,6 +40,62 @@ sbnm_heap_preceding_sibling(struct sbnm_heap_node       *eldest,
 	}
 
 	return eldest;
+}
+
+static struct sbnm_heap_node *
+sbnm_heap_inorder_child(struct sbnm_heap_node *eldest,
+                        sbnm_heap_compare_fn  *compare)
+{
+	assert(eldest);
+	assert(compare);
+
+	struct sbnm_heap_node *inorder = eldest;
+
+	eldest = eldest->sbnm_sibling;
+	while (eldest) {
+		if (compare(eldest, inorder) < 0)
+			inorder = eldest;
+		eldest = eldest->sbnm_sibling;
+	}
+
+	return inorder;
+}
+
+static struct sbnm_heap_node *
+sbnm_heap_preceding_inorder_child(struct sbnm_heap_node  *eldest,
+                                  struct sbnm_heap_node **previous,
+                                  sbnm_heap_compare_fn   *compare)
+{
+	assert(eldest);
+	assert(previous);
+	assert(compare);
+
+	struct sbnm_heap_node *inorder = eldest;
+	struct sbnm_heap_node *prev = eldest;
+
+	*previous = NULL;
+
+	eldest = eldest->sbnm_sibling;
+	while (eldest) {
+		if (compare(eldest, inorder) < 0) {
+			*previous = prev;
+			inorder = eldest;
+		}
+
+		prev = eldest;
+		eldest = eldest->sbnm_sibling;
+	}
+
+	return inorder;
+}
+
+struct sbnm_heap_node *
+sbnm_heap_peek(const struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
+{
+	/* TODO: optimize by always keeping a pointer to minimum root. */
+	assert(heap->sbnm_trees);
+
+	return sbnm_heap_inorder_child(heap->sbnm_trees, compare);
 }
 
 static struct sbnm_heap_node *
@@ -126,71 +176,28 @@ sbnm_heap_swap(struct sbnm_heap_node *parent, struct sbnm_heap_node *node)
 	parent->sbnm_order = order;
 }
 
-static struct sbnm_heap_node *
-sbnm_heap_inorder_child(struct sbnm_heap_node *eldest,
-                        sbnm_heap_compare_fn  *compare)
-{
-	assert(eldest);
-	assert(compare);
-
-	struct sbnm_heap_node *inorder = eldest;
-
-	eldest = eldest->sbnm_sibling;
-	while (eldest) {
-		if (compare(eldest, inorder) < 0)
-			inorder = eldest;
-		eldest = eldest->sbnm_sibling;
-	}
-
-	return inorder;
-}
-
 static void
-sbnm_heap_siftdown(struct sbnm_heap      *heap,
-                   struct sbnm_heap_node *key,
-                   sbnm_heap_compare_fn  *compare)
+sbnm_heap_restore_root(struct sbnm_heap      *heap,
+                       struct sbnm_heap_node *old_root,
+                       struct sbnm_heap_node *new_root)
 {
-	struct sbnm_heap_node *child;
+	struct sbnm_heap_node *roots = heap->sbnm_trees;
 
-	if (!key->sbnm_eldest)
-		return;
-
-	child = sbnm_heap_inorder_child(key->sbnm_eldest, compare);
-	if (compare(key, child) < 0)
-		return;
-
-	if (!key->sbnm_parent) {
-		struct sbnm_heap_node *root = heap->sbnm_trees;
-
+	if (roots == old_root) {
 		/*
-		 * Key is a root node and it will bubble down its own
-		 * tree: setup proper root nodes list links in advance.
+		 * First list node should point to key's subtree since it will
+		 * become root after bubbling down.
 		 */
-		if (key != root)
-			/*
-			 * Iterate over the list of root nodes untill
-			 * key is found then setup proper (future) link
-			 * from preceding list root node.
-			 */
-			sbnm_heap_preceding_sibling(root,
-			                            key)->sbnm_sibling = child;
-		else
-			/*
-			 * First list node should point to key's
-			 * subtree since it will become root after
-			 * bubbling down.
-			 */
-			heap->sbnm_trees = child;
+		heap->sbnm_trees = new_root;
+
+		return;
 	}
 
-	do {
-		sbnm_heap_swap(key, child);
-
-		if (!key->sbnm_eldest)
-			break;
-
-		child = sbnm_heap_inorder_child(key->sbnm_eldest, compare);
-	} while (compare(key, child) > 0);
+	/*
+	 * Iterate over the list of root nodes untill key is found then setup
+	 * proper (future) link from preceding list root node.
+	 */
+	sbnm_heap_preceding_sibling(roots, old_root)->sbnm_sibling = new_root;
 }
 
 void
@@ -206,40 +213,57 @@ sbnm_heap_update(struct sbnm_heap      *heap,
 
 	struct sbnm_heap_node *root;
 
+	/*
+	 * Bubble up.
+	 */
 	if (key->sbnm_parent && (compare(key->sbnm_parent, key) > 0)) {
-		struct sbnm_heap_node *old_root;
-
-		/* Bubble key up. */
+		/* While bubbling key up, keep a reference to old root. */
 		do {
-			old_root = key->sbnm_parent;
+			root = key->sbnm_parent;
 			sbnm_heap_swap(key->sbnm_parent, key);
 		} while (key->sbnm_parent &&
 		         (compare(key->sbnm_parent, key) > 0));
 
-		if (key->sbnm_parent)
-			/* No need to update list of root nodes. */
-			return;
+		if (!key->sbnm_parent)
+			/*
+			 * Key bubbled up to root node location : rebuild list
+			 * of root nodes.
+			 */
+			sbnm_heap_restore_root(heap, root, key);
 
-		/*
-		 * Key bubbled up to root node location : rebuild list of root
-		 * nodes.
-		 */
-		root = heap->sbnm_trees;
-		if (root == old_root) {
-			/* Key should be linked as first list node. */
-			heap->sbnm_trees = key;
-			return;
-		}
-
-		/*
-		 * Iterate over the list of root nodes untill old root (the one
-		 * before last key swap) is found then restore proper link from
-		 * preceding list root node.
-		 */
-		sbnm_heap_preceding_sibling(root, old_root)->sbnm_sibling = key;
+		return;
 	}
 
-	sbnm_heap_siftdown(heap, key, compare);
+	/*
+	 * Bubble down.
+	 */
+	if (!key->sbnm_eldest)
+		/* Nothing to do. */
+		return;
+
+	/* Save a reference to futur root node. */
+	root = sbnm_heap_inorder_child(key->sbnm_eldest, compare);
+
+	if (compare(key, root) < 0)
+		/* In order: nothing's left to do. */
+		return;
+
+	if (!key->sbnm_parent)
+		/*
+		 * Key is a root node and it will bubble down its own tree:
+		 * setup proper root nodes list links in advance.
+		 */
+		sbnm_heap_restore_root(heap, key, root);
+
+	/* Restore heap order property by bubbling key down. */
+	do {
+		sbnm_heap_swap(key, root);
+
+		if (!key->sbnm_eldest)
+			break;
+
+		root = sbnm_heap_inorder_child(key->sbnm_eldest, compare);
+	} while (compare(key, root) > 0);
 }
 
 void
@@ -348,15 +372,6 @@ sbnm_heap_merge_trees(struct sbnm_heap_node *first,
 	return head;
 }
 
-struct sbnm_heap_node *
-sbnm_heap_peek(const struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
-{
-	/* TODO: optimize by always keeping a pointer to minimum root. */
-	assert(heap->sbnm_trees);
-
-	return sbnm_heap_inorder_child(heap->sbnm_trees, compare);
-}
-
 static struct sbnm_heap_node *
 sbnm_heap_reverse_children(struct sbnm_heap_node *eldest)
 {
@@ -432,34 +447,6 @@ sbnm_heap_remove(struct sbnm_heap      *heap,
 		root = NULL;
 
 	sbnm_heap_remove_root(heap, root, key, compare);
-}
-
-static struct sbnm_heap_node *
-sbnm_heap_preceding_inorder_child(struct sbnm_heap_node  *eldest,
-                                  struct sbnm_heap_node **previous,
-                                  sbnm_heap_compare_fn   *compare)
-{
-	assert(eldest);
-	assert(previous);
-	assert(compare);
-
-	struct sbnm_heap_node *inorder = eldest;
-	struct sbnm_heap_node *prev = eldest;
-
-	*previous = NULL;
-
-	eldest = eldest->sbnm_sibling;
-	while (eldest) {
-		if (compare(eldest, inorder) < 0) {
-			*previous = prev;
-			inorder = eldest;
-		}
-
-		prev = eldest;
-		eldest = eldest->sbnm_sibling;
-	}
-
-	return inorder;
 }
 
 struct sbnm_heap_node *
