@@ -10,8 +10,13 @@
 struct hppt_iface {
 	char  *hppt_name;
 	int  (*hppt_load)(const char *pathname);
+	//void (*hppt_peek)(unsigned long long *nsecs);
 	void (*hppt_insert)(unsigned long long *nsecs);
 	void (*hppt_extract)(unsigned long long *nsecs);
+	void (*hppt_remove)(unsigned long long *nsecs);
+	//void (*hppt_increase)(unsigned long long *nsecs);
+	//void (*hppt_decrease)(unsigned long long *nsecs);
+	//void (*hppt_merge)(unsigned long long *nsecs);
 };
 
 static struct pt_entries hppt_entries;
@@ -257,6 +262,30 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 	return;
 }
 
+static void
+hppt_sbnm_remove(unsigned long long *nsecs)
+{
+	int                   n;
+	struct hppt_sbnm_key *k;
+	struct sbnm_heap      heap;
+	struct timespec       start, elapse;
+
+	*nsecs = 0;
+
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		hppt_sbnm_insert_bulk(&heap);
+
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		sbnm_heap_remove(&heap, &k->node, hppt_sbnm_compare_min);
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+
+	return;
+}
+
 #endif /* defined(CONFIG_SBNM_HEAP) */
 
 /******************************************************************************
@@ -377,6 +406,30 @@ hppt_dbnm_extract(unsigned long long *nsecs)
 	return;
 }
 
+static void
+hppt_dbnm_remove(unsigned long long *nsecs)
+{
+	int                   n;
+	struct hppt_dbnm_key *k;
+	struct dbnm_heap      heap;
+	struct timespec       start, elapse;
+
+	*nsecs = 0;
+
+	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		hppt_dbnm_insert_bulk(&heap);
+
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		dbnm_heap_remove(&heap, &k->node, hppt_dbnm_compare_min);
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+
+	return;
+}
+
 #endif /* defined(CONFIG_DBNM_HEAP) */
 
 /******************************************************************************
@@ -389,7 +442,8 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_name    = "bnr",
 		.hppt_load    = hppt_bnr_load,
 		.hppt_insert  = hppt_bnr_insert,
-		.hppt_extract = hppt_bnr_extract
+		.hppt_extract = hppt_bnr_extract,
+		.hppt_remove  = NULL
 	},
 #endif
 #if defined(CONFIG_SBNM_HEAP)
@@ -397,7 +451,8 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_name    = "sbnm",
 		.hppt_load    = hppt_sbnm_load,
 		.hppt_insert  = hppt_sbnm_insert,
-		.hppt_extract = hppt_sbnm_extract
+		.hppt_extract = hppt_sbnm_extract,
+		.hppt_remove  = hppt_sbnm_remove
 	},
 #endif
 #if defined(CONFIG_DBNM_HEAP)
@@ -405,7 +460,8 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_name    = "dbnm",
 		.hppt_load    = hppt_dbnm_load,
 		.hppt_insert  = hppt_dbnm_insert,
-		.hppt_extract = hppt_dbnm_extract
+		.hppt_extract = hppt_dbnm_extract,
+		.hppt_remove  = hppt_dbnm_remove
 	},
 #endif
 };
@@ -507,6 +563,13 @@ int main(int argc, char *argv[])
 	for (l = 0; l < loops; l++) {
 		algo->hppt_extract(&nsecs);
 		printf("extract: nsec=%llu\n", nsecs);
+	}
+
+	if (algo->hppt_remove) {
+		for (l = 0; l < loops; l++) {
+			algo->hppt_remove(&nsecs);
+			printf("remove: nsec=%llu\n", nsecs);
+		}
 	}
 
 	return EXIT_SUCCESS;
