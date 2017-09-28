@@ -62,43 +62,6 @@ sbnm_heap_inorder_child(struct sbnm_heap_node *eldest,
 }
 
 static struct sbnm_heap_node *
-sbnm_heap_preceding_inorder_child(struct sbnm_heap_node  *eldest,
-                                  struct sbnm_heap_node **previous,
-                                  sbnm_heap_compare_fn   *compare)
-{
-	assert(eldest);
-	assert(previous);
-	assert(compare);
-
-	struct sbnm_heap_node *inorder = eldest;
-	struct sbnm_heap_node *prev = eldest;
-
-	*previous = NULL;
-
-	eldest = eldest->sbnm_sibling;
-	while (eldest) {
-		if (compare(eldest, inorder) < 0) {
-			*previous = prev;
-			inorder = eldest;
-		}
-
-		prev = eldest;
-		eldest = eldest->sbnm_sibling;
-	}
-
-	return inorder;
-}
-
-struct sbnm_heap_node *
-sbnm_heap_peek(const struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
-{
-	/* TODO: optimize by always keeping a pointer to minimum root. */
-	assert(heap->sbnm_trees);
-
-	return sbnm_heap_inorder_child(heap->sbnm_trees, compare);
-}
-
-static struct sbnm_heap_node *
 sbnm_heap_join(struct sbnm_heap_node *first,
                struct sbnm_heap_node *second,
                sbnm_heap_compare_fn  *compare)
@@ -199,6 +162,26 @@ sbnm_heap_restore_root(struct sbnm_heap      *heap,
 	sbnm_heap_preceding_sibling(roots, old_root)->sbnm_sibling = new_root;
 }
 
+static void
+sbnm_heap_update_next(struct sbnm_heap      *heap,
+                      struct sbnm_heap_node *key,
+                      sbnm_heap_compare_fn  *compare)
+{
+	if (compare(key, heap->sbnm_next) < 0)
+		heap->sbnm_next = key;
+}
+
+static void
+sbnm_heap_find_next(struct sbnm_heap      *heap,
+                    struct sbnm_heap_node *key,
+                    sbnm_heap_compare_fn  *compare)
+{
+	while (key->sbnm_sibling) {
+		key = key->sbnm_sibling;
+		sbnm_heap_update_next(heap, key, compare);
+	}
+}
+
 void
 sbnm_heap_update(struct sbnm_heap      *heap,
                  struct sbnm_heap_node *key,
@@ -215,23 +198,29 @@ sbnm_heap_update(struct sbnm_heap      *heap,
 	/*
 	 * Bubble up.
 	 */
-	if (key->sbnm_parent && (compare(key->sbnm_parent, key) > 0)) {
-		/* While bubbling key up, keep a reference to old root. */
-		do {
-			root = key->sbnm_parent;
-			sbnm_heap_swap(key->sbnm_parent, key);
-		} while (key->sbnm_parent &&
-		         (compare(key->sbnm_parent, key) > 0));
+	if (key->sbnm_parent) {
+		if (compare(key->sbnm_parent, key) > 0) {
+			/* While bubbling key up, keep a reference to old root. */
+			do {
+				root = key->sbnm_parent;
+				sbnm_heap_swap(key->sbnm_parent, key);
+			} while (key->sbnm_parent &&
+				 (compare(key->sbnm_parent, key) > 0));
 
-		if (!key->sbnm_parent)
-			/*
-			 * Key bubbled up to root node location : rebuild list
-			 * of root nodes.
-			 */
-			sbnm_heap_restore_root(heap, root, key);
+			if (!key->sbnm_parent) {
+				/*
+				 * Key bubbled up to root node location : rebuild list
+				 * of root nodes.
+				 */
+				sbnm_heap_restore_root(heap, root, key);
+				sbnm_heap_update_next(heap, key, compare);
+			}
 
-		return;
+			return;
+		}
 	}
+	else
+		sbnm_heap_update_next(heap, key, compare);
 
 	/*
 	 * Bubble down.
@@ -247,12 +236,22 @@ sbnm_heap_update(struct sbnm_heap      *heap,
 		/* In order: nothing's left to do. */
 		return;
 
-	if (!key->sbnm_parent)
+	if (!key->sbnm_parent) {
 		/*
 		 * Key is a root node and it will bubble down its own tree:
 		 * setup proper root nodes list links in advance.
 		 */
 		sbnm_heap_restore_root(heap, key, root);
+
+		if (key != heap->sbnm_next) {
+			struct sbnm_heap_node *node = heap->sbnm_trees;
+
+			heap->sbnm_next = node;
+			sbnm_heap_find_next(heap, node, compare);
+		}
+		else
+			sbnm_heap_update_next(heap, root, compare);
+	}
 
 	/* Restore heap order property by bubbling key down. */
 	do {
@@ -263,6 +262,7 @@ sbnm_heap_update(struct sbnm_heap      *heap,
 
 		root = sbnm_heap_inorder_child(key->sbnm_eldest, compare);
 	} while (compare(key, root) > 0);
+
 }
 
 void
@@ -277,17 +277,24 @@ sbnm_heap_insert(struct sbnm_heap      *heap,
 	key->sbnm_sibling = NULL;
 	key->sbnm_order = 0;
 
-	while (cur) {
-		struct sbnm_heap_node *nxt;
+	if (cur) {
+		do {
+			struct sbnm_heap_node *nxt;
 
-		if (key->sbnm_order != cur->sbnm_order)
-			break;
+			if (key->sbnm_order != cur->sbnm_order)
+				break;
 
-		nxt = cur->sbnm_sibling;
-		key = sbnm_heap_join(key, cur, compare);
+			nxt = cur->sbnm_sibling;
+			key = sbnm_heap_join(key, cur, compare);
 
-		cur = nxt;
+			cur = nxt;
+		} while (cur);
+
+		if (!key->sbnm_parent && (compare(key, heap->sbnm_next) <= 0))
+			heap->sbnm_next = key;
 	}
+	else
+		heap->sbnm_next = key;
 
 	key->sbnm_sibling = cur;
 	heap->sbnm_trees = key;
@@ -321,25 +328,28 @@ sbnm_heap_merge_roots(struct sbnm_heap_node **first,
 	}
 }
 
-struct sbnm_heap_node *
-sbnm_heap_merge_trees(struct sbnm_heap_node *first,
-                      struct sbnm_heap_node *second,
+void
+sbnm_heap_merge_trees(struct sbnm_heap      *result,
+                      struct sbnm_heap_node *tree,
                       sbnm_heap_compare_fn  *compare)
 {
-	assert(first);
-	assert(second);
+	assert(result);
+	assert(tree);
 	assert(compare);
 
+	struct sbnm_heap_node  *res = result->sbnm_trees;
 	struct sbnm_heap_node  *head, *tail;
 	struct sbnm_heap_node **prev;
 	struct sbnm_heap_node  *tmp;
 
-	head = sbnm_heap_merge_roots(&first, &second, compare);
+	head = sbnm_heap_merge_roots(&res, &tree, compare);
 	prev = &head;
 	tail = head;
 
-	while (first && second) {
-		tmp = sbnm_heap_merge_roots(&first, &second, compare);
+	result->sbnm_next = head;
+
+	while (res && tree) {
+		tmp = sbnm_heap_merge_roots(&res, &tree, compare);
 
 		assert(tail->sbnm_order <= tmp->sbnm_order);
 
@@ -352,23 +362,29 @@ sbnm_heap_merge_trees(struct sbnm_heap_node *first,
 			tail->sbnm_sibling = tmp;
 			tail = tmp;
 		}
+
+		sbnm_heap_update_next(result, tail, compare);
 	}
 
-	if (!first)
-		first = second;
+	if (!res)
+		res = tree;
 
-	while (first && (tail->sbnm_order == first->sbnm_order)) {
-		assert(tail->sbnm_order <= first->sbnm_order);
+	while (res && (tail->sbnm_order == res->sbnm_order)) {
+		assert(tail->sbnm_order <= res->sbnm_order);
 
-		tmp = first->sbnm_sibling;
-		*prev = sbnm_heap_join(tail, first, compare);
+		tmp = res->sbnm_sibling;
+		*prev = sbnm_heap_join(tail, res, compare);
+		res = tmp;
+
 		tail = *prev;
-		first = tmp;
+		sbnm_heap_update_next(result, tail, compare);
 	}
 
-	tail->sbnm_sibling = first;
+	tail->sbnm_sibling = res;
 
-	return head;
+	sbnm_heap_find_next(result, tail, compare);
+
+	result->sbnm_trees = head;
 }
 
 static struct sbnm_heap_node *
@@ -402,6 +418,8 @@ sbnm_heap_remove_root(struct sbnm_heap            *heap,
 	assert(root);
 	assert(compare);
 
+	heap->sbnm_count--;
+
 	if (previous)
 		previous->sbnm_sibling = root->sbnm_sibling;
 	else
@@ -412,15 +430,20 @@ sbnm_heap_remove_root(struct sbnm_heap            *heap,
 
 		roots = sbnm_heap_reverse_children(root->sbnm_eldest);
 
-		if (heap->sbnm_trees)
-			heap->sbnm_trees =
-				sbnm_heap_merge_trees(heap->sbnm_trees,
-				                      roots, compare);
-		else
-			heap->sbnm_trees = roots;
+		if (heap->sbnm_trees) {
+			sbnm_heap_merge_trees(heap, roots, compare);
+			return;
+		}
+
+		heap->sbnm_trees = roots;
 	}
 
-	heap->sbnm_count--;
+	previous = heap->sbnm_trees;
+	if (!previous)
+		return;
+
+	heap->sbnm_next = previous;
+	sbnm_heap_find_next(heap, previous, compare);
 }
 
 void
@@ -456,11 +479,11 @@ sbnm_heap_extract(struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
 	assert(heap->sbnm_count);
 	assert(compare);
 
-	struct sbnm_heap_node *key;
-	struct sbnm_heap_node *prev;
+	struct sbnm_heap_node *key = heap->sbnm_next;
+	struct sbnm_heap_node *prev = NULL;
 
-	key = sbnm_heap_preceding_inorder_child(heap->sbnm_trees, &prev,
-	                                        compare);
+	if (key != heap->sbnm_trees)
+		prev = sbnm_heap_preceding_sibling(heap->sbnm_trees, key);
 
 	sbnm_heap_remove_root(heap, prev, key, compare);
 

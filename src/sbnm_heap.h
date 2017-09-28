@@ -43,6 +43,7 @@ struct sbnm_heap_node {
 
 struct sbnm_heap {
 	struct sbnm_heap_node *sbnm_trees;
+	struct sbnm_heap_node *sbnm_next;
 	unsigned int           sbnm_count;
 };
 
@@ -55,9 +56,6 @@ struct sbnm_heap {
 
 typedef int (sbnm_heap_compare_fn)(const struct sbnm_heap_node *restrict first,
                                    const struct sbnm_heap_node *restrict second);
-
-extern struct sbnm_heap_node * sbnm_heap_peek(const struct sbnm_heap *heap,
-                                              sbnm_heap_compare_fn   *compare);
 
 extern struct sbnm_heap_node * sbnm_heap_extract(struct sbnm_heap     *heap,
                                                  sbnm_heap_compare_fn *compare);
@@ -90,9 +88,20 @@ sbnm_heap_empty(const struct sbnm_heap* heap)
 	return heap->sbnm_count == 0;
 }
 
-extern struct sbnm_heap_node *
-sbnm_heap_merge_trees(struct sbnm_heap_node *first,
-                      struct sbnm_heap_node *second,
+static inline struct sbnm_heap_node *
+sbnm_heap_peek(const struct sbnm_heap *heap)
+{
+	assert(heap);
+	assert(heap->sbnm_trees);
+	assert(heap->sbnm_count);
+	assert(!heap->sbnm_next->sbnm_parent);
+
+	return heap->sbnm_next;
+}
+
+extern void
+sbnm_heap_merge_trees(struct sbnm_heap      *result,
+                      struct sbnm_heap_node *tree,
                       sbnm_heap_compare_fn  *compare);
 
 static inline void
@@ -107,8 +116,7 @@ sbnm_heap_merge(struct sbnm_heap     *result,
 	assert(source->sbnm_trees);
 	assert(source->sbnm_count);
 
-	result->sbnm_trees = sbnm_heap_merge_trees(result->sbnm_trees,
-	                                           source->sbnm_trees, compare);
+	sbnm_heap_merge_trees(result, source->sbnm_trees, compare);
 
 	result->sbnm_count += source->sbnm_count;
 }

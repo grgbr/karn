@@ -92,8 +92,7 @@ CUTE_PNP_TEST(sbnmhut_peek_single, &sbnmhut_empty)
 	sbnm_heap_insert(&sbnmhut_heap, &node.heap, sbnmhut_compare_min);
 
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
-	cute_ensure(sbnm_heap_peek(&sbnmhut_heap, sbnmhut_compare_min) ==
-	            &node.heap);
+	cute_ensure(sbnm_heap_peek(&sbnmhut_heap) == &node.heap);
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
 }
 
@@ -152,7 +151,7 @@ static void sbnmhut_check_heap(struct sbnm_heap     *heap,
 		const struct sbnm_heap_node *node = NULL;
 		const struct sbnmhut_node   *check = checks[n];
 
-		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
+		node = sbnm_heap_peek(heap);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
 
@@ -1108,7 +1107,7 @@ static void sbnmhut_check_update(struct sbnm_heap     *heap,
 		const struct sbnm_heap_node *node = NULL;
 		const struct sbnmhut_node   *check = checks[n];
 
-		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
+		node = sbnm_heap_peek(heap);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
 
@@ -1832,7 +1831,7 @@ static void sbnmhut_check_remove(struct sbnm_heap     *heap,
 		const struct sbnm_heap_node *node = NULL;
 		const struct sbnmhut_node   *check = checks[n];
 
-		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
+		node = sbnm_heap_peek(heap);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
 
