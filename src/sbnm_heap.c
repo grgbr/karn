@@ -290,7 +290,7 @@ sbnm_heap_insert(struct sbnm_heap      *heap,
 			cur = nxt;
 		} while (cur);
 
-		if (!key->sbnm_parent && (compare(key, heap->sbnm_next) <= 0))
+		if (compare(key, heap->sbnm_next) <= 0)
 			heap->sbnm_next = key;
 	}
 	else
@@ -300,8 +300,6 @@ sbnm_heap_insert(struct sbnm_heap      *heap,
 	heap->sbnm_trees = key;
 
 	heap->sbnm_count++;
-
-	return;
 }
 
 static struct sbnm_heap_node *
