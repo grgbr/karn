@@ -82,6 +82,7 @@ typedef void (array_copy_fn)(char       *restrict destination,
  * @ingroup array_fixed
  */
 struct array_fixed {
+        size_t        arr_size;
 	/** maximum number of items this array can hold */
 	unsigned int  arr_nr;
 	/** underlying memory area holding items */
@@ -91,6 +92,7 @@ struct array_fixed {
 /* Internal array_fixed consistency checker */
 #define array_assert(_array)         \
 	assert(_array);              \
+	assert((_array)->arr_size);  \
 	assert((_array)->arr_items); \
 	assert((_array)->arr_nr)
 
@@ -127,14 +129,12 @@ array_fixed_nr(const struct array_fixed *array)
  */
 static inline char *
 array_fixed_item(const struct array_fixed *array,
-                 size_t                    item_size,
                  unsigned int              index)
 {
 	array_assert(array);
-	assert(item_size);
 	assert(index < array->arr_nr);
 
-	return &array->arr_items[index * item_size];
+	return &array->arr_items[index * array->arr_size];
 }
 
 /**
@@ -168,16 +168,14 @@ array_fixed_item(const struct array_fixed *array,
  */
 static inline unsigned int
 array_fixed_item_index(const struct array_fixed *array,
-                       size_t                    item_size,
                        const char               *item)
 {
 	array_assert(array);
-	assert(item_size);
 	assert(item >= &array->arr_items[0]);
-	assert(item < &array->arr_items[item_size * array->arr_nr]);
-	assert(!((size_t)item % item_size));
+	assert(item < &array->arr_items[array->arr_size * array->arr_nr]);
+	assert(!((size_t)item % array->arr_size));
 
-	return (item - &array->arr_items[0]) / item_size;
+	return (item - &array->arr_items[0]) / array->arr_size;
 }
 
 /**
@@ -196,26 +194,29 @@ array_fixed_item_index(const struct array_fixed *array,
 /**
  * Initialize an array_fixed
  *
- * @param array array_fixed to initialize
- * @param items underlying memory area containing items
- * @param nr    maximum number of items @p array may contain
+ * @param array   array_fixed to initialize
+ * @param items   underlying memory area containing items
+ * @param item_nr maximum number of items @p array may contain
  *
- * @p items must point to a memory area large enough to contain at least @p nr
- * items
+ * @p items must point to a memory area large enough to contain at least
+ * @p item_nr items
  *
- * @warning Behavior is undefined when called with a zero @p nr.
+ * @warning Behavior is undefined when called with a zero @p item_nr.
  *
  * @ingroup array_fixed
  */
 static inline void array_init_fixed(struct array_fixed *array,
                                     char               *items,
-                                    unsigned int        nr)
+                                    size_t              item_size,
+                                    unsigned int        item_nr)
 {
 	assert(array);
 	assert(items);
-	assert(nr);
+	assert(item_size);
+	assert(item_nr);
 
-	array->arr_nr = nr;
+	array->arr_size = item_size;
+	array->arr_nr = item_nr;
 	array->arr_items = items;
 }
 

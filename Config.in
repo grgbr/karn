@@ -27,7 +27,7 @@ config DLIST
 	bool "Doubly linked list"
 	default n
 
-config BHEAP_FIXED
+config FBNR_HEAP
 	bool "Fixed length array based binary heap"
 	default y
 

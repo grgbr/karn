@@ -51,13 +51,13 @@ document print_bstree_fixed
 	TYPE refers to bstree_fixed items type
 end
 
-define print_bheap_fixed
+define print_fbnr_heap
 	printf "[%p]", &($arg0)
 	echo $arg0:
-	printf " node_size = %u, count = %u, nr = %u\n", ($arg0).node_size, ($arg0).bheap_tree.bst_count, ($arg0).bheap_tree.bst_nodes.arr_nr
-	set $node = ($arg0).bheap_tree.bst_nodes.arr_items
+	printf " node_size = %u, count = %u, nr = %u\n", ($arg0).node_size, ($arg0).fbnr_tree.bst_count, ($arg0).fbnr_tree.bst_nodes.arr_nr
+	set $node = ($arg0).fbnr_tree.bst_nodes.arr_items
 	set $n = 0
-	while $n < ($arg0).bheap_tree.bst_count
+	while $n < ($arg0).fbnr_tree.bst_count
 		printf "\t[%p]%u: ", $node, $n
 		output *(($arg1)($node))
 		echo \n
@@ -67,11 +67,11 @@ define print_bheap_fixed
 	echo \n
 end
 
-document print_bheap_fixed
-	print_bheap_fixed BHEAP_FIXED TYPE
+document print_fbnr_heap
+	print_fbnr_heap FBNR_HEAP TYPE
 
-	Print content of bheap_fixed passed in argument
+	Print content of fbnr_heap passed in argument
 
-	BHEAP_FIXED refers to the struct bheap_fixed reference to print
-	TYPE refers to bheap_fixed items type
+	FBNR_HEAP refers to the struct fbnr_heap reference to print
+	TYPE refers to fbnr_heap items type
 end

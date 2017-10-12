@@ -168,9 +168,9 @@ lib_src += dlist.c
 ut_src  += dlist_ut.c
 endif
 
-ifeq ($(CONFIG_BHEAP_FIXED),y)
-lib_src += bheap.c
-ut_src  += bheap_ut.c
+ifeq ($(CONFIG_FBNR_HEAP),y)
+lib_src += fbnr_heap.c
+ut_src  += fbnr_heap_ut.c
 pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 

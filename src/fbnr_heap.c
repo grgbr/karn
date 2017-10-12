@@ -1,5 +1,5 @@
 /**
- * @file      bheap.c
+ * @file      fbnr_heap.c
  * @author    Grégor Boirie <gregor.boirie@free.fr>
  * @date      06 Jul 2017
  * @copyright GNU Public License v3
@@ -24,32 +24,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bheap.h"
+#include "fbnr_heap.h"
 #include <string.h>
 
-void bheap_insert_fixed(struct bheap_fixed *heap,
-                        const char         *node,
-                        array_copy_fn      *copy,
-                        array_compare_fn   *compare)
+void fbnr_heap_insert(struct fbnr_heap *heap, const char *node)
 {
-	bheap_assert_fixed(heap);
-	assert(!bstree_fixed_full(&heap->bheap_tree));
+	fbnr_heap_assert(heap);
+	assert(!bstree_fixed_full(&heap->fbnr_tree));
 	assert(node);
-	assert(copy);
-	assert(compare);
 
-	char   *child;
-	char   *parent;
-	size_t  nodesz = heap->node_size;
+	char             *child;
+	char             *parent;
+	array_compare_fn *compare = heap->fbnr_compare;
+	array_copy_fn    *copy = heap->fbnr_copy;
 
 	/*
 	 * Next free slot is located at the right of the deepest node in the
 	 * heap.
 	 */
-	child = bstree_fixed_bottom(&heap->bheap_tree, nodesz);
+	child = bstree_fixed_bottom(&heap->fbnr_tree);
 
 	/* Start bubbling nodes up from the next free slot's parent node. */
-	parent = bstree_fixed_parent(&heap->bheap_tree, nodesz, child);
+	parent = bstree_fixed_parent(&heap->fbnr_tree, child);
 
 	while (parent && compare(node, parent) <= 0) {
 		/* Bubble current child up while out of order. */
@@ -57,14 +53,14 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
 
 		/* Go up one level. */
 		child = parent;
-		parent = bstree_fixed_parent(&heap->bheap_tree, nodesz, child);
+		parent = bstree_fixed_parent(&heap->fbnr_tree, child);
 	}
 
 	/* Child now points to the location where to swap "node" node into. */
 	copy(child, node);
 
-	/* Update count of present nodes. */
-	bstree_fixed_credit(&heap->bheap_tree);
+	/* Update count of hosted nodes. */
+	bstree_fixed_credit(&heap->fbnr_tree);
 }
 
 /*
@@ -72,17 +68,16 @@ void bheap_insert_fixed(struct bheap_fixed *heap,
  * in argument.
  * Will return NULL if no child available or child if is in order.
  */
-static char * bheap_fixed_unorder_child(const struct bstree_fixed *tree,
-                                        const char                *parent,
-                                        const char                *node,
-                                        size_t                     node_size,
-                                        array_compare_fn          *compare)
+static char * fbnr_heap_unorder_child(const struct bstree_fixed *tree,
+                                      const char                *parent,
+                                      const char                *node,
+                                      array_compare_fn          *compare)
 {
 	struct bstree_siblings  sibs;
 	char                   *child;
 
 	/* Fetch sibling, i.e. left and right children. */
-	sibs = bstree_fixed_siblings(tree, node_size, parent);
+	sibs = bstree_fixed_siblings(tree, parent);
 
 	if (!sibs.bst_left)
 		/* No left child. */
@@ -110,13 +105,12 @@ static char * bheap_fixed_unorder_child(const struct bstree_fixed *tree,
  * "child" node direction.
  * Precondition: "child" node is out of order with respect to "node".
  */
-static char * bheap_siftdown_fixed(const struct bstree_fixed *tree,
-                                   char                      *parent,
-                                   char                      *child,
-                                   const char                *node,
-                                   size_t                     node_size,
-                                   array_copy_fn             *copy,
-                                   array_compare_fn          *compare)
+static char * fbnr_heap_siftdown(const struct bstree_fixed *tree,
+                                 char                      *parent,
+                                 char                      *child,
+                                 const char                *node,
+                                 array_compare_fn          *compare,
+                                 array_copy_fn             *copy)
 {
 	assert(parent);
 	assert(child);
@@ -133,41 +127,36 @@ static char * bheap_siftdown_fixed(const struct bstree_fixed *tree,
 		 * Detect wether both children are in order or not and select
 		 * the appropriate one.
 		 */
-		child = bheap_fixed_unorder_child(tree, parent, node, node_size,
-		                                  compare);
+		child = fbnr_heap_unorder_child(tree, parent, node, compare);
 	} while (child);
 
 	/* Return location where to swap "node" node into. */
 	return parent;
 }
 
-void bheap_extract_fixed(struct bheap_fixed *heap,
-                         char               *node,
-                         array_copy_fn      *copy,
-                         array_compare_fn   *compare)
+void fbnr_heap_extract(struct fbnr_heap *heap, char *node)
 {
-	bheap_assert_fixed(heap);
-	assert(!bstree_fixed_empty(&heap->bheap_tree));
+	fbnr_heap_assert(heap);
+	assert(!bstree_fixed_empty(&heap->fbnr_tree));
 	assert(node);
-	assert(copy);
-	assert(compare);
 
-	size_t               nodesz = heap->node_size;
-	struct bstree_fixed *tree = &heap->bheap_tree;
+	struct bstree_fixed *tree = &heap->fbnr_tree;
 	char                *parent, *child;
 	const char          *last;
+	array_compare_fn    *compare = heap->fbnr_compare;
+	array_copy_fn       *copy = heap->fbnr_copy;
 
 	/* Extract root and copy into node passed in argument. */
-	parent = bstree_fixed_root(tree, nodesz);
+	parent = bstree_fixed_root(tree);
 
 	copy(node, parent);
 
 	/* Starting from root location, bubble nodes down while not in order. */
-	last = bstree_fixed_last(tree, nodesz);
-	child = bheap_fixed_unorder_child(tree, parent, last, nodesz, compare);
+	last = bstree_fixed_last(tree);
+	child = fbnr_heap_unorder_child(tree, parent, last, compare);
 	if (child)
-		parent = bheap_siftdown_fixed(tree, parent, child, last, nodesz,
-		                              copy, compare);
+		parent = fbnr_heap_siftdown(tree, parent, child, last, compare,
+		                            copy);
 
 	/* Parent now points to location where to copy last node into. */
 	copy(parent, last);
@@ -176,20 +165,16 @@ void bheap_extract_fixed(struct bheap_fixed *heap,
 	bstree_fixed_debit(tree);
 }
 
-void bheap_build_fixed(struct bheap_fixed *heap,
-                       unsigned int        count,
-                       array_copy_fn      *copy,
-                       array_compare_fn   *compare)
+void fbnr_heap_build(struct fbnr_heap *heap, unsigned int count)
 {
-	bheap_assert_fixed(heap);
+	fbnr_heap_assert(heap);
 	assert(count);
-	assert(count <= array_fixed_nr(&heap->bheap_tree.bst_nodes));
-	assert(copy);
-	assert(compare);
+	assert(count <= array_fixed_nr(&heap->fbnr_tree.bst_nodes));
 
+	struct bstree_fixed *tree = &heap->fbnr_tree;
 	unsigned int         n;
-	size_t               nodesz = heap->node_size;
-	struct bstree_fixed *tree = &heap->bheap_tree;
+	array_compare_fn    *compare = heap->fbnr_compare;
+	array_copy_fn       *copy = heap->fbnr_copy;
 
 	/*
 	 * Update count immediatly to prevent siftdown from complaining about
@@ -207,7 +192,7 @@ void bheap_build_fixed(struct bheap_fixed *heap,
 		char *node;
 		char *child;
 
-		node = bstree_fixed_node(tree, nodesz, n);
+		node = bstree_fixed_node(tree, n);
 
 		/*
 		 * Since subtrees located under "node" node have already been
@@ -215,59 +200,66 @@ void bheap_build_fixed(struct bheap_fixed *heap,
 		 * be * heapified by sending its root down along the path of in
 		 * ordered * children.
 		 */
-		child = bheap_fixed_unorder_child(tree, node, node, nodesz,
-		                                  compare);
+		child = fbnr_heap_unorder_child(tree, node, node, compare);
 		if (child) {
-			char tmp[nodesz];
+			char tmp[tree->bst_nodes.arr_size];
 
 			copy(tmp, node);
 
-			node = bheap_siftdown_fixed(tree, node, child, tmp,
-			                            nodesz, copy, compare);
+			node = fbnr_heap_siftdown(tree, node, child, tmp,
+			                          compare, copy);
 			copy(node, tmp);
 		}
 	}
 }
 
-void bheap_init_fixed(struct bheap_fixed *heap,
-                      char               *nodes,
-                      size_t              node_size,
-                      unsigned int        nr)
+void fbnr_heap_init(struct fbnr_heap *heap,
+                    char             *nodes,
+                    size_t            node_size,
+                    unsigned int      node_nr,
+                    array_compare_fn *compare,
+                    array_copy_fn    *copy)
 {
 	assert(heap);
-	assert(node_size);
+	assert(compare);
+	assert(copy);
 
-	bstree_init_fixed(&heap->bheap_tree, nodes, nr);
+	heap->fbnr_compare = compare;
+	heap->fbnr_copy = copy;
 
-	heap->node_size = node_size;
+	bstree_init_fixed(&heap->fbnr_tree, nodes, node_size, node_nr);
 }
 
-void bheap_fini_fixed(struct bheap_fixed *heap __unused)
+void fbnr_heap_fini(struct fbnr_heap *heap __unused)
 {
 	assert(heap);
-	assert(heap->node_size);
 
-	bstree_fini_fixed(&heap->bheap_tree);
+	bstree_fini_fixed(&heap->fbnr_tree);
 }
 
-struct bheap_fixed * bheap_create_fixed(size_t node_size, unsigned int nr)
+struct fbnr_heap * fbnr_heap_create(size_t            node_size,
+                                    unsigned int      node_nr,
+                                    array_compare_fn *compare,
+                                    array_copy_fn    *copy)
 {
 	assert(node_size);
-	assert(nr);
+	assert(node_nr);
 
-	struct bheap_fixed *heap = malloc(sizeof(*heap) + (node_size * nr));
+	struct fbnr_heap *heap = malloc(sizeof(*heap) +
+	                                  (node_size * node_nr));
 
 	if (!heap)
 		return NULL;
 
-	bheap_init_fixed(heap, (char *)&heap[1], node_size, nr);
+	fbnr_heap_init(heap, (char *)&heap[1], node_size, node_nr, compare,
+	               copy);
 
 	return heap;
 }
 
-void bheap_destroy_fixed(struct bheap_fixed *heap)
+void fbnr_heap_destroy(struct fbnr_heap *heap)
 {
-	bheap_fini_fixed(heap);
+	fbnr_heap_fini(heap);
 
 	free(heap);
 }

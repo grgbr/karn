@@ -100,14 +100,12 @@ bstree_fixed_full(const struct bstree_fixed *tree)
  */
 static inline char *
 bstree_fixed_node(const struct bstree_fixed *tree,
-                  size_t                     node_size,
                   unsigned int               index)
 {
 	bstree_assert_fixed(tree);
-	assert(node_size);
 	assert(index < array_fixed_nr(&tree->bst_nodes));
 
-	return array_fixed_item(&tree->bst_nodes, node_size, index);
+	return array_fixed_item(&tree->bst_nodes, index);
 }
 
 /**
@@ -121,15 +119,14 @@ bstree_fixed_node(const struct bstree_fixed *tree,
  * @ingroup bstree_fixed
  */
 static inline char *
-bstree_fixed_root(const struct bstree_fixed *tree, size_t node_size)
+bstree_fixed_root(const struct bstree_fixed *tree)
 {
 	bstree_assert_fixed(tree);
-	assert(node_size);
 
 	if (bstree_fixed_empty(tree))
 		return NULL;
 
-	return array_fixed_item(&tree->bst_nodes, node_size, 0);
+	return array_fixed_item(&tree->bst_nodes, 0);
 }
 
 /**
@@ -143,16 +140,14 @@ bstree_fixed_root(const struct bstree_fixed *tree, size_t node_size)
  * @ingroup bstree_fixed
  */
 static inline char *
-bstree_fixed_last(const struct bstree_fixed *tree, size_t node_size)
+bstree_fixed_last(const struct bstree_fixed *tree)
 {
 	bstree_assert_fixed(tree);
-	assert(node_size);
 
 	if (bstree_fixed_empty(tree))
 		return NULL;
 
-	return array_fixed_item(&tree->bst_nodes, node_size,
-	                        tree->bst_count - 1);
+	return array_fixed_item(&tree->bst_nodes, tree->bst_count - 1);
 }
 
 /**
@@ -166,15 +161,14 @@ bstree_fixed_last(const struct bstree_fixed *tree, size_t node_size)
  * @ingroup bstree_fixed
  */
 static inline char *
-bstree_fixed_bottom(const struct bstree_fixed *tree, size_t node_size)
+bstree_fixed_bottom(const struct bstree_fixed *tree)
 {
 	bstree_assert_fixed(tree);
-	assert(node_size);
 
 	if (bstree_fixed_full(tree))
 		return NULL;
 
-	return array_fixed_item(&tree->bst_nodes, node_size, tree->bst_count);
+	return array_fixed_item(&tree->bst_nodes, tree->bst_count);
 }
 
 /**
@@ -190,20 +184,17 @@ bstree_fixed_bottom(const struct bstree_fixed *tree, size_t node_size)
  */
 static inline char *
 bstree_fixed_parent(const struct bstree_fixed *tree,
-                    size_t                     node_size,
                     const char                *node)
 {
 	bstree_assert_fixed(tree);
-	assert(node_size);
 	assert(node);
 
-	unsigned int idx = array_fixed_item_index(&tree->bst_nodes, node_size,
-	                                          node);
+	unsigned int idx = array_fixed_item_index(&tree->bst_nodes, node);
 
 	if (!idx)
 		return NULL;
 
-	return array_fixed_item(&tree->bst_nodes, node_size, (idx - 1) / 2);
+	return array_fixed_item(&tree->bst_nodes, (idx - 1) / 2);
 }
 
 /**
@@ -232,11 +223,9 @@ struct bstree_siblings {
  */
 static inline struct bstree_siblings
 bstree_fixed_siblings(const struct bstree_fixed *tree,
-                      size_t                     node_size,
                       const char                *node)
 {
 	bstree_assert_fixed(tree);
-	assert(node_size);
 	assert(node);
 
 	unsigned int           idx;
@@ -245,14 +234,13 @@ bstree_fixed_siblings(const struct bstree_fixed *tree,
 		.bst_right = NULL
 	};
 
-	idx = (2 * array_fixed_item_index(&tree->bst_nodes, node_size, node)) +
-	      1;
+	idx = (2 * array_fixed_item_index(&tree->bst_nodes, node)) + 1;
 
 	if (idx < tree->bst_count)
-		sibs.bst_left = array_fixed_item(&tree->bst_nodes, node_size,
-		                                 idx);
+		sibs.bst_left = array_fixed_item(&tree->bst_nodes, idx);
+
 	if ((idx + 1) < tree->bst_count)
-		sibs.bst_right = sibs.bst_left + node_size;
+		sibs.bst_right = sibs.bst_left + tree->bst_nodes.arr_size;
 
 	return sibs;
 }
@@ -308,9 +296,9 @@ static inline void bstree_fixed_debit(struct bstree_fixed *tree)
 /**
  * Initialize a bstree_fixed
  *
- * @param tree  bstree_fixed to initialize
- * @param nodes underlying memory area containing nodes
- * @param nr    maximum number of nodes @p tree may contain
+ * @param tree    bstree_fixed to initialize
+ * @param nodes   underlying memory area containing nodes
+ * @param node_nr maximum number of nodes @p tree may contain
  *
  * @p nodes must point to a memory area large enough to contain at least @p nr
  * nodes
@@ -321,12 +309,16 @@ static inline void bstree_fixed_debit(struct bstree_fixed *tree)
  */
 static inline void bstree_init_fixed(struct bstree_fixed *tree,
                                      char                *nodes,
-                                     unsigned int         nr)
+                                     size_t               node_size,
+                                     unsigned int         node_nr)
 {
 	assert(tree);
+	assert(nodes);
+	assert(node_size);
+	assert(node_nr);
 
 	tree->bst_count = 0;
-	array_init_fixed(&tree->bst_nodes, nodes, nr);
+	array_init_fixed(&tree->bst_nodes, nodes, node_size, node_nr);
 }
 
 /**
