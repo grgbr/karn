@@ -263,3 +263,33 @@ void fbnr_heap_destroy(struct fbnr_heap *heap)
 
 	free(heap);
 }
+
+#if defined(CONFIG_FBNR_HEAP_SORT)
+
+void fbnr_heap_sort(char             *entries,
+                    size_t            entry_size,
+                    size_t            entry_nr,
+                    array_compare_fn *compare,
+                    array_copy_fn    *copy)
+{
+	if (entry_nr > 1) {
+		struct fbnr_heap heap = FBNR_HEAP_INIT(entries, entry_size,
+		                                       entry_nr, compare, copy);
+
+		fbnr_heap_build(&heap, entry_nr);
+
+		do {
+			char tmp[entry_size];
+
+			fbnr_heap_extract(&heap, tmp);
+
+			entry_nr--;
+
+			copy(&entries[entry_nr * entry_size], tmp);
+		} while (entry_nr > 1);
+
+		fbnr_heap_fini(&heap);
+	}
+}
+
+#endif /* defined(CONFIG_FBNR_HEAP_SORT) */

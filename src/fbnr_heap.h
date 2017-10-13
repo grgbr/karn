@@ -45,6 +45,14 @@ struct fbnr_heap {
 	struct bstree_fixed  fbnr_tree;
 };
 
+#define FBNR_HEAP_INIT(_nodes, _node_size, _node_nr, _compare, _copy)  \
+	{                                                              \
+		.fbnr_compare = _compare,                              \
+		.fbnr_copy    = _copy,                                 \
+		.fbnr_tree    = BSTREE_INIT_FIXED(_nodes, _node_size,  \
+		                                  _node_nr)            \
+	}
+
 #define fbnr_heap_assert(_heap)        \
 	assert(_heap);                 \
 	assert((_heap)->fbnr_compare); \
@@ -238,5 +246,15 @@ extern struct fbnr_heap * fbnr_heap_create(size_t            node_size,
  * @ingroup fbnr_heap
  */
 extern void fbnr_heap_destroy(struct fbnr_heap *heap);
+
+#if defined(CONFIG_FBNR_HEAP_SORT)
+
+extern void fbnr_heap_sort(char             *entries,
+                           size_t            entry_size,
+                           size_t            entry_nr,
+                           array_compare_fn *compare,
+                           array_copy_fn    *copy);
+
+#endif /* defined(CONFIG_FBNR_HEAP_SORT) */
 
 #endif

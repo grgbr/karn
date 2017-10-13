@@ -790,3 +790,123 @@ CUTE_PNP_TEST(fbnrhut_build_mixorder20, &fbnrhut_build)
 
 	fbnrhut_check_build(nodes, array_nr(nodes));
 }
+
+#if defined(CONFIG_FBNR_HEAP_SORT)
+
+static CUTE_PNP_SUITE(fbnrhut_sort, &fbnrhut);
+
+static int fbnrhut_sort_compare_min(const char *first, const char *second)
+{
+	return 0 - fbnrhut_compare_min(first, second);
+}
+
+static void fbnrhut_check_entries(int          *entries,
+                                  const int    *checks,
+                                  unsigned int  nr)
+{
+	unsigned int e;
+
+	fbnr_heap_sort((char *)entries, sizeof(entries[0]), nr,
+	               fbnrhut_sort_compare_min, fbnrhut_copy);
+
+	for (e = 0; e < nr; e++)
+		cute_ensure(entries[e] == checks[e]);
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_single, &fbnrhut_sort)
+{
+	int entries[] = {
+		0
+	};
+	const int check_entries[] = {
+		0
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_inorder2, &fbnrhut_sort)
+{
+	int entries[] = {
+		0, 1
+	};
+	const int check_entries[] = {
+		0, 1
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_revorder2, &fbnrhut_sort)
+{
+	int entries[] = {
+		1, 0
+	};
+	const int check_entries[] = {
+		0, 1
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_duplicates, &fbnrhut_sort)
+{
+	int entries[] = {
+		1, 1
+	};
+	const int check_entries[] = {
+		1, 1
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_presorted, &fbnrhut_sort)
+{
+	int entries[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+	};
+	const int check_entries[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_reverse_sorted, &fbnrhut_sort)
+{
+	int entries[] = {
+		13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+	};
+	const int check_entries[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_unsorted, &fbnrhut_sort)
+{
+	int entries[] = {
+		2, 12, 13, 0, 1, 3, 10, 9, 8, 11, 4, 6, 5, 7
+	};
+	const int check_entries[] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+CUTE_PNP_TEST(fbnrhut_sort_unsorted_duplicates, &fbnrhut_sort)
+{
+	int entries[] = {
+		2, 12, 12, 0, 1, 3, 10, 9, 3, 11, 4, 6, 5, 2
+	};
+	const int check_entries[] = {
+		0, 1, 2, 2, 3, 3, 4, 5, 6, 9, 10, 11, 12, 12
+	};
+
+	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
+}
+
+#endif /* defined(CONFIG_FBNR_HEAP_SORT) */

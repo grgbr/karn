@@ -44,6 +44,12 @@ struct bstree_fixed {
 	struct array_fixed bst_nodes;
 };
 
+#define BSTREE_INIT_FIXED(_nodes, _node_size, _node_nr)                     \
+	{                                                                   \
+		.bst_count = 0,                                             \
+		.bst_nodes = ARRAY_INIT_FIXED(_nodes, _node_size, _node_nr) \
+	}
+
 /* Internal bstree_fixed consistency checker */
 #define bstree_assert_fixed(_tree)                                         \
 	assert(_tree);                                                     \

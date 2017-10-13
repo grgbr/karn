@@ -110,7 +110,7 @@ ut_src  := karn_ut.c utils_ut.c
 # Common performance test source files located into $(TEST)
 pt_src  := karn_pt.c
 # Performance test binaries
-pt_bin  := array_fixed_pt
+pt_bin  := farr_pt
 
 ifeq ($(CONFIG_SLIST),y)
 lib_src   += slist.c
@@ -185,7 +185,6 @@ lib_src += dbnm_heap.c
 ut_src  += dbnm_heap_ut.c
 pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
-
 
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:
@@ -334,7 +333,7 @@ $(BUILD)/utdbg/%_ut.o: $(TEST)/%_ut.c $(BUILD)/include/generated/autoconf.h | \
 $(BUILD)/slist_pt: $(TEST)/slist_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
-$(BUILD)/array_fixed_pt: $(TEST)/array_fixed_pt.c $(BUILD)/libkarn_pt.a
+$(BUILD)/farr_pt: $(TEST)/farr_pt.c $(BUILD)/libkarn_pt.a
 	$(CC) -I$(SRC) $(PT_CFLAGS) -L$(BUILD) -o $@ $< -lkarn_pt
 
 $(BUILD)/heap_pt: $(TEST)/heap_pt.c $(BUILD)/libkarn_pt.a

@@ -89,6 +89,13 @@ struct array_fixed {
 	char         *arr_items;
 };
 
+#define ARRAY_INIT_FIXED(_items, _item_size, _item_nr) \
+	{                                              \
+		.arr_size  = _item_size,               \
+		.arr_nr    = _item_nr,                 \
+		.arr_items = _items                    \
+	}
+
 /* Internal array_fixed consistency checker */
 #define array_assert(_array)         \
 	assert(_array);              \
