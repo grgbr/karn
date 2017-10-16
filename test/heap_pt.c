@@ -116,8 +116,6 @@ hppt_fbnr_insert(unsigned long long *nsecs)
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
-
-	return;
 }
 
 static void
@@ -136,8 +134,6 @@ hppt_fbnr_extract(unsigned long long *nsecs)
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
-
-	return;
 }
 
 #endif /* defined(CONFIG_FBNR_HEAP) */
@@ -236,8 +232,6 @@ hppt_sbnm_insert(unsigned long long *nsecs)
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
-
-	return;
 }
 
 static void
@@ -256,8 +250,6 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
-
-	return;
 }
 
 static void
@@ -280,8 +272,6 @@ hppt_sbnm_remove(unsigned long long *nsecs)
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
 	}
-
-	return;
 }
 
 #endif /* defined(CONFIG_SBNM_HEAP) */
@@ -380,8 +370,6 @@ hppt_dbnm_insert(unsigned long long *nsecs)
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
-
-	return;
 }
 
 static void
@@ -400,8 +388,6 @@ hppt_dbnm_extract(unsigned long long *nsecs)
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
-
-	return;
 }
 
 static void
@@ -424,8 +410,6 @@ hppt_dbnm_remove(unsigned long long *nsecs)
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
 	}
-
-	return;
 }
 
 #endif /* defined(CONFIG_DBNM_HEAP) */
@@ -473,7 +457,7 @@ hppt_setup_algo(const char *algo_name)
 		if (!strcmp(algo_name, hppt_algos[a].hppt_name))
 			return &hppt_algos[a];
 
-	fprintf(stderr, "Invalid \"%s\" sort algorithm\n", algo_name);
+	fprintf(stderr, "Invalid \"%s\" heap algorithm\n", algo_name);
 
 	return NULL;
 }
@@ -492,9 +476,9 @@ usage(const char *me)
 int main(int argc, char *argv[])
 {
 	const struct hppt_iface *algo;
-	unsigned int                 l, loops = 0;
-	int                          prio = 0;
-	unsigned long long           nsecs;
+	unsigned int             l, loops = 0;
+	int                      prio = 0;
+	unsigned long long       nsecs;
 
 	while (true) {
 		int                        opt;
