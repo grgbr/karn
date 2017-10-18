@@ -29,188 +29,188 @@
 
 void fbnr_heap_insert(struct fbnr_heap *heap, const char *node)
 {
-	fbnr_heap_assert(heap);
-	assert(!bstree_fixed_full(&heap->fbnr_tree));
+	assert(!fbnr_heap_full(heap));
 	assert(node);
 
-	char             *child;
-	char             *parent;
-	array_compare_fn *compare = heap->fbnr_compare;
-	array_copy_fn    *copy = heap->fbnr_copy;
+	unsigned int      idx;
+	array_compare_fn *cmp = heap->fbnr_compare;
+	array_copy_fn    *cpy = heap->fbnr_copy;
 
 	/*
 	 * Next free slot is located at the right of the deepest node in the
 	 * heap.
 	 */
-	child = bstree_fixed_bottom(&heap->fbnr_tree);
+	idx = fabs_tree_bottom_index(&heap->fbnr_tree);
+	while (idx != FABS_TREE_ROOT_INDEX) {
+		/*
+		 * Bubble next free slot up as long as node to insert is not
+		 * heap ordered.
+		 */
+		unsigned int  pidx;
+		const char   *pnode;
 
-	/* Start bubbling nodes up from the next free slot's parent node. */
-	parent = bstree_fixed_parent(&heap->fbnr_tree, child);
+		pidx = fabs_tree_parent_index(idx);
+		pnode = fabs_tree_node(&heap->fbnr_tree, pidx);
+		if (cmp(pnode, node) <= 0)
+			break;
 
-	while (parent && compare(node, parent) <= 0) {
-		/* Bubble current child up while out of order. */
-		copy(child, parent);
+		cpy(fabs_tree_node(&heap->fbnr_tree, idx), pnode);
 
-		/* Go up one level. */
-		child = parent;
-		parent = bstree_fixed_parent(&heap->fbnr_tree, child);
+		idx = pidx;
 	}
 
 	/* Child now points to the location where to swap "node" node into. */
-	copy(child, node);
+	cpy(fabs_tree_node(&heap->fbnr_tree, idx), node);
 
 	/* Update count of hosted nodes. */
-	bstree_fixed_credit(&heap->fbnr_tree);
+	fabs_tree_credit(&heap->fbnr_tree);
 }
 
-/*
- * Given parent node, return child node which is not in order with node passed
- * in argument.
- * Will return NULL if no child available or child if is in order.
- */
-static char * fbnr_heap_unorder_child(const struct bstree_fixed *tree,
-                                      const char                *parent,
-                                      const char                *node,
-                                      array_compare_fn          *compare)
+struct fbnr_heap_path {
+	char         *fbnr_pnode;
+	unsigned int  fbnr_cidx;
+	char         *fbnr_cnode;
+};
+
+static void fbnr_heap_inorder_path(const struct fabs_tree *tree,
+                                   struct fbnr_heap_path  *path,
+                                   unsigned int            root_index,
+                                   array_compare_fn       *compare)
 {
-	struct bstree_siblings  sibs;
-	char                   *child;
+	unsigned int ridx;
 
-	/* Fetch sibling, i.e. left and right children. */
-	sibs = bstree_fixed_siblings(tree, parent);
+	path->fbnr_pnode = fabs_tree_node(tree, root_index);
+	path->fbnr_cidx = fabs_tree_left_child_index(root_index);
+	path->fbnr_cnode = fabs_tree_node(tree, path->fbnr_cidx);
 
-	if (!sibs.bst_left)
-		/* No left child. */
-		child = sibs.bst_right;
-	else if (!sibs.bst_right)
-		/* No right child. */
-		child = sibs.bst_left;
-	else if (compare(sibs.bst_left, sibs.bst_right) <= 0)
-		/* First in order child is the left one. */
-		child = sibs.bst_left;
-	else
-		/* First in order child is the right one. */
-		child = sibs.bst_right;
+	ridx = fabs_tree_right_child_index(root_index);
+	if (ridx < fabs_tree_count(tree)) {
+		char *right;
 
-	if (!child ||                    /* No child at all. */
-	    (compare(node, child) <= 0)) /* Child is in order. */
-		return NULL;
-
-	return child;
+		right = fabs_tree_node(tree, ridx);
+		if (compare(right, path->fbnr_cnode) < 0) {
+			path->fbnr_cidx = ridx;
+			path->fbnr_cnode = right;
+		}
+	}
 }
 
-/*
- * Find location where to swap "node" node into by iterating down the
- * underlying binary search tree starting from "parent" node along
- * "child" node direction.
- * Precondition: "child" node is out of order with respect to "node".
- */
-static char * fbnr_heap_siftdown(const struct bstree_fixed *tree,
-                                 char                      *parent,
-                                 char                      *child,
-                                 const char                *node,
-                                 array_compare_fn          *compare,
-                                 array_copy_fn             *copy)
+static char * fbnr_heap_topdwn_siftdown(const struct fabs_tree      *tree,
+                                        const struct fbnr_heap_path *path,
+                                        const char                  *node,
+                                        array_compare_fn            *compare,
+                                        array_copy_fn               *copy)
 {
-	assert(parent);
-	assert(child);
-	assert(node);
+	unsigned int  cnt = fabs_tree_count(tree);
+	char         *empty = path->fbnr_pnode;
+	char         *sibling = path->fbnr_cnode;
+	unsigned int  sidx = path->fbnr_cidx;
 
 	do {
-		/* Bubble child up: child location is now free. */
-		copy(parent, child);
+		unsigned int  lidx;
+		char         *left;
 
-		/* Iterate down. */
-		parent = child;
+		copy(empty, sibling);
+		empty = sibling;
 
-		/*
-		 * Detect wether both children are in order or not and select
-		 * the appropriate one.
-		 */
-		child = fbnr_heap_unorder_child(tree, parent, node, compare);
-	} while (child);
+		lidx = fabs_tree_left_child_index(sidx);
+		if (lidx >= cnt)
+			break;
 
-	/* Return location where to swap "node" node into. */
-	return parent;
+		left = fabs_tree_node(tree, lidx);
+
+		sidx = fabs_tree_right_child_index(sidx);
+		if (sidx < cnt) {
+			sibling = fabs_tree_node(tree, sidx);
+			if (compare(sibling, left) < 0)
+				continue;
+		}
+
+		sidx = lidx;
+		sibling = left;
+	} while (compare(sibling, node) < 0);
+
+	return empty;
 }
 
 void fbnr_heap_extract(struct fbnr_heap *heap, char *node)
 {
-	fbnr_heap_assert(heap);
-	assert(!bstree_fixed_empty(&heap->fbnr_tree));
+	assert(!fbnr_heap_empty(heap));
 	assert(node);
 
-	struct bstree_fixed *tree = &heap->fbnr_tree;
-	char                *parent, *child;
-	const char          *last;
-	array_compare_fn    *compare = heap->fbnr_compare;
-	array_copy_fn       *copy = heap->fbnr_copy;
+	heap->fbnr_copy(node, fabs_tree_root(&heap->fbnr_tree));
 
-	/* Extract root and copy into node passed in argument. */
-	parent = bstree_fixed_root(tree);
+	if (fabs_tree_count(&heap->fbnr_tree) > 1) {
+		struct fbnr_heap_path  path;
+		const char            *last;
 
-	copy(node, parent);
+		fbnr_heap_inorder_path(&heap->fbnr_tree, &path,
+		                       FABS_TREE_ROOT_INDEX,
+		                       heap->fbnr_compare);
 
-	/* Starting from root location, bubble nodes down while not in order. */
-	last = bstree_fixed_last(tree);
-	child = fbnr_heap_unorder_child(tree, parent, last, compare);
-	if (child)
-		parent = fbnr_heap_siftdown(tree, parent, child, last, compare,
-		                            copy);
+		last = fabs_tree_last(&heap->fbnr_tree);
 
-	/* Parent now points to location where to copy last node into. */
-	copy(parent, last);
+		if (heap->fbnr_compare(path.fbnr_cnode, last) < 0)
+			node = fbnr_heap_topdwn_siftdown(&heap->fbnr_tree,
+			                                 &path, last,
+			                                 heap->fbnr_compare,
+			                                 heap->fbnr_copy);
+		else
+			node = path.fbnr_pnode;
+
+		heap->fbnr_copy(node, last);
+	}
 
 	/* Update count of present nodes. */
-	bstree_fixed_debit(tree);
+	fabs_tree_debit(&heap->fbnr_tree);
 }
 
-void fbnr_heap_build(struct fbnr_heap *heap, unsigned int count)
+static void fbnr_heap_build_tree(struct fabs_tree *tree,
+                                 unsigned int      count,
+                                 array_compare_fn *compare,
+                                 array_copy_fn    *copy)
 {
-	fbnr_heap_assert(heap);
 	assert(count);
-	assert(count <= array_fixed_nr(&heap->fbnr_tree.bst_nodes));
+	assert(count <= fabs_tree_nr(tree));
 
-	struct bstree_fixed *tree = &heap->fbnr_tree;
-	unsigned int         n;
-	array_compare_fn    *compare = heap->fbnr_compare;
-	array_copy_fn       *copy = heap->fbnr_copy;
+	unsigned int           cnt = count / 2;
+	struct fbnr_heap_path  path;
+	char                   tmp[fabs_tree_node_size(tree)];
+	char                  *node;
+
 
 	/*
 	 * Update count immediatly to prevent siftdown from complaining about
 	 * empty heap.
 	 */
-	tree->bst_count = count;
+	tree->fabs_count = count;
 
 	/*
 	 * Starting from the lowest heap level and moving upwards, shift the
 	 * root of each subtree downward as in the extraction algorithm until
 	 * the heap property is restored.
 	 */
-	n = count / 2;
-	while (n--) {
-		char *node;
-		char *child;
+	while (cnt--) {
+		fbnr_heap_inorder_path(tree, &path, cnt, compare);
 
-		node = bstree_fixed_node(tree, n);
+		if (compare(path.fbnr_cnode, path.fbnr_pnode) < 0) {
+			copy(tmp, path.fbnr_pnode);
 
-		/*
-		 * Since subtrees located under "node" node have already been
-		 * heapified, the current subtree (located at "node" node) can
-		 * be * heapified by sending its root down along the path of in
-		 * ordered * children.
-		 */
-		child = fbnr_heap_unorder_child(tree, node, node, compare);
-		if (child) {
-			char tmp[tree->bst_nodes.arr_size];
+			node = fbnr_heap_topdwn_siftdown(tree, &path, tmp,
+			                                 compare, copy);
 
-			copy(tmp, node);
-
-			node = fbnr_heap_siftdown(tree, node, child, tmp,
-			                          compare, copy);
 			copy(node, tmp);
 		}
 	}
+}
+
+void fbnr_heap_build(struct fbnr_heap *heap, unsigned int count)
+{
+	fbnr_heap_assert(heap);
+
+	if (count > 1)
+		fbnr_heap_build_tree(&heap->fbnr_tree, count,
+		                     heap->fbnr_compare, heap->fbnr_copy);
 }
 
 void fbnr_heap_init(struct fbnr_heap *heap,
@@ -227,14 +227,14 @@ void fbnr_heap_init(struct fbnr_heap *heap,
 	heap->fbnr_compare = compare;
 	heap->fbnr_copy = copy;
 
-	bstree_init_fixed(&heap->fbnr_tree, nodes, node_size, node_nr);
+	fabs_tree_init(&heap->fbnr_tree, nodes, node_size, node_nr);
 }
 
 void fbnr_heap_fini(struct fbnr_heap *heap __unused)
 {
 	assert(heap);
 
-	bstree_fini_fixed(&heap->fbnr_tree);
+	fabs_tree_fini(&heap->fbnr_tree);
 }
 
 struct fbnr_heap * fbnr_heap_create(size_t            node_size,
@@ -245,9 +245,9 @@ struct fbnr_heap * fbnr_heap_create(size_t            node_size,
 	assert(node_size);
 	assert(node_nr);
 
-	struct fbnr_heap *heap = malloc(sizeof(*heap) +
-	                                  (node_size * node_nr));
+	struct fbnr_heap *heap;
 
+	heap = malloc(sizeof(*heap) + (node_size * node_nr));
 	if (!heap)
 		return NULL;
 
@@ -266,6 +266,56 @@ void fbnr_heap_destroy(struct fbnr_heap *heap)
 
 #if defined(CONFIG_FBNR_HEAP_SORT)
 
+static void fbnr_heap_botup_siftdown(const struct fabs_tree *tree,
+                                     const char             *node,
+                                     unsigned int            count,
+                                     array_compare_fn       *compare,
+                                     array_copy_fn          *copy)
+{
+	unsigned int  eidx = FABS_TREE_ROOT_INDEX;
+	unsigned int  idx;
+	char         *empty;
+	unsigned int  depth;
+
+	while (true) {
+		idx = fabs_tree_left_child_index(eidx);
+		if (idx >= count)
+			break;
+
+		eidx = fabs_tree_right_child_index(eidx);
+		if (eidx >= count) {
+			eidx = idx;
+			break;
+		}
+
+		if (compare(fabs_tree_node(tree, eidx),
+		            fabs_tree_node(tree, idx)) > 0)
+			eidx = idx;
+	}
+
+	while (true) {
+		empty = fabs_tree_node(tree, eidx);
+		if (compare(node, empty) > 0)
+			break;
+
+		idx = fabs_tree_parent_index(eidx);
+		if (idx == FABS_TREE_ROOT_INDEX)
+			break;
+
+		eidx = idx;
+	}
+
+	depth = fabs_tree_index_depth(eidx);
+	while (depth--) {
+		idx = fabs_tree_ancestor_index(eidx, depth);
+
+		copy(fabs_tree_node(tree, fabs_tree_parent_index(idx)),
+		     fabs_tree_node(tree, idx));
+	}
+
+	copy(empty, node);
+}
+
 void fbnr_heap_sort(char             *entries,
                     size_t            entry_size,
                     size_t            entry_nr,
@@ -273,22 +323,28 @@ void fbnr_heap_sort(char             *entries,
                     array_copy_fn    *copy)
 {
 	if (entry_nr > 1) {
-		struct fbnr_heap heap = FBNR_HEAP_INIT(entries, entry_size,
-		                                       entry_nr, compare, copy);
+		struct fabs_tree  tree;
+		char             *last;
+		char              tmp[entry_size];
 
-		fbnr_heap_build(&heap, entry_nr);
+		fabs_tree_init(&tree, entries, entry_size, entry_nr);
+		fbnr_heap_build_tree(&tree, entry_nr, compare, copy);
+
+		last = &entries[(entry_nr - 1) * entry_size];
 
 		do {
-			char tmp[entry_size];
+			copy(tmp, fabs_tree_root(&tree));
 
-			fbnr_heap_extract(&heap, tmp);
+			fbnr_heap_botup_siftdown(&tree, last, entry_nr, compare,
+			                         copy);
 
+			copy(last, tmp);
+
+			last -= entry_size;
 			entry_nr--;
-
-			copy(&entries[entry_nr * entry_size], tmp);
 		} while (entry_nr > 1);
 
-		fbnr_heap_fini(&heap);
+		fabs_tree_fini(&tree);
 	}
 }
 

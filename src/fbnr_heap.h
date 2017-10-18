@@ -29,7 +29,7 @@
 #ifndef _FBNR_HEAP_H
 #define _FBNR_HEAP_H
 
-#include <bstree.h>
+#include <fabs_tree.h>
 
 /**
  * Fixed length array based binary heap
@@ -42,16 +42,8 @@ struct fbnr_heap {
 	/** Node copier */
 	array_copy_fn       *fbnr_copy;
 	/** underlying binary search tree */
-	struct bstree_fixed  fbnr_tree;
+	struct fabs_tree     fbnr_tree;
 };
-
-#define FBNR_HEAP_INIT(_nodes, _node_size, _node_nr, _compare, _copy)  \
-	{                                                              \
-		.fbnr_compare = _compare,                              \
-		.fbnr_copy    = _copy,                                 \
-		.fbnr_tree    = BSTREE_INIT_FIXED(_nodes, _node_size,  \
-		                                  _node_nr)            \
-	}
 
 #define fbnr_heap_assert(_heap)        \
 	assert(_heap);                 \
@@ -72,7 +64,7 @@ static inline bool fbnr_heap_empty(const struct fbnr_heap *heap)
 {
 	fbnr_heap_assert(heap);
 
-	return bstree_fixed_empty(&heap->fbnr_tree);
+	return fabs_tree_empty(&heap->fbnr_tree);
 }
 
 /**
@@ -89,7 +81,7 @@ static inline bool fbnr_heap_full(const struct fbnr_heap *heap)
 {
 	fbnr_heap_assert(heap);
 
-	return bstree_fixed_full(&heap->fbnr_tree);
+	return fabs_tree_full(&heap->fbnr_tree);
 }
 
 /**
@@ -112,16 +104,15 @@ static inline bool fbnr_heap_full(const struct fbnr_heap *heap)
 static inline char * fbnr_heap_peek(const struct fbnr_heap *heap)
 {
 	fbnr_heap_assert(heap);
-	assert(!bstree_fixed_empty(&heap->fbnr_tree));
 
-	return bstree_fixed_root(&heap->fbnr_tree);
+	return fabs_tree_root(&heap->fbnr_tree);
 }
 
 /**
  * Insert data into a fixed length array based binary heap
  *
- * @param heap    heap to insert into
- * @param node    data to insert
+ * @param heap heap to insert into
+ * @param node data to insert
  *
  * @p node is inserted by copy.
  *
@@ -161,14 +152,14 @@ static inline void fbnr_heap_clear(struct fbnr_heap *heap)
 {
 	fbnr_heap_assert(heap);
 
-	bstree_clear_fixed(&heap->fbnr_tree);
+	fabs_tree_clear(&heap->fbnr_tree);
 }
 
 /**
  * Build / heapify a fbnr_heap initialized with unsorted data
  *
- * @param heap    heap to heapify
- * @param count   count of nodes to heapify
+ * @param heap  heap to heapify
+ * @param count count of nodes to heapify
  *
  * Build @p heap fbnr_heap from an the array passed as argument to
  * fbnr_heap_init() according to Floyd algorithm in O(n) time complexity.
