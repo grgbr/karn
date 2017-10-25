@@ -27,7 +27,6 @@
  */
 
 #include "slist.h"
-#include "array.h"
 #include <cute/cute.h>
 
 struct slistut_entry {

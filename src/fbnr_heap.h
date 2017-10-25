@@ -38,11 +38,11 @@
  */
 struct fbnr_heap {
 	/** Node comparator */
-	array_compare_fn    *fbnr_compare;
+	farr_compare_fn  *fbnr_compare;
 	/** Node copier */
-	array_copy_fn       *fbnr_copy;
+	farr_copy_fn     *fbnr_copy;
 	/** underlying binary search tree */
-	struct fabs_tree     fbnr_tree;
+	struct fabs_tree  fbnr_tree;
 };
 
 #define fbnr_heap_assert(_heap)        \
@@ -89,7 +89,7 @@ static inline bool fbnr_heap_full(const struct fbnr_heap *heap)
  *
  * @param heap heap to retrieve node from
  *
- * Heap propery is preserved through array_compare_fn function pointer passed as
+ * Heap propery is preserved through farr_compare_fn function pointer passed as
  * argument at init time.
  * Depending on user's compare implementation, fbnr_heap_peek() will therefore
  * return smallest node for a min-heap, greatest one for a max-heap, or anything
@@ -127,7 +127,7 @@ extern void fbnr_heap_insert(struct fbnr_heap *heap, const char *node);
  * @param node    data location to extract into
  *
  * @p node is inserted by copy.
- * Heap propery is preserved through array_compare_fn function pointer passed as
+ * Heap propery is preserved through farr_compare_fn function pointer passed as
  * argument at init time.
  * Depending on user's compare implementation, fbnr_heap_peek() will therefore
  * return smallest node for a min-heap, greatest one for a max-heap, or anything
@@ -193,8 +193,8 @@ extern void fbnr_heap_init(struct fbnr_heap *heap,
                            char             *nodes,
                            size_t            node_size,
                            unsigned int      node_nr,
-                           array_compare_fn *compare,
-                           array_copy_fn    *copy);
+                           farr_compare_fn  *compare,
+                           farr_copy_fn     *copy);
 
 /**
  * Release resources allocated for a fbnr_heap
@@ -223,10 +223,10 @@ extern void fbnr_heap_fini(struct fbnr_heap *heap __unused);
  *
  * @ingroup fbnr_heap
  */
-extern struct fbnr_heap * fbnr_heap_create(size_t            node_size,
-                                           unsigned int      node_nr,
-                                           array_compare_fn *compare,
-                                           array_copy_fn    *copy);
+extern struct fbnr_heap * fbnr_heap_create(size_t           node_size,
+                                           unsigned int     node_nr,
+                                           farr_compare_fn *compare,
+                                           farr_copy_fn    *copy);
 
 /**
  * Release resources allocated by fbnr_heap_create() for fixed length array
@@ -240,11 +240,11 @@ extern void fbnr_heap_destroy(struct fbnr_heap *heap);
 
 #if defined(CONFIG_FBNR_HEAP_SORT)
 
-extern void fbnr_heap_sort(char             *entries,
-                           size_t            entry_size,
-                           size_t            entry_nr,
-                           array_compare_fn *compare,
-                           array_copy_fn    *copy);
+extern void fbnr_heap_sort(char            *entries,
+                           size_t           entry_size,
+                           size_t           entry_nr,
+                           farr_compare_fn *compare,
+                           farr_copy_fn    *copy);
 
 #endif /* defined(CONFIG_FBNR_HEAP_SORT) */
 

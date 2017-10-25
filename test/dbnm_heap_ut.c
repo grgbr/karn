@@ -27,7 +27,6 @@
  */
 
 #include "dbnm_heap.h"
-#include "array.h"
 #include <cute/cute.h>
 
 struct dbnmhut_node {

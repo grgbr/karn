@@ -32,9 +32,9 @@ void fbnr_heap_insert(struct fbnr_heap *heap, const char *node)
 	assert(!fbnr_heap_full(heap));
 	assert(node);
 
-	unsigned int      idx;
-	array_compare_fn *cmp = heap->fbnr_compare;
-	array_copy_fn    *cpy = heap->fbnr_copy;
+	unsigned int     idx;
+	farr_compare_fn *cmp = heap->fbnr_compare;
+	farr_copy_fn    *cpy = heap->fbnr_copy;
 
 	/*
 	 * Next free slot is located at the right of the deepest node in the
@@ -75,7 +75,7 @@ struct fbnr_heap_path {
 static void fbnr_heap_inorder_path(const struct fabs_tree *tree,
                                    struct fbnr_heap_path  *path,
                                    unsigned int            root_index,
-                                   array_compare_fn       *compare)
+                                   farr_compare_fn        *compare)
 {
 	unsigned int ridx;
 
@@ -98,8 +98,8 @@ static void fbnr_heap_inorder_path(const struct fabs_tree *tree,
 static char * fbnr_heap_topdwn_siftdown(const struct fabs_tree      *tree,
                                         const struct fbnr_heap_path *path,
                                         const char                  *node,
-                                        array_compare_fn            *compare,
-                                        array_copy_fn               *copy)
+                                        farr_compare_fn             *compare,
+                                        farr_copy_fn                *copy)
 {
 	unsigned int  cnt = fabs_tree_count(tree);
 	char         *empty = path->fbnr_pnode;
@@ -167,17 +167,13 @@ void fbnr_heap_extract(struct fbnr_heap *heap, char *node)
 
 static void fbnr_heap_build_tree(struct fabs_tree *tree,
                                  unsigned int      count,
-                                 array_compare_fn *compare,
-                                 array_copy_fn    *copy)
+                                 farr_compare_fn  *compare,
+                                 farr_copy_fn     *copy)
 {
 	assert(count);
 	assert(count <= fabs_tree_nr(tree));
 
-	unsigned int           cnt = count / 2;
-	struct fbnr_heap_path  path;
-	char                   tmp[fabs_tree_node_size(tree)];
-	char                  *node;
-
+	unsigned int cnt = count / 2;
 
 	/*
 	 * Update count immediatly to prevent siftdown from complaining about
@@ -191,9 +187,14 @@ static void fbnr_heap_build_tree(struct fabs_tree *tree,
 	 * the heap property is restored.
 	 */
 	while (cnt--) {
+		struct fbnr_heap_path path;
+
 		fbnr_heap_inorder_path(tree, &path, cnt, compare);
 
 		if (compare(path.fbnr_cnode, path.fbnr_pnode) < 0) {
+			char  tmp[fabs_tree_node_size(tree)];
+			char *node;
+
 			copy(tmp, path.fbnr_pnode);
 
 			node = fbnr_heap_topdwn_siftdown(tree, &path, tmp,
@@ -208,17 +209,16 @@ void fbnr_heap_build(struct fbnr_heap *heap, unsigned int count)
 {
 	fbnr_heap_assert(heap);
 
-	if (count > 1)
-		fbnr_heap_build_tree(&heap->fbnr_tree, count,
-		                     heap->fbnr_compare, heap->fbnr_copy);
+	fbnr_heap_build_tree(&heap->fbnr_tree, count, heap->fbnr_compare,
+	                     heap->fbnr_copy);
 }
 
 void fbnr_heap_init(struct fbnr_heap *heap,
                     char             *nodes,
                     size_t            node_size,
                     unsigned int      node_nr,
-                    array_compare_fn *compare,
-                    array_copy_fn    *copy)
+                    farr_compare_fn  *compare,
+                    farr_copy_fn     *copy)
 {
 	assert(heap);
 	assert(compare);
@@ -237,10 +237,10 @@ void fbnr_heap_fini(struct fbnr_heap *heap __unused)
 	fabs_tree_fini(&heap->fbnr_tree);
 }
 
-struct fbnr_heap * fbnr_heap_create(size_t            node_size,
-                                    unsigned int      node_nr,
-                                    array_compare_fn *compare,
-                                    array_copy_fn    *copy)
+struct fbnr_heap * fbnr_heap_create(size_t           node_size,
+                                    unsigned int     node_nr,
+                                    farr_compare_fn *compare,
+                                    farr_copy_fn    *copy)
 {
 	assert(node_size);
 	assert(node_nr);
@@ -269,8 +269,8 @@ void fbnr_heap_destroy(struct fbnr_heap *heap)
 static void fbnr_heap_botup_siftdown(const struct fabs_tree *tree,
                                      const char             *node,
                                      unsigned int            count,
-                                     array_compare_fn       *compare,
-                                     array_copy_fn          *copy)
+                                     farr_compare_fn        *compare,
+                                     farr_copy_fn           *copy)
 {
 	unsigned int  eidx = FABS_TREE_ROOT_INDEX;
 	unsigned int  idx;
@@ -316,11 +316,11 @@ static void fbnr_heap_botup_siftdown(const struct fabs_tree *tree,
 	copy(empty, node);
 }
 
-void fbnr_heap_sort(char             *entries,
-                    size_t            entry_size,
-                    size_t            entry_nr,
-                    array_compare_fn *compare,
-                    array_copy_fn    *copy)
+void fbnr_heap_sort(char            *entries,
+                    size_t           entry_size,
+                    size_t           entry_nr,
+                    farr_compare_fn *compare,
+                    farr_copy_fn    *copy)
 {
 	if (entry_nr > 1) {
 		struct fabs_tree  tree;

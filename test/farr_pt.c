@@ -1,5 +1,4 @@
 #include "karn_pt.h"
-#include "array.h"
 #include "fbnr_heap.h"
 #include <stdbool.h>
 #include <stdlib.h>

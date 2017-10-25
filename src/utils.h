@@ -26,6 +26,19 @@
 
 #define __unused __attribute__((unused))
 
+/**
+ * Retrieve the maximum number of slots a static array may contain
+ *
+ * @param _array statically declared array
+ *
+ * @return number of slots
+ *
+ * @ingroup farr
+ */
+#define array_nr(_array) \
+	(sizeof(_array) / sizeof((_array)[0]))
+
+
 #define min(_a, _b)                      \
 	({                               \
 		typeof(_a) __a = _a;     \

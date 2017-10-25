@@ -1,7 +1,6 @@
 #include "fbnr_heap.h"
 #include "sbnm_heap.h"
 #include "dbnm_heap.h"
-#include "array.h"
 #include "karn_pt.h"
 #include <stdlib.h>
 #include <string.h>

@@ -27,7 +27,7 @@
  */
 
 #include "sbnm_heap.h"
-#include "array.h"
+#include "utils.h"
 #include <cute/cute.h>
 
 struct sbnmhut_node {

@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "array.h"
 #include <cute/cute.h>
 
 struct utilsut_pow2_check {
@@ -11,7 +10,7 @@ static CUTE_PNP_SUITE(utilsut, NULL);
 
 CUTE_PNP_TEST(utilsut_upper_pow2, &utilsut)
 {
-	unsigned int               c;
+	unsigned int              c;
 	struct utilsut_pow2_check checks[] = {
 		{ .value = 1,              .expect = 0 },
 		{ .value = (1U << 1),      .expect = 1 },
@@ -35,7 +34,7 @@ CUTE_PNP_TEST(utilsut_upper_pow2, &utilsut)
 
 CUTE_PNP_TEST(utilsut_lower_pow2, &utilsut)
 {
-	unsigned int               c;
+	unsigned int              c;
 	struct utilsut_pow2_check checks[] = {
 		{ .value = 1,              .expect = 0 },
 		{ .value = (1U << 1),      .expect = 1 },

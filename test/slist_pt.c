@@ -1,7 +1,5 @@
 #include "karn_pt.h"
 #include "slist.h"
-#include "utils.h"
-#include "array.h"
 #include <getopt.h>
 #include <errno.h>
 #include <string.h>

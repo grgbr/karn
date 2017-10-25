@@ -27,7 +27,6 @@
  */
 
 #include "dlist.h"
-#include "array.h"
 #include <cute/cute.h>
 #include <string.h>
 

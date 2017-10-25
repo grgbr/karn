@@ -29,7 +29,7 @@
 #ifndef _FABS_TREE_H
 #define _FABS_TREE_H
 
-#include <array.h>
+#include <farr.h>
 #include <stdbool.h>
 
 /**
@@ -39,15 +39,15 @@
  */
 struct fabs_tree {
 	/** Number of nodes currently sitting into the tree */
-	unsigned int       fabs_count;
+	unsigned int fabs_count;
 	/** Array of nodes contained in this tree */
-	struct array_fixed fabs_nodes;
+	struct farr  fabs_nodes;
 };
 
 /* Internal fabs_tree consistency checker */
-#define fabs_tree_assert(_tree)                                              \
-	assert(_tree);                                                       \
-	assert((_tree)->fabs_count <= array_fixed_nr(&(_tree)->fabs_nodes)); \
+#define fabs_tree_assert(_tree)                                       \
+	assert(_tree);                                                \
+	assert((_tree)->fabs_count <= farr_nr(&(_tree)->fabs_nodes)); \
 
 #define FABS_TREE_ROOT_INDEX (0U)
 
@@ -64,7 +64,7 @@ static inline unsigned int fabs_tree_nr(const struct fabs_tree *tree)
 {
 	fabs_tree_assert(tree);
 
-	return array_fixed_nr(&tree->fabs_nodes);
+	return farr_nr(&tree->fabs_nodes);
 }
 
 /**
@@ -126,7 +126,7 @@ static inline size_t fabs_tree_node_size(const struct fabs_tree *tree)
 {
 	fabs_tree_assert(tree);
 
-	return tree->fabs_nodes.arr_size;
+	return farr_slot_size(&tree->fabs_nodes);
 }
 
 /**
@@ -145,9 +145,9 @@ static inline char * fabs_tree_node(const struct fabs_tree *tree,
                                     unsigned int            index)
 {
 	fabs_tree_assert(tree);
-	assert(index < array_fixed_nr(&tree->fabs_nodes));
+	assert(index < farr_nr(&tree->fabs_nodes));
 
-	return array_fixed_item(&tree->fabs_nodes, index);
+	return farr_slot(&tree->fabs_nodes, index);
 }
 
 /**
@@ -165,7 +165,7 @@ static inline unsigned int fabs_tree_node_index(const struct fabs_tree *tree,
 {
 	fabs_tree_assert(tree);
 
-	return array_fixed_item_index(&tree->fabs_nodes, node);
+	return farr_slot_index(&tree->fabs_nodes, node);
 }
 
 /**
@@ -183,7 +183,7 @@ static inline char * fabs_tree_root(const struct fabs_tree *tree)
 {
 	assert(!fabs_tree_empty(tree));
 
-	return array_fixed_item(&tree->fabs_nodes, FABS_TREE_ROOT_INDEX);
+	return farr_slot(&tree->fabs_nodes, FABS_TREE_ROOT_INDEX);
 }
 
 /**
@@ -218,7 +218,7 @@ fabs_tree_last_index(const struct fabs_tree *tree)
  */
 static inline char * fabs_tree_last(const struct fabs_tree *tree)
 {
-	return array_fixed_item(&tree->fabs_nodes, fabs_tree_last_index(tree));
+	return farr_slot(&tree->fabs_nodes, fabs_tree_last_index(tree));
 }
 
 /**
@@ -252,8 +252,7 @@ static inline unsigned int fabs_tree_bottom_index(const struct fabs_tree *tree)
 static inline char *
 fabs_tree_bottom(const struct fabs_tree *tree)
 {
-	return array_fixed_item(&tree->fabs_nodes,
-	                        fabs_tree_bottom_index(tree));
+	return farr_slot(&tree->fabs_nodes, fabs_tree_bottom_index(tree));
 }
 
 /**
@@ -417,7 +416,7 @@ static inline void fabs_tree_init(struct fabs_tree *tree,
 	assert(node_nr);
 
 	tree->fabs_count = 0;
-	array_init_fixed(&tree->fabs_nodes, nodes, node_size, node_nr);
+	farr_init(&tree->fabs_nodes, nodes, node_size, node_nr);
 }
 
 /**
@@ -431,7 +430,7 @@ static inline void fabs_tree_fini(struct fabs_tree *tree __unused)
 {
 	fabs_tree_assert(tree);
 
-	array_fini_fixed(&tree->fabs_nodes);
+	farr_fini(&tree->fabs_nodes);
 }
 
 #endif
