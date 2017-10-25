@@ -234,4 +234,14 @@ static inline void farr_fini(struct farr *array __unused)
 	farr_assert(array);
 }
 
+#if defined(CONFIG_FARR_BUBBLE_SORT)
+
+extern void farr_bubble_sort(char            *entries,
+                             size_t           entry_size,
+                             size_t           entry_nr,
+                             farr_compare_fn *compare,
+                             farr_copy_fn    *copy);
+
+#endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+
 #endif

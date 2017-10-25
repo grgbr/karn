@@ -1,5 +1,4 @@
 #include "karn_pt.h"
-#include "fbnr_heap.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -35,7 +34,7 @@ fapt_compare_max(const char *a, const char *b)
 }
 
 static void
-copy(char *restrict dst, const char *restrict src)
+fapt_copy(char *restrict dst, const char *restrict src)
 {
 	*(unsigned int *)dst = *(unsigned int *)src;
 }
@@ -100,8 +99,77 @@ static int fapt_quick_sort(unsigned long long *nsecs)
 }
 
 /******************************************************************************
+ * Bubble sorting
+ ******************************************************************************/
+
+#if defined(CONFIG_FARR_BUBBLE_SORT)
+
+#include "farr.h"
+
+static int fapt_bubble_validate(void)
+{
+	int           n;
+	unsigned int *keys;
+	int           ret = EXIT_FAILURE;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	farr_bubble_sort((char *)keys,  sizeof(*keys),
+	                 fapt_entries.pt_nr, fapt_compare_min, fapt_copy);
+
+	for (n = 1; n < fapt_entries.pt_nr; n++) {
+		if (fapt_compare_min((char *)&keys[n - 1],
+		                     (char *)&keys[n]) > 0) {
+			fprintf(stderr, "Bogus sorting scheme\n");
+			goto free;
+		}
+	}
+
+	ret = EXIT_SUCCESS;
+
+free:
+	free(keys);
+
+	return ret;
+}
+
+static int fapt_bubble_sort(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	unsigned int    *keys;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	farr_bubble_sort((char *)keys,  sizeof(*keys),
+	                 fapt_entries.pt_nr, fapt_compare_min, fapt_copy);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	free(keys);
+
+	return EXIT_SUCCESS;
+}
+
+#endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+
+/******************************************************************************
  * Fixed array based binary heap
  ******************************************************************************/
+
+#if defined(CONFIG_FBNR_HEAP_SORT)
+
+#include "fbnr_heap.h"
 
 static int fapt_fbnr_heap_validate(void)
 {
@@ -115,8 +183,8 @@ static int fapt_fbnr_heap_validate(void)
 
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
-	fbnr_heap_sort((char *)keys, sizeof(unsigned int), fapt_entries.pt_nr,
-	               fapt_compare_max, copy);
+	fbnr_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
+	               fapt_compare_max, fapt_copy);
 
 	for (n = 1; n < fapt_entries.pt_nr; n++) {
 		if (fapt_compare_min((char *)&keys[n - 1],
@@ -146,8 +214,8 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
-	fbnr_heap_sort((char *)keys, sizeof(unsigned int), fapt_entries.pt_nr,
-	               fapt_compare_max, copy);
+	fbnr_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
+	               fapt_compare_max, fapt_copy);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -157,6 +225,8 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 
 	return EXIT_SUCCESS;
 }
+
+#endif /* defined(CONFIG_FBNR_HEAP_SORT) */
 
 /******************************************************************************
  * Main measurment task handling
@@ -173,6 +243,13 @@ static const struct fapt_iface fapt_algos[] = {
 		.fapt_name     = "fbnrh",
 		.fapt_validate = fapt_fbnr_heap_validate,
 		.fapt_sort     = fapt_fbnr_heap_sort
+	},
+#endif
+#if defined(CONFIG_FARR_BUBBLE_SORT)
+	{
+		.fapt_name     = "bubble",
+		.fapt_validate = fapt_bubble_validate,
+		.fapt_sort     = fapt_bubble_sort
 	},
 #endif
 };

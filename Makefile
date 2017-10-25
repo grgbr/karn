@@ -186,6 +186,12 @@ ut_src  += dbnm_heap_ut.c
 pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
+ifeq ($(CONFIG_FARR_BUBBLE_SORT),y)
+lib_src += farr.c
+ut_src  += farr_ut.c
+endif
+
+
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:
 

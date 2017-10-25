@@ -44,3 +44,7 @@ config DBNM_HEAP
 	bool "Doubly linked list based binomial heap"
 	select DLIST
 	default y
+
+config FARR_BUBBLE_SORT
+	bool "Fixed length array based bubble sorting"
+	default y
