@@ -187,10 +187,19 @@ pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
 ifeq ($(CONFIG_FARR_BUBBLE_SORT),y)
-lib_src += farr.c
-ut_src  += farr_ut.c
+lib_src += $(sort $(lib_src) farr.c) # remove duplicates
+ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates
 endif
 
+ifeq ($(CONFIG_FARR_SELECTION_SORT),y)
+lib_src += $(sort $(lib_src) farr.c) # remove duplicates
+ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates
+endif
+
+ifeq ($(CONFIG_FARR_INSERTION_SORT),y)
+lib_src += $(sort $(lib_src) farr.c) # remove duplicates
+ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates
+endif
 
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:

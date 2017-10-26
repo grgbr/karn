@@ -29,18 +29,6 @@ static struct pt_entries hppt_entries;
 static unsigned int     *hppt_fbnr_keys;
 static struct fbnr_heap *hppt_fbnr_heap;
 
-static void hppt_fbnr_copy(char       *restrict dest,
-                           const char *restrict src)
-{
-	*((unsigned int *)dest) = *((unsigned int *)src);
-}
-
-static int hppt_fbnr_compare_min(const char *restrict first,
-                                 const char *restrict second)
-{
-	return *((unsigned int *)first) - *((unsigned int *)second);
-}
-
 static void
 hppt_fbnr_insert_bulk(void)
 {
@@ -60,8 +48,7 @@ hppt_fbnr_validate(void)
 	int          n;
 
 	hppt_fbnr_heap = fbnr_heap_create(sizeof(cur), hppt_entries.pt_nr,
-	                                  hppt_fbnr_compare_min,
-	                                  hppt_fbnr_copy);
+	                                  pt_compare_min, pt_copy_key);
 	if (!hppt_fbnr_heap)
 		return EXIT_FAILURE;
 
@@ -154,8 +141,8 @@ static int
 hppt_sbnm_compare_min(const struct sbnm_heap_node *first,
                       const struct sbnm_heap_node *second)
 {
-	return ((struct hppt_sbnm_key *)first)->value -
-	       ((struct hppt_sbnm_key *)second)->value;
+	return pt_compare_min((char *)&((struct hppt_sbnm_key *)first)->value,
+	                      (char *)&((struct hppt_sbnm_key *)second)->value);
 }
 
 static void
@@ -292,8 +279,8 @@ static int
 hppt_dbnm_compare_min(const struct dbnm_heap_node *first,
                       const struct dbnm_heap_node *second)
 {
-	return ((struct hppt_dbnm_key *)first)->value -
-	       ((struct hppt_dbnm_key *)second)->value;
+	return pt_compare_min((char *)&((struct hppt_dbnm_key *)first)->value,
+	                      (char *)&((struct hppt_dbnm_key *)second)->value);
 }
 
 static void

@@ -15,30 +15,6 @@ struct fapt_iface {
 static struct pt_entries  fapt_entries;
 static unsigned int      *fapt_keys;
 
-static int
-fapt_compare_min(const char *a, const char *b)
-{
-	return *(unsigned int *)a - *(unsigned int *)b;
-}
-
-static int
-fapt_qsort_compare_min(const void *a, const void *b)
-{
-	return *(unsigned int *)a - *(unsigned int *)b;
-}
-
-static int
-fapt_compare_max(const char *a, const char *b)
-{
-	return 0 - fapt_compare_min(a, b);
-}
-
-static void
-fapt_copy(char *restrict dst, const char *restrict src)
-{
-	*(unsigned int *)dst = *(unsigned int *)src;
-}
-
 /******************************************************************************
  * Quick sorting
  ******************************************************************************/
@@ -56,11 +32,10 @@ static int fapt_quick_validate(void)
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
 	qsort(keys, fapt_entries.pt_nr, sizeof(unsigned int),
-	      fapt_qsort_compare_min);
+	      pt_qsort_compare);
 
 	for (n = 1; n < fapt_entries.pt_nr; n++) {
-		if (fapt_compare_min((char *)&keys[n - 1],
-		                     (char *)&keys[n]) > 0) {
+		if (keys[n - 1] > keys[n]) {
 			fprintf(stderr, "Bogus sorting scheme\n");
 			goto free;
 		}
@@ -87,7 +62,7 @@ static int fapt_quick_sort(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	qsort(keys, fapt_entries.pt_nr, sizeof(unsigned int),
-	      fapt_qsort_compare_min);
+	      pt_qsort_compare);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -119,11 +94,10 @@ static int fapt_bubble_validate(void)
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
 	farr_bubble_sort((char *)keys,  sizeof(*keys),
-	                 fapt_entries.pt_nr, fapt_compare_min, fapt_copy);
+	                 fapt_entries.pt_nr, pt_compare_min, pt_copy_key);
 
 	for (n = 1; n < fapt_entries.pt_nr; n++) {
-		if (fapt_compare_min((char *)&keys[n - 1],
-		                     (char *)&keys[n]) > 0) {
+		if (keys[n - 1] > keys[n]) {
 			fprintf(stderr, "Bogus sorting scheme\n");
 			goto free;
 		}
@@ -150,7 +124,7 @@ static int fapt_bubble_sort(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	farr_bubble_sort((char *)keys,  sizeof(*keys),
-	                 fapt_entries.pt_nr, fapt_compare_min, fapt_copy);
+	                 fapt_entries.pt_nr, pt_compare_min, pt_copy_key);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -162,6 +136,134 @@ static int fapt_bubble_sort(unsigned long long *nsecs)
 }
 
 #endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+
+/******************************************************************************
+ * Selection sorting
+ ******************************************************************************/
+
+#if defined(CONFIG_FARR_SELECTION_SORT)
+
+#include "farr.h"
+
+static int fapt_selection_validate(void)
+{
+	int           n;
+	unsigned int *keys;
+	int           ret = EXIT_FAILURE;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	farr_selection_sort((char *)keys,  sizeof(*keys),
+	                 fapt_entries.pt_nr, pt_compare_min, pt_copy_key);
+
+	for (n = 1; n < fapt_entries.pt_nr; n++) {
+		if (keys[n - 1] > keys[n]) {
+			fprintf(stderr, "Bogus sorting scheme\n");
+			goto free;
+		}
+	}
+
+	ret = EXIT_SUCCESS;
+
+free:
+	free(keys);
+
+	return ret;
+}
+
+static int fapt_selection_sort(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	unsigned int    *keys;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	farr_selection_sort((char *)keys,  sizeof(*keys),
+	                 fapt_entries.pt_nr, pt_compare_min, pt_copy_key);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	free(keys);
+
+	return EXIT_SUCCESS;
+}
+
+#endif /* defined(CONFIG_FARR_SELECTION_SORT) */
+
+/******************************************************************************
+ * Insertion sorting
+ ******************************************************************************/
+
+#if defined(CONFIG_FARR_INSERTION_SORT)
+
+#include "farr.h"
+
+static int fapt_insertion_validate(void)
+{
+	int           n;
+	unsigned int *keys;
+	int           ret = EXIT_FAILURE;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	farr_insertion_sort((char *)keys,  sizeof(*keys),
+	                 fapt_entries.pt_nr, pt_compare_min, pt_copy_key);
+
+	for (n = 1; n < fapt_entries.pt_nr; n++) {
+		if (keys[n - 1] > keys[n]) {
+			fprintf(stderr, "Bogus sorting scheme\n");
+			goto free;
+		}
+	}
+
+	ret = EXIT_SUCCESS;
+
+free:
+	free(keys);
+
+	return ret;
+}
+
+static int fapt_insertion_sort(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	unsigned int    *keys;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	farr_insertion_sort((char *)keys,  sizeof(*keys),
+	                 fapt_entries.pt_nr, pt_compare_min, pt_copy_key);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	free(keys);
+
+	return EXIT_SUCCESS;
+}
+
+#endif /* defined(CONFIG_FARR_INSERTION_SORT) */
 
 /******************************************************************************
  * Fixed array based binary heap
@@ -184,11 +286,10 @@ static int fapt_fbnr_heap_validate(void)
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
 	fbnr_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
-	               fapt_compare_max, fapt_copy);
+	               pt_compare_max, pt_copy_key);
 
 	for (n = 1; n < fapt_entries.pt_nr; n++) {
-		if (fapt_compare_min((char *)&keys[n - 1],
-		                     (char *)&keys[n]) > 0) {
+		if (keys[n - 1] > keys[n]) {
 			fprintf(stderr, "Bogus sorting scheme\n");
 			goto free;
 		}
@@ -215,7 +316,7 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	fbnr_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
-	               fapt_compare_max, fapt_copy);
+	               pt_compare_max, pt_copy_key);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -250,6 +351,20 @@ static const struct fapt_iface fapt_algos[] = {
 		.fapt_name     = "bubble",
 		.fapt_validate = fapt_bubble_validate,
 		.fapt_sort     = fapt_bubble_sort
+	},
+#endif
+#if defined(CONFIG_FARR_SELECTION_SORT)
+	{
+		.fapt_name     = "selection",
+		.fapt_validate = fapt_selection_validate,
+		.fapt_sort     = fapt_selection_sort
+	},
+#endif
+#if defined(CONFIG_FARR_INSERTION_SORT)
+	{
+		.fapt_name     = "insertion",
+		.fapt_validate = fapt_insertion_validate,
+		.fapt_sort     = fapt_insertion_sort
 	},
 #endif
 };

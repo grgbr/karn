@@ -48,3 +48,11 @@ config DBNM_HEAP
 config FARR_BUBBLE_SORT
 	bool "Fixed length array based bubble sorting"
 	default y
+
+config FARR_SELECTION_SORT
+	bool "Fixed length array based selection sorting"
+	default y
+
+config FARR_INSERTION_SORT
+	bool "Fixed length array based insertion sorting"
+	default y

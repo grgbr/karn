@@ -182,11 +182,13 @@ struct slist_uint {
 	uint32_t          value;
 };
 
-static int
+static inline int
 compare(const struct slist_node *a, const struct slist_node *b)
 {
-	return slist_entry(a, struct slist_uint, node)->value -
-	       slist_entry(b, struct slist_uint, node)->value;
+	return pt_compare_min((char *)&slist_entry(a, struct slist_uint,
+	                                           node)->value,
+	                      (char *)&slist_entry(b, struct slist_uint,
+	                                           node)->value);
 }
 
 static unsigned long long

@@ -4,6 +4,38 @@
 #include <stdio.h>
 #include <time.h>
 
+static inline int
+pt_compare_min(const char *a, const char *b)
+{
+	unsigned int _a = *(unsigned int *)a;
+	unsigned int _b = *(unsigned int *)b;
+
+	if (_a < _b)
+		return -1;
+	else if (_a > _b)
+		return 1;
+	else
+		return 0;
+}
+
+static inline int
+pt_compare_max(const char *a, const char *b)
+{
+	return 0 - pt_compare_min(a, b);
+}
+
+static inline int
+pt_qsort_compare(const void *a, const void *b)
+{
+	return pt_compare_min((char *)a, (char *)b);
+}
+
+static inline void
+pt_copy_key(char *restrict dst, const char *restrict src)
+{
+	*(unsigned int *)dst = *(unsigned int *)src;
+}
+
 extern struct timespec pt_tspec_sub(const struct timespec *restrict a,
                                     const struct timespec *restrict b);
 
