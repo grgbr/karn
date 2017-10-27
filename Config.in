@@ -56,3 +56,7 @@ config FARR_SELECTION_SORT
 config FARR_INSERTION_SORT
 	bool "Fixed length array based insertion sorting"
 	default y
+
+config FARR_QUICK_SORT
+	bool "Fixed length array based quick sorting"
+	default y

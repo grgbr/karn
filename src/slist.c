@@ -126,30 +126,24 @@ static void slist_insert_inorder(struct slist      *restrict list,
 	struct slist_node *cur = slist_next(prev);
 
 	/*
-	 * No need to check for end of list since cur must be
-	 * inserted before current sorted list tail, i.e., cur
-	 * will always be inserted before an existing node.
+	 * No need to check for end of list since cur must be inserted before
+	 * current sorted list tail, i.e., cur will always be inserted before an
+	 * existing node.
 	 */
 	while (true) {
 		assert(cur);
 
 		/*
-		 * Although it seems a pretty good place to
-		 * perform some prefetching, performance
-		 * measurement doesn't show significant
-		 * improvements... For most data sets,
-		 * prefetching enhance processing time by an
-		 * amount < 4/5%. In the worst case, this incurs
-		 * a 3/4% penalty.
-		 * Measurements were done onto amd64 platform
-		 * with moderate read-only prefetching scheme
-		 * (giving the best results) :
-		 *     prefetch(slist_next(cur),
-		 *              PREFETCH_ACCESS_RO,
-		 *              PREFETCH_LOCALITY_LOW);
+		 * Although it seems a pretty good place to perform some
+		 * prefetching, performance measurement doesn't show significant
+		 * improvements... For most data sets, prefetching enhance
+		 * processing time by an amount < 4/5%. In the worst case, this
+		 * incurs a 3/4% penalty.  Measurements were done onto amd64
+		 * platform with moderate read-only prefetching scheme (giving
+		 * the best results) : prefetch(slist_next(cur),
+		 * PREFETCH_ACCESS_RO, PREFETCH_LOCALITY_LOW);
 		 *
-		 * Additional code and complexity don't really
-		 * worth it...
+		 * Additional code and complexity don't really worth it...
 		 */
 
 		slist_account_compare_event();
@@ -590,13 +584,6 @@ void slist_merge_sort(struct slist     *list,
 #endif /* defined(CONFIG_SLIST_MERGE_SORT) */
 
 #if 0
-void
-slist_heap_sort(struct slist     *restrict list,
-                slist_compare_fn *compare)
-{
-
-}
-
 odd-even/brick sort
 cyclesort ?
 introsort ?

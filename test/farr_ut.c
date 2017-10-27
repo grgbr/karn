@@ -302,3 +302,49 @@ CUTE_PNP_TEST(farrut_insertion_sort_unsorted_duplicates, &farrut_insertion_sort)
 }
 
 #endif /* defined(CONFIG_FARR_INSERTION_SORT) */
+
+#if defined(CONFIG_FARR_QUICK_SORT)
+
+static CUTE_PNP_SUITE(farrut_quick_sort, &farrut);
+
+CUTE_PNP_TEST(farrut_quick_sort_single, &farrut_quick_sort)
+{
+	farrut_sort_single(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_inorder2, &farrut_quick_sort)
+{
+	farrut_sort_inorder2(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_revorder2, &farrut_quick_sort)
+{
+	farrut_sort_revorder2(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_duplicates, &farrut_quick_sort)
+{
+	farrut_sort_duplicates(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_presorted, &farrut_quick_sort)
+{
+	farrut_sort_presorted(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_reverse_sorted, &farrut_quick_sort)
+{
+	farrut_sort_reverse_sorted(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_unsorted, &farrut_quick_sort)
+{
+	farrut_sort_unsorted(farr_quick_sort);
+}
+
+CUTE_PNP_TEST(farrut_quick_sort_unsorted_duplicates, &farrut_quick_sort)
+{
+	farrut_sort_unsorted_duplicates(farr_quick_sort);
+}
+
+#endif /* defined(CONFIG_FARR_QUICK_SORT) */

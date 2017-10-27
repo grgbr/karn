@@ -201,6 +201,11 @@ lib_src += $(sort $(lib_src) farr.c) # remove duplicates
 ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates
 endif
 
+ifeq ($(CONFIG_FARR_QUICK_SORT),y)
+lib_src += $(sort $(lib_src) farr.c) # remove duplicates
+ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates
+endif
+
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:
 
