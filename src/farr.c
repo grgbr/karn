@@ -84,8 +84,8 @@ void farr_insertion_sort(char            *entries,
                          farr_compare_fn *compare,
                          farr_copy_fn    *copy)
 {
-	const char *end = &entries[entry_nr * entry_size];
 	char       *unsort = entries + entry_size;
+	const char *end = &entries[entry_nr * entry_size];
 
 	while (unsort < end) {
 		char  tmp[entry_size];
@@ -108,26 +108,7 @@ void farr_insertion_sort(char            *entries,
 
 #if defined(CONFIG_FARR_QUICK_SORT)
 
-static const char * farr_quick_sort_pivot(char            *begin,
-                                          char            *end,
-                                          size_t           entry_size,
-                                          farr_compare_fn *compare,
-                                          farr_copy_fn    *copy)
-{
-	char *mid = begin + (((end - begin) / (2 * entry_size)) * entry_size);
-	char  tmp[entry_size];
-
-	if (compare(begin, mid) > 0)
-		farr_swap(begin, mid, tmp, copy);
-
-	if (compare(mid, end) > 0)
-		farr_swap(mid, end, tmp, copy);
-
-	if (compare(begin, end) > 0)
-		farr_swap(begin, end, tmp, copy);
-
-	return mid;
-}
+#define FARR_QUICK_SORT_THRES (24U)
 
 static char * farr_quick_part(char            *begin,
                               char            *end,
@@ -135,17 +116,25 @@ static char * farr_quick_part(char            *begin,
                               farr_compare_fn *compare,
                               farr_copy_fn    *copy)
 {
-	char pivot[entry_size];
+	char  tmp[entry_size];
+	char  pivot[entry_size];
+	char *mid = begin + (((end - begin) / (2 * entry_size)) * entry_size);
 
-	copy(pivot,
-	     farr_quick_sort_pivot(begin, end, entry_size, compare, copy));
+	if (compare(begin, mid) > 0)
+		farr_swap(begin, mid, tmp, copy);
+
+	if (compare(mid, end) > 0) {
+		farr_swap(mid, end, tmp, copy);
+
+		if (compare(begin, mid) > 0)
+			farr_swap(begin, mid, tmp, copy);
+	}
+
+	copy(pivot, mid);
 
 	begin -= entry_size;
 	end += entry_size;
-
 	while (true) {
-		char tmp[entry_size];
-
 		do {
 			begin += entry_size;
 		} while (compare(pivot, begin) > 0);
@@ -161,25 +150,10 @@ static char * farr_quick_part(char            *begin,
 	}
 }
 
-static void farr_quick_sort_part(char            *begin,
-                                 char            *end,
-                                 size_t           entry_size,
-                                 farr_compare_fn *compare,
-                                 farr_copy_fn    *copy)
+static unsigned int farr_quick_stack_nr(size_t entry_nr)
 {
-	if ((size_t)(end - begin) > (32 * entry_size)) {
-		char *border;
-
-		border = farr_quick_part(begin, end, entry_size, compare, copy);
-
-		farr_quick_sort_part(begin, border, entry_size, compare, copy);
-		farr_quick_sort_part(border + entry_size, end, entry_size,
-		                     compare, copy);
-	}
-	else
-		farr_insertion_sort(begin, entry_size,
-		                    ((end - begin) / entry_size) + 1, compare,
-		                    copy);
+	return upper_pow2(max((entry_nr + FARR_QUICK_SORT_THRES - 1) /
+	                      FARR_QUICK_SORT_THRES, 2U));
 }
 
 void farr_quick_sort(char            *entries,
@@ -188,8 +162,54 @@ void farr_quick_sort(char            *entries,
                      farr_compare_fn *compare,
                      farr_copy_fn    *copy)
 {
-	farr_quick_sort_part(entries, &entries[(entry_nr - 1) * entry_size],
-	                     entry_size, compare, copy);
+	assert(entries);
+	assert(entry_size);
+	assert(entry_nr);
+	assert(compare);
+	assert(copy);
+
+	struct {
+		char *begin;
+		char *end;
+	}                     parts[farr_quick_stack_nr(entry_nr)];
+	unsigned int          p = 0;
+	char                 *begin = entries;
+	char                 *end = &begin[(entry_nr - 1) * entry_size];
+
+	while (true) {
+		size_t  thres = FARR_QUICK_SORT_THRES * entry_size;
+		char   *pivot;
+		char   *high;
+
+		while (((size_t)begin + thres) >= (size_t)end) {
+			if (!p--)
+				return farr_insertion_sort(entries, entry_size,
+				                           entry_nr, compare,
+				                           copy);
+			begin = parts[p].begin;
+			end = parts[p].end;
+		}
+
+		assert(p < array_nr(parts));
+
+		pivot = farr_quick_part(begin, end, entry_size, compare, copy);
+
+		high = pivot + entry_size;
+		if ((high - begin) >= (end - pivot)) {
+			parts[p].begin = begin;
+			parts[p].end = pivot;
+
+			begin = high;
+		}
+		else {
+			parts[p].begin = high;
+			parts[p].end = end;
+
+			end = pivot;
+		}
+
+		p++;
+	}
 }
 
 #endif /* defined(CONFIG_FARR_QUICK_SORT) */

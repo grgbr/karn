@@ -83,12 +83,14 @@ common-cflags := -std=gnu99 -Wall -Wextra -Wstrict-aliasing -MD -D_GNU_SOURCE \
                  -include $(BUILD)/include/generated/autoconf.h \
                  -I$(HOME)/local/include -L$(HOME)/local/lib
 BUILD_CFLAGS := $(common-cflags) -flto -fpic -DNDEBUG -O2
+#BUILD_CFLAGS := $(common-cflags) -flto -fpic -O0
 DBG_CFLAGS   := $(common-cflags) -fpic -ggdb3
 UT_CFLAGS    := $(common-cflags) -flto -O2 -ggdb3 -ftest-coverage -fprofile-arcs
 PT_CFLAGS    := $(BUILD_CFLAGS) -flto -pie \
                 -Wl,--relax -Wl,--sort-common -Wl,--strip-all \
                 -Wl,-z,combreloc -Wl,-z,noexecstack -Wl,-z,now \
                 -Wl,-z,loadfltr -Wl,-z,relro
+#PT_CFLAGS    := $(common-cflags) -O0 -ggdb3
 
 # Testing data sets
 intdat_files  = $(call mk_intdat_files,fullrev,1,20) \
