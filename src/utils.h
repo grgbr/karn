@@ -26,6 +26,14 @@
 
 #define __unused __attribute__((unused))
 
+#if __WORDSIZE == 64
+#define __UINTPTR_C(c) c ## UL
+#elif __WORDSIZE == 32
+#define __UINTPTR_C(c) c ## U
+#else
+#error "Unsupported machine word size !"
+#endif
+
 /**
  * Retrieve the maximum number of slots a static array may contain
  *

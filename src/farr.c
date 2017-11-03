@@ -110,6 +110,14 @@ void farr_insertion_sort(char            *entries,
 
 #define FARR_QUICK_SORT_THRES (24U)
 
+/*
+ * TODO:
+ *  - remove pivot copy ?
+ *  - duplicates partition handling ?
+ *  - docs !! see https://stackoverflow.com/questions/6709055/quicksort-stack-size
+ *  https://stackoverflow.com/questions/1582356/fastest-way-of-finding-the-middle-value-of-a-triple
+ *  https://stackoverflow.com/questions/7559608/median-of-three-values-strategy
+ */
 static char * farr_quick_part(char            *begin,
                               char            *end,
                               size_t           entry_size,

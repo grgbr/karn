@@ -208,6 +208,11 @@ lib_src += $(sort $(lib_src) farr.c) # remove duplicates
 ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates
 endif
 
+ifeq ($(CONFIG_FWK_HEAP),y)
+lib_src += fwk_heap.c
+ut_src  += fwk_heap_ut.c
+endif
+
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:
 

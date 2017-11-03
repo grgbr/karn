@@ -122,14 +122,6 @@ static void fbnrhut_check_nodes(const struct fbnr_heap *heap,
 	unsigned int n;
 
 	for (n = 1; n < nr; n++) {
-#if 0
-		const int *node = (int *)
-		                  array_fixed_item(&heap->fbnr_tree.bst_nodes,
-		                                   n);
-		cute_ensure(*((int *)
-		              bstree_fixed_parent(&heap->fbnr_tree,
-		                                  (char *)node)) <= *node);
-#endif
 		const int *node = (int *)fabs_tree_node(&heap->fbnr_tree, n);
 
 		cute_ensure(*((int *)
