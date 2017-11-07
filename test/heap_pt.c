@@ -1,4 +1,5 @@
 #include "fbnr_heap.h"
+#include "fwk_heap.h"
 #include "sbnm_heap.h"
 #include "dbnm_heap.h"
 #include "karn_pt.h"
@@ -16,6 +17,7 @@ struct hppt_iface {
 	//void (*hppt_increase)(unsigned long long *nsecs);
 	//void (*hppt_decrease)(unsigned long long *nsecs);
 	//void (*hppt_merge)(unsigned long long *nsecs);
+	void (*hppt_build)(unsigned long long *nsecs);
 };
 
 static struct pt_entries hppt_entries;
@@ -42,17 +44,10 @@ hppt_fbnr_insert_bulk(void)
 }
 
 static int
-hppt_fbnr_validate(void)
+hppt_fbnr_check_entries(const char *scheme)
 {
 	unsigned int cur, old;
 	int          n;
-
-	hppt_fbnr_heap = fbnr_heap_create(sizeof(cur), hppt_entries.pt_nr,
-	                                  pt_compare_min, pt_copy_key);
-	if (!hppt_fbnr_heap)
-		return EXIT_FAILURE;
-
-	hppt_fbnr_insert_bulk();
 
 	fbnr_heap_extract(hppt_fbnr_heap, (char *)&old);
 
@@ -60,7 +55,7 @@ hppt_fbnr_validate(void)
 		fbnr_heap_extract(hppt_fbnr_heap, (char *)&cur);
 
 		if (old > cur) {
-			fprintf(stderr, "Bogus heap scheme\n");
+			fprintf(stderr, "Bogus heap %s scheme\n", scheme);
 			return EXIT_FAILURE;
 		}
 
@@ -68,6 +63,26 @@ hppt_fbnr_validate(void)
 	}
 
 	return EXIT_SUCCESS;
+}
+
+static int
+hppt_fbnr_validate(void)
+{
+	hppt_fbnr_heap = fbnr_heap_create(sizeof(*hppt_fbnr_keys),
+	                                  hppt_entries.pt_nr,
+	                                  pt_compare_min, pt_copy_key);
+	if (!hppt_fbnr_heap)
+		return EXIT_FAILURE;
+
+	hppt_fbnr_insert_bulk();
+	if (hppt_fbnr_check_entries("insert/extract"))
+		return EXIT_FAILURE;
+
+	memcpy(hppt_fbnr_heap->fbnr_tree.fabs_nodes.farr_slots,
+	       hppt_fbnr_keys,
+	       sizeof(*hppt_fbnr_keys * hppt_entries.pt_nr));
+	fbnr_heap_build(hppt_fbnr_heap, hppt_entries.pt_nr);
+	return hppt_fbnr_check_entries("build");
 }
 
 static int
@@ -94,10 +109,15 @@ hppt_fbnr_load(const char *pathname)
 static void
 hppt_fbnr_insert(unsigned long long *nsecs)
 {
-	struct timespec start, elapse;
+	struct timespec  start, elapse;
+	unsigned int    *k;
+	int              n;
+
+	fbnr_heap_clear(hppt_fbnr_heap);
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
-	hppt_fbnr_insert_bulk();
+	for (n = 0, k = hppt_fbnr_keys; n < hppt_entries.pt_nr; n++, k++)
+		fbnr_heap_insert(hppt_fbnr_heap, (char *)k);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -122,7 +142,164 @@ hppt_fbnr_extract(unsigned long long *nsecs)
 	*nsecs = pt_tspec2ns(&elapse);
 }
 
+static void
+hppt_fbnr_build(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+
+	memcpy(hppt_fbnr_heap->fbnr_tree.fabs_nodes.farr_slots,
+	       hppt_fbnr_keys,
+	       sizeof(*hppt_fbnr_keys * hppt_entries.pt_nr));
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	fbnr_heap_build(hppt_fbnr_heap, hppt_entries.pt_nr);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+}
+
 #endif /* defined(CONFIG_FBNR_HEAP) */
+
+/******************************************************************************
+ * Fixed array based weak heap
+ ******************************************************************************/
+
+#if defined(CONFIG_FWK_HEAP)
+
+static unsigned int    *hppt_fwk_keys;
+static struct fwk_heap *hppt_fwk_heap;
+
+static void
+hppt_fwk_insert_bulk(void)
+{
+	unsigned int *k;
+	int           n;
+
+	fwk_heap_clear(hppt_fwk_heap);
+
+	for (n = 0, k = hppt_fwk_keys; n < hppt_entries.pt_nr; n++, k++)
+		fwk_heap_insert(hppt_fwk_heap, (char *)k);
+}
+
+static int
+hppt_fwk_check_entries(const char *scheme)
+{
+	unsigned int cur, old;
+	int          n;
+
+	fwk_heap_extract(hppt_fwk_heap, (char *)&old);
+
+	for (n = 1; n < hppt_entries.pt_nr; n++) {
+		fwk_heap_extract(hppt_fwk_heap, (char *)&cur);
+
+		if (old > cur) {
+			fprintf(stderr, "Bogus heap %s scheme\n", scheme);
+			return EXIT_FAILURE;
+		}
+
+		old = cur;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_fwk_validate(void)
+{
+	hppt_fwk_heap = fwk_heap_create(sizeof(*hppt_fwk_keys),
+	                                hppt_entries.pt_nr,
+	                                pt_compare_min, pt_copy_key);
+	if (!hppt_fwk_heap)
+		return EXIT_FAILURE;
+
+	hppt_fwk_insert_bulk();
+	if (hppt_fwk_check_entries("insert/extract"))
+		return EXIT_FAILURE;
+
+	memcpy(hppt_fwk_heap->fwk_nodes.farr_slots,
+	       hppt_fwk_keys,
+	       sizeof(*hppt_fwk_keys * hppt_entries.pt_nr));
+	fwk_heap_build(hppt_fwk_heap, hppt_entries.pt_nr);
+
+	return hppt_fwk_check_entries("build");
+}
+
+static int
+hppt_fwk_load(const char *pathname)
+{
+	unsigned int *k;
+
+	if (pt_open_entries(pathname, &hppt_entries))
+		return EXIT_FAILURE;
+
+	hppt_fwk_keys = malloc(sizeof(*k) * hppt_entries.pt_nr);
+	if (!hppt_fwk_keys)
+		return EXIT_FAILURE;
+
+	pt_init_entry_iter(&hppt_entries);
+
+	k = hppt_fwk_keys;
+	while (!pt_iter_entry(&hppt_entries, k))
+		k++;
+
+	return hppt_fwk_validate();
+}
+
+static void
+hppt_fwk_insert(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	unsigned int    *k;
+	int              n;
+
+	fwk_heap_clear(hppt_fwk_heap);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	for (n = 0, k = hppt_fwk_keys; n < hppt_entries.pt_nr; n++, k++)
+		fwk_heap_insert(hppt_fwk_heap, (char *)k);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+}
+
+static void
+hppt_fwk_extract(unsigned long long *nsecs)
+{
+	struct timespec start, elapse;
+	unsigned int    cur;
+	int             n;
+
+	hppt_fwk_insert_bulk();
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	for (n = 0; n < hppt_entries.pt_nr; n++)
+		fwk_heap_extract(hppt_fwk_heap, (char *)&cur);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+}
+
+static void
+hppt_fwk_build(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+
+	memcpy(hppt_fwk_heap->fwk_nodes.farr_slots,
+	       hppt_fwk_keys,
+	       sizeof(*hppt_fwk_keys * hppt_entries.pt_nr));
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	fwk_heap_build(hppt_fwk_heap, hppt_entries.pt_nr);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+}
+
+#endif /* defined(CONFIG_FWK_HEAP) */
 
 /******************************************************************************
  * Singly linked list based binomial heap
@@ -411,7 +588,18 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_load    = hppt_fbnr_load,
 		.hppt_insert  = hppt_fbnr_insert,
 		.hppt_extract = hppt_fbnr_extract,
-		.hppt_remove  = NULL
+		.hppt_remove  = NULL,
+		.hppt_build   = hppt_fbnr_build
+	},
+#endif
+#if defined(CONFIG_FWK_HEAP)
+	{
+		.hppt_name    = "fwk",
+		.hppt_load    = hppt_fwk_load,
+		.hppt_insert  = hppt_fwk_insert,
+		.hppt_extract = hppt_fwk_extract,
+		.hppt_remove  = NULL,
+		.hppt_build   = hppt_fwk_build
 	},
 #endif
 #if defined(CONFIG_SBNM_HEAP)
@@ -448,11 +636,46 @@ hppt_setup_algo(const char *algo_name)
 	return NULL;
 }
 
+static int
+pt_parse_scheme(const char               *arg,
+                const char              **scheme,
+                const struct hppt_iface  *algo)
+{
+	if (!strcmp(arg, "insert")) {
+		if (!algo->hppt_insert)
+			goto inval;
+	}
+	else if (!strcmp(arg, "extract")) {
+		if (!algo->hppt_extract)
+			goto inval;
+	}
+	else if (!strcmp(arg, "build")) {
+		if (!algo->hppt_build)
+			goto inval;
+	}
+	else if (!strcmp(arg, "remove")) {
+		if (!algo->hppt_remove)
+			goto inval;
+	}
+	else {
+		fprintf(stderr, "Unknown \"%s\" heap scheme\n", arg);
+		return EXIT_FAILURE;
+	}
+
+	*scheme = arg;
+
+	return EXIT_SUCCESS;
+
+inval:
+	fprintf(stderr, "Invalid \"%s\" heap scheme\n", arg);
+	return EXIT_FAILURE;
+}
+
 static void
 usage(const char *me)
 {
 	fprintf(stderr,
-	        "Usage: %s [OPTIONS] FILE ALGORITHM LOOPS\n"
+	        "Usage: %s [OPTIONS] FILE ALGORITHM LOOPS [SCHEME]\n"
 	        "where OPTIONS:\n"
 	        "    -p|--prio  PRIORITY\n"
 	        "    -h|--help\n",
@@ -464,6 +687,7 @@ int main(int argc, char *argv[])
 	const struct hppt_iface *algo;
 	unsigned int             l, loops = 0;
 	int                      prio = 0;
+	const char              *scheme = "";
 	unsigned long long       nsecs;
 
 	while (true) {
@@ -504,7 +728,7 @@ int main(int argc, char *argv[])
 	 * line.
 	 */
 	argc -= optind;
-	if (argc != 3) {
+	if (argc < 3) {
 		fprintf(stderr, "Invalid number of arguments\n");
 		usage(argv[0]);
 		return EXIT_FAILURE;
@@ -517,23 +741,39 @@ int main(int argc, char *argv[])
 	if (pt_parse_loop_nr(argv[optind + 2], &loops))
 		return EXIT_FAILURE;
 
+	if (argc == 4) {
+		if (pt_parse_scheme(argv[optind + 3], &scheme, algo))
+			return EXIT_FAILURE;
+	}
+
 	if (algo->hppt_load(argv[optind]))
 		return EXIT_FAILURE;
 
 	if (pt_setup_sched_prio(prio))
 		return EXIT_FAILURE;
 
-	for (l = 0; l < loops; l++) {
-		algo->hppt_insert(&nsecs);
-		printf("insert: nsec=%llu\n", nsecs);
+	if ((!*scheme && algo->hppt_insert) || !strcmp(scheme, "insert")) {
+		for (l = 0; l < loops; l++) {
+			algo->hppt_insert(&nsecs);
+			printf("insert: nsec=%llu\n", nsecs);
+		}
 	}
 
-	for (l = 0; l < loops; l++) {
-		algo->hppt_extract(&nsecs);
-		printf("extract: nsec=%llu\n", nsecs);
+	if ((!*scheme && algo->hppt_extract) || !strcmp(scheme, "extract")) {
+		for (l = 0; l < loops; l++) {
+			algo->hppt_extract(&nsecs);
+			printf("extract: nsec=%llu\n", nsecs);
+		}
 	}
 
-	if (algo->hppt_remove) {
+	if ((!*scheme && algo->hppt_build) || !strcmp(scheme, "build")) {
+		for (l = 0; l < loops; l++) {
+			algo->hppt_build(&nsecs);
+			printf("build: nsec=%llu\n", nsecs);
+		}
+	}
+
+	if ((!*scheme && algo->hppt_remove) || !strcmp(scheme, "remove")) {
 		for (l = 0; l < loops; l++) {
 			algo->hppt_remove(&nsecs);
 			printf("remove: nsec=%llu\n", nsecs);

@@ -49,6 +49,11 @@ config FWK_HEAP
 	bool "Fixed length array based weak heap"
 	default y
 
+config FWK_HEAP_SORT
+	bool "Fixed length array based weak heap sorting"
+	select FWK_HEAP
+	default y
+
 config FARR_BUBBLE_SORT
 	bool "Fixed length array based bubble sorting"
 	default y

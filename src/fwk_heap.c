@@ -45,24 +45,31 @@ static unsigned int fwk_heap_dancestor_index(const struct fwk_heap *heap,
 	return fwk_heap_parent_index(index);
 }
 
-static bool fwk_heap_join(struct fwk_heap *heap,
-                          unsigned int     dancestor,
-                          unsigned int     child)
+/*
+ * Making this "inline" improves build runtime performance by around 90% upon
+ * random input (~ 25% for extraction)...
+ */
+static inline bool fwk_heap_join(struct farr     *nodes,
+                                 struct fbmp     *rbits,
+                                 unsigned int     dancestor,
+                                 unsigned int     child,
+                                 farr_compare_fn *compare,
+                                 farr_copy_fn    *copy)
 {
 	char *dnode;
 	char *cnode;
 
-	dnode = farr_slot(&heap->fwk_nodes, dancestor);
-	cnode = farr_slot(&heap->fwk_nodes, child);
+	dnode = farr_slot(nodes, dancestor);
+	cnode = farr_slot(nodes, child);
 
-	if (heap->fwk_compare(cnode, dnode) < 0) {
-		char tmp[farr_slot_size(&heap->fwk_nodes)];
+	if (compare(cnode, dnode) < 0) {
+		char tmp[farr_slot_size(nodes)];
 
-		heap->fwk_copy(tmp, dnode);
-		heap->fwk_copy(dnode, cnode);
-		heap->fwk_copy(cnode, tmp);
+		copy(tmp, dnode);
+		copy(dnode, cnode);
+		copy(cnode, tmp);
 
-		fbmp_toggle(&heap->fwk_rbits, child);
+		fbmp_toggle(rbits, child);
 
 		return false;
 	}
@@ -95,7 +102,10 @@ void fwk_heap_insert(struct fwk_heap *heap, const char *node)
 			unsigned int didx;
 
 			didx = fwk_heap_dancestor_index(heap, idx);
-			if (fwk_heap_join(heap, didx, idx))
+
+			if (fwk_heap_join(&heap->fwk_nodes, &heap->fwk_rbits,
+			                  didx, idx, heap->fwk_compare,
+			                  heap->fwk_copy))
 				break;
 
 			idx = didx;
@@ -105,37 +115,72 @@ void fwk_heap_insert(struct fwk_heap *heap, const char *node)
 	heap->fwk_count++;
 }
 
+static void fwk_heap_siftdown(struct farr     *nodes,
+                              struct fbmp     *rbits,
+                              unsigned int     count,
+                              farr_compare_fn *compare,
+                              farr_copy_fn    *copy)
+{
+	unsigned int idx;
+
+	idx = fwk_heap_right_index(rbits, FWK_HEAP_ROOT_INDEX);
+
+	while (true) {
+		unsigned int cidx;
+
+		cidx = fwk_heap_left_index(rbits, idx);
+		if (cidx >= count)
+			break;
+
+		idx = cidx;
+	}
+
+	while (idx != FWK_HEAP_ROOT_INDEX) {
+		fwk_heap_join(nodes, rbits, FWK_HEAP_ROOT_INDEX, idx, compare,
+		              copy);
+
+		idx = fwk_heap_parent_index(idx);
+	}
+}
+
 void fwk_heap_extract(struct fwk_heap *heap, char *node)
 {
 	assert(!fwk_heap_empty(heap));
 
-	unsigned int cnt = --heap->fwk_count;
+	heap->fwk_count--;
 
 	heap->fwk_copy(node, farr_slot(&heap->fwk_nodes, FWK_HEAP_ROOT_INDEX));
 
 	heap->fwk_copy(farr_slot(&heap->fwk_nodes, FWK_HEAP_ROOT_INDEX),
-	               farr_slot(&heap->fwk_nodes, cnt));
+	               farr_slot(&heap->fwk_nodes, heap->fwk_count));
 
-	/* Sift new root node dow, i.e. reestablish heap ordering. */
-	if (cnt > 1) {
-		unsigned int idx;
+	/* Sift new root node down, i.e. reestablish heap ordering. */
+	if (heap->fwk_count > 1)
+		fwk_heap_siftdown(&heap->fwk_nodes, &heap->fwk_rbits,
+		                  heap->fwk_count, heap->fwk_compare,
+		                  heap->fwk_copy);
+}
 
-		idx = fwk_heap_right_index(&heap->fwk_rbits,
-		                           FWK_HEAP_ROOT_INDEX);
-		while (true) {
-			unsigned int cidx;
+void fwk_heap_clear(struct fwk_heap *heap)
+{
+	heap->fwk_count = 0;
+	fbmp_clear_all(&heap->fwk_rbits, farr_nr(&heap->fwk_nodes));
+}
 
-			cidx = fwk_heap_left_index(&heap->fwk_rbits, idx);
-			if (cidx >= cnt)
-				break;
-
-			idx = cidx;
-		}
-
-		while (idx != FWK_HEAP_ROOT_INDEX) {
-			fwk_heap_join(heap, FWK_HEAP_ROOT_INDEX, idx);
-			idx = fwk_heap_parent_index(idx);
-		}
+static void fwk_heap_make(struct farr     *nodes,
+                          struct fbmp     *rbits,
+                          unsigned int     count,
+                          farr_compare_fn *compare,
+                          farr_copy_fn    *copy)
+{
+	while (--count) {
+		unsigned int didx;
+#if 0
+		didx = fwk_heap_dancestor_index(heap, count);
+#else
+		didx = count >> (__builtin_ctz(count) + 1);
+#endif
+		fwk_heap_join(nodes, rbits, didx, count, compare, copy);
 	}
 }
 
@@ -145,12 +190,8 @@ void fwk_heap_build(struct fwk_heap *heap, unsigned int count)
 
 	fbmp_clear_all(&heap->fwk_rbits, farr_nr(&heap->fwk_nodes));
 
-	while (--count) {
-		unsigned int didx;
-
-		didx = fwk_heap_dancestor_index(heap, count);
-		fwk_heap_join(heap, didx, count);
-	}
+	fwk_heap_make(&heap->fwk_nodes, &heap->fwk_rbits, count,
+	              heap->fwk_compare, heap->fwk_copy);
 }
 
 int fwk_heap_init(struct fwk_heap *heap,
@@ -180,3 +221,130 @@ void fwk_heap_fini(struct fwk_heap *heap)
 	farr_fini(&heap->fwk_nodes);
 	fbmp_fini(&heap->fwk_rbits);
 }
+
+struct fwk_heap * fwk_heap_create(size_t           node_size,
+                                  unsigned int     node_nr,
+                                  farr_compare_fn *compare,
+                                  farr_copy_fn    *copy)
+{
+	assert(node_size);
+	assert(node_nr);
+
+	struct fwk_heap *heap;
+	int              err;
+
+	heap = malloc(sizeof(*heap) + (node_size * node_nr));
+	if (!heap)
+		return NULL;
+
+	err = fwk_heap_init(heap, (char *)&heap[1], node_size, node_nr, compare,
+	                    copy);
+	if (err) {
+		free(heap);
+		errno = -err;
+
+		return NULL;
+	}
+
+	return heap;
+}
+
+void fwk_heap_destroy(struct fwk_heap *heap)
+{
+	fwk_heap_fini(heap);
+
+	free(heap);
+}
+
+#if defined(CONFIG_FWK_HEAP_SORT)
+
+int fwk_heap_sort(char            *entries,
+                  size_t           entry_size,
+                  size_t           entry_nr,
+                  farr_compare_fn *compare,
+                  farr_copy_fn    *copy)
+{
+	if (entry_nr > 1) {
+		struct farr  nodes;
+		struct fbmp  rbits;
+		char        *root;
+		char        *last;
+		char         tmp[entry_size];
+
+		if (fbmp_init(&rbits, entry_nr))
+			return -ENOMEM;
+
+		farr_init(&nodes, entries, entry_size, entry_nr);
+
+		fwk_heap_make(&nodes, &rbits, entry_nr, compare, copy);
+
+		root = farr_slot(&nodes, FWK_HEAP_ROOT_INDEX);
+		last = &entries[(entry_nr - 1) * entry_size];
+
+		while (true) {
+			copy(tmp, root);
+			copy(root, last);
+			copy(last, tmp);
+
+			if (--entry_nr <= 1)
+				break;
+
+			fwk_heap_siftdown(&nodes, &rbits, entry_nr, compare,
+			                  copy);
+
+			last -= entry_size;
+		}
+
+		farr_fini(&nodes);
+		fbmp_fini(&rbits);
+	}
+
+	return 0;
+}
+
+#endif /* defined(CONFIG_FWK_HEAP_SORT) */
+
+#if 0
+	if (count > 1)
+		fwk_heap_topdown_build(heap);
+#endif
+#if 0
+static void fwk_heap_topdown_build(struct fwk_heap *heap)
+{
+#if 0
+	unsigned int j = (2 * index) + 1;
+
+	printf("in %u\n", index);
+	while (j < (heap->fwk_count / 2)) {
+		fwk_heap_topdown_build(heap, j);
+		j *= 2;
+	}
+
+	fwk_heap_siftdown(heap, index, heap->fwk_count);
+	printf("out %u\n", index);
+#endif
+
+	unsigned int stack[32];
+	unsigned int s = 0;
+	unsigned int index = FWK_HEAP_ROOT_INDEX;
+	unsigned int cnt = heap->fwk_count / 2;
+
+	do {
+		if (index < cnt) {
+			stack[s++] = index;
+			index = (2 * index) + 1;
+			continue;
+		}
+
+		if (!s--)
+			break;
+		index = stack[s];
+
+		fwk_heap_siftdown(heap, index, heap->fwk_count);
+
+		index *= 2;
+		if (!index)
+			break;
+	} while (true);
+}
+#endif

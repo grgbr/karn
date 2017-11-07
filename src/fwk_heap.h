@@ -45,6 +45,8 @@ extern void fwk_heap_insert(struct fwk_heap *heap, const char *node);
 
 extern void fwk_heap_extract(struct fwk_heap *heap, char *node);
 
+extern void fwk_heap_clear(struct fwk_heap *heap);
+
 extern void fwk_heap_build(struct fwk_heap *heap, unsigned int count);
 
 extern void fwk_heap_fini(struct fwk_heap *heap);
@@ -55,5 +57,22 @@ extern int fwk_heap_init(struct fwk_heap *heap,
                          unsigned int     node_nr,
                          farr_compare_fn *compare,
                          farr_copy_fn    *copy);
+
+extern struct fwk_heap * fwk_heap_create(size_t           node_size,
+                                         unsigned int     node_nr,
+                                         farr_compare_fn *compare,
+                                         farr_copy_fn    *copy);
+
+extern void fwk_heap_destroy(struct fwk_heap *heap);
+
+#if defined(CONFIG_FWK_HEAP_SORT)
+
+extern int fwk_heap_sort(char            *entries,
+                         size_t           entry_size,
+                         size_t           entry_nr,
+                         farr_compare_fn *compare,
+                         farr_copy_fn    *copy);
+
+#endif /* defined(CONFIG_FWK_HEAP_SORT) */
 
 #endif

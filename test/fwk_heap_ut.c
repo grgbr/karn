@@ -56,9 +56,10 @@ static void
 fwkhut_setup_empty(void)
 {
 	memset(fwkhut_nodes, 0, sizeof(fwkhut_nodes));
-	fwk_heap_init(&fwkhut_heap, (char *)fwkhut_nodes,
-	               sizeof(fwkhut_nodes[0]), array_nr(fwkhut_nodes),
-	               fwkhut_compare_min, fwkhut_copy);
+	cute_ensure(!fwk_heap_init(&fwkhut_heap, (char *)fwkhut_nodes,
+	                           sizeof(fwkhut_nodes[0]),
+	                           array_nr(fwkhut_nodes),
+	                           fwkhut_compare_min, fwkhut_copy));
 }
 
 static CUTE_PNP_FIXTURED_SUITE(fwkhut_empty, &fwkhut,
@@ -614,14 +615,13 @@ CUTE_PNP_TEST(fwkhut_extract_mixorder20, &fwkhut_extract)
 	fwkhut_check_extract(&fwkhut_heap, nodes, array_nr(nodes));
 }
 
-#if 0
 static struct fwk_heap *fwkhut_created;
 
 static void
 fwkhut_create_empty(void)
 {
 	fwkhut_created = fwk_heap_create(sizeof(int), 20, fwkhut_compare_min,
-	                                   fwkhut_copy);
+	                                 fwkhut_copy);
 	cute_ensure(fwkhut_created != NULL);
 }
 
@@ -647,7 +647,6 @@ CUTE_PNP_TEST(fwkhut_created_mixorder20, &fwkhut_create)
 
 	fwkhut_check_extract(fwkhut_created, nodes, array_nr(nodes));
 }
-#endif
 
 static CUTE_PNP_SUITE(fwkhut_build, &fwkhut);
 
@@ -660,8 +659,8 @@ static void fwkhut_check_build(int *nodes, int nr)
 	memcpy(check, nodes, nr * sizeof(*nodes));
 	qsort(check, nr, sizeof(*nodes), fwkhut_qsort_compare_min);
 
-	fwk_heap_init(&heap, (char *)nodes, sizeof(*nodes), nr,
-	              fwkhut_compare_min, fwkhut_copy);
+	cute_ensure(!fwk_heap_init(&heap, (char *)nodes, sizeof(*nodes), nr,
+	                           fwkhut_compare_min, fwkhut_copy));
 	fwk_heap_build(&heap, nr);
 
 	for (n = 0; n < nr; n++) {

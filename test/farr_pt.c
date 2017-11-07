@@ -394,6 +394,77 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 #endif /* defined(CONFIG_FBNR_HEAP_SORT) */
 
 /******************************************************************************
+ * Fixed array based weak heap
+ ******************************************************************************/
+
+#if defined(CONFIG_FWK_HEAP_SORT)
+
+#include "fwk_heap.h"
+
+static int fapt_fwk_heap_validate(void)
+{
+	int           n;
+	unsigned int *keys;
+	int           ret = EXIT_FAILURE;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	if (fwk_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
+	                  pt_compare_max, pt_copy_key))
+		goto free;
+
+	for (n = 1; n < fapt_entries.pt_nr; n++) {
+		if (keys[n - 1] > keys[n]) {
+			fprintf(stderr, "Bogus sorting scheme\n");
+			goto free;
+		}
+	}
+
+	ret = EXIT_SUCCESS;
+
+free:
+	free(keys);
+
+	return ret;
+}
+
+static int fapt_fwk_heap_sort(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	unsigned int    *keys;
+	int              ret = EXIT_FAILURE;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	if (fwk_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
+	                  pt_compare_max, pt_copy_key))
+		goto free;
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	ret = EXIT_SUCCESS;
+
+free:
+	free(keys);
+
+	return ret;
+}
+
+#endif /* defined(CONFIG_FWK_HEAP_SORT) */
+
+/******************************************************************************
  * Main measurment task handling
  ******************************************************************************/
 
@@ -408,6 +479,13 @@ static const struct fapt_iface fapt_algos[] = {
 		.fapt_name     = "fbnrh",
 		.fapt_validate = fapt_fbnr_heap_validate,
 		.fapt_sort     = fapt_fbnr_heap_sort
+	},
+#endif
+#if defined(CONFIG_FWK_HEAP_SORT)
+	{
+		.fapt_name     = "fwkh",
+		.fapt_validate = fapt_fwk_heap_validate,
+		.fapt_sort     = fapt_fwk_heap_sort
 	},
 #endif
 #if defined(CONFIG_FARR_BUBBLE_SORT)
