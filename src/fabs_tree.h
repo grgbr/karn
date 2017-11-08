@@ -52,7 +52,7 @@ struct fabs_tree {
 #define FABS_TREE_ROOT_INDEX (0U)
 
 /**
- * Return capacity of a fabs_tree in number nodes
+ * Return capacity of a fabs_tree in number of nodes
  *
  * @param tree fabs_tree to get capacity from
  *

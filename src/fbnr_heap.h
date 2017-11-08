@@ -51,6 +51,38 @@ struct fbnr_heap {
 	assert((_heap)->fbnr_copy)
 
 /**
+ * Return capacity of a fbnr_heap in number of nodes
+ *
+ * @param heap fbnr_heap to get capacity from
+ *
+ * @return maximum number of nodes
+ *
+ * @ingroup fbnr_heap
+ */
+static inline unsigned int fbnr_heap_nr(const struct fbnr_heap *heap)
+{
+	fbnr_heap_assert(heap);
+
+	return fabs_tree_nr(&heap->fbnr_tree);
+}
+
+/**
+ * Return count of nodes hosted by a fbnr_heap
+ *
+ * @param heap fbnr_heap to get capacity from
+ *
+ * @return count
+ *
+ * @ingroup fbnr_heap
+ */
+static inline unsigned int fbnr_heap_count(const struct fbnr_heap *heap)
+{
+	fbnr_heap_assert(heap);
+
+	return fabs_tree_count(&heap->fbnr_tree);
+}
+
+/**
  * Indicate wether a fixed length array based binary heap is empty or not
  *
  * @param heap heap to test
@@ -85,7 +117,7 @@ static inline bool fbnr_heap_full(const struct fbnr_heap *heap)
 }
 
 /**
- * Retrieve first node satisfying the heap property
+ * Retrieve first node satisfying the binary heap property
  *
  * @param heap heap to retrieve node from
  *
@@ -103,7 +135,7 @@ static inline bool fbnr_heap_full(const struct fbnr_heap *heap)
  */
 static inline char * fbnr_heap_peek(const struct fbnr_heap *heap)
 {
-	fbnr_heap_assert(heap);
+	assert(!fbnr_heap_empty(heap));
 
 	return fabs_tree_root(&heap->fbnr_tree);
 }
@@ -145,6 +177,8 @@ extern void fbnr_heap_extract(struct fbnr_heap *heap, char *node);
  * Clear content of specified fbnr_heap
  *
  * @param heap heap to clear
+ *
+ * Reset heap to empty state.
  *
  * @ingroup fbnr_heap
  */
@@ -240,6 +274,18 @@ extern void fbnr_heap_destroy(struct fbnr_heap *heap);
 
 #if defined(CONFIG_FBNR_HEAP_SORT)
 
+/**
+ * Sort array passed as argument according to binary heap sort scheme.
+ *
+ * @param entries    array of entries to sort
+ * @param entry_size size in bytes of a single array entry
+ * @param entry_nr   number of array entries
+ * @param compare    comparison function used to locate the right array slot to
+ *                   insert data into
+ * @param copy       copy function used to swap nodes / array slots.
+ *
+ * @ingroup fbnr_heap
+ */
 extern void fbnr_heap_sort(char            *entries,
                            size_t           entry_size,
                            size_t           entry_nr,
