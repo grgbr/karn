@@ -106,9 +106,7 @@ void farr_insertion_sort(char            *entries,
 
 #endif /* defined(CONFIG_FARR_INSERTION_SORT) */
 
-#if defined(CONFIG_FARR_QUICK_SORT)
-
-#define FARR_QUICK_SORT_THRES (24U)
+#if defined(CONFIG_FARR_QUICK_SORT_UTILS)
 
 /*
  * TODO:
@@ -158,7 +156,13 @@ static char * farr_quick_part(char            *begin,
 	}
 }
 
-static unsigned int farr_quick_stack_nr(size_t entry_nr)
+#endif /* defined(CONFIG_FARR_QUICK_SORT_UTILS) */
+
+#if defined(CONFIG_FARR_QUICK_SORT)
+
+#define FARR_QUICK_SORT_THRES (24U)
+
+static unsigned int farr_quick_stack_depth(size_t entry_nr)
 {
 	return upper_pow2(max((entry_nr + FARR_QUICK_SORT_THRES - 1) /
 	                      FARR_QUICK_SORT_THRES, 2U));
@@ -179,17 +183,20 @@ void farr_quick_sort(char            *entries,
 	struct {
 		char *begin;
 		char *end;
-	}                     parts[farr_quick_stack_nr(entry_nr)];
+	}                     parts[farr_quick_stack_depth(entry_nr)];
 	unsigned int          p = 0;
 	char                 *begin = entries;
 	char                 *end = &begin[(entry_nr - 1) * entry_size];
+	size_t                thres = (FARR_QUICK_SORT_THRES - 1) * entry_size;
 
 	while (true) {
-		size_t  thres = FARR_QUICK_SORT_THRES * entry_size;
-		char   *pivot;
-		char   *high;
+		char *pivot;
+		char *high;
 
-		while (((size_t)begin + thres) >= (size_t)end) {
+		assert(p < array_nr(parts));
+		assert(end >= begin);
+
+		while ((size_t)(end - begin) <= (size_t)thres) {
 			if (!p--)
 				return farr_insertion_sort(entries, entry_size,
 				                           entry_nr, compare,
@@ -198,9 +205,9 @@ void farr_quick_sort(char            *entries,
 			end = parts[p].end;
 		}
 
-		assert(p < array_nr(parts));
-
 		pivot = farr_quick_part(begin, end, entry_size, compare, copy);
+		assert(begin <= pivot);
+		assert(pivot < end);
 
 		high = pivot + entry_size;
 		if ((high - begin) >= (end - pivot)) {
