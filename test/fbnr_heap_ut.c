@@ -795,11 +795,6 @@ CUTE_PNP_TEST(fbnrhut_build_mixorder20, &fbnrhut_build)
 
 static CUTE_PNP_SUITE(fbnrhut_sort, &fbnrhut);
 
-static int fbnrhut_sort_compare_min(const char *first, const char *second)
-{
-	return 0 - fbnrhut_compare_min(first, second);
-}
-
 static void fbnrhut_check_entries(int          *entries,
                                   const int    *checks,
                                   unsigned int  nr)
@@ -807,7 +802,7 @@ static void fbnrhut_check_entries(int          *entries,
 	unsigned int e;
 
 	fbnr_heap_sort((char *)entries, sizeof(entries[0]), nr,
-	               fbnrhut_sort_compare_min, fbnrhut_copy);
+	               fbnrhut_compare_min, fbnrhut_copy);
 
 	for (e = 0; e < nr; e++)
 		cute_ensure(entries[e] == checks[e]);

@@ -350,7 +350,7 @@ static int fapt_fbnr_heap_validate(void)
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
 	fbnr_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
-	               pt_compare_max, pt_copy_key);
+	               pt_compare_min, pt_copy_key);
 
 	for (n = 1; n < fapt_entries.pt_nr; n++) {
 		if (keys[n - 1] > keys[n]) {
@@ -380,7 +380,7 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	fbnr_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
-	               pt_compare_max, pt_copy_key);
+	               pt_compare_min, pt_copy_key);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);

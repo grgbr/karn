@@ -27,13 +27,18 @@ config DLIST
 	bool "Doubly linked list"
 	default n
 
+config FBNR_HEAP_UTILS
+	bool "Fixed length array based binary heap utilities"
+	default n
+
 config FBNR_HEAP
 	bool "Fixed length array based binary heap"
+	select FBNR_HEAP_UTILS
 	default y
 
 config FBNR_HEAP_SORT
 	bool "Fixed length array based binary heap sorting"
-	select FBNR_HEAP
+	select FBNR_HEAP_UTILS
 	default y
 
 config SBNM_HEAP
