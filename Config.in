@@ -79,3 +79,9 @@ config FARR_QUICK_SORT
 	bool "Fixed length array based quick sorting"
 	select FARR_QUICK_SORT_UTILS
 	default y
+
+config FARR_INTRO_SORT
+	bool "Fixed length array based introspective sorting"
+	select FARR_QUICK_SORT_UTILS
+	select FBNR_HEAP_SORT
+	default y

@@ -274,4 +274,14 @@ extern void farr_quick_sort(char            *entries,
 
 #endif /* defined(CONFIG_FARR_QUICK_SORT) */
 
+#if defined(CONFIG_FARR_INTRO_SORT)
+
+extern void farr_intro_sort(char            *entries,
+                            size_t           entry_size,
+                            unsigned int     entry_nr,
+                            farr_compare_fn *compare,
+                            farr_copy_fn    *copy);
+
+#endif /* defined(CONFIG_FARR_INTRO_SORT) */
+
 #endif

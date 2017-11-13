@@ -330,7 +330,7 @@ static int fapt_quick_sort(unsigned long long *nsecs)
 #endif /* defined(CONFIG_FARR_QUICK_SORT) */
 
 /******************************************************************************
- * Fixed array based binary heap
+ * Fixed array based binary heap sorting
  ******************************************************************************/
 
 #if defined(CONFIG_FBNR_HEAP_SORT)
@@ -394,7 +394,7 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 #endif /* defined(CONFIG_FBNR_HEAP_SORT) */
 
 /******************************************************************************
- * Fixed array based weak heap
+ * Fixed array based weak heap sorting
  ******************************************************************************/
 
 #if defined(CONFIG_FWK_HEAP_SORT)
@@ -465,6 +465,70 @@ free:
 #endif /* defined(CONFIG_FWK_HEAP_SORT) */
 
 /******************************************************************************
+ * Fixed array based introspective sorting
+ ******************************************************************************/
+
+#if defined(CONFIG_FARR_INTRO_SORT)
+
+#include "farr.h"
+
+static int fapt_intro_validate(void)
+{
+	int           n;
+	unsigned int *keys;
+	int           ret = EXIT_FAILURE;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	farr_intro_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
+	                pt_compare_min, pt_copy_key);
+
+	for (n = 1; n < fapt_entries.pt_nr; n++) {
+		if (keys[n - 1] > keys[n]) {
+			fprintf(stderr, "Bogus sorting scheme\n");
+			goto free;
+		}
+	}
+
+	ret = EXIT_SUCCESS;
+
+free:
+	free(keys);
+
+	return ret;
+}
+
+static int fapt_intro_sort(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	unsigned int    *keys;
+
+	keys = malloc(sizeof(*keys) * fapt_entries.pt_nr);
+	if (!keys)
+		return EXIT_FAILURE;
+
+	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	farr_intro_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
+	                pt_compare_min, pt_copy_key);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+
+	free(keys);
+
+	return EXIT_SUCCESS;
+}
+
+#endif /* defined(CONFIG_FARR_INTRO_SORT) */
+
+/******************************************************************************
  * Main measurment task handling
  ******************************************************************************/
 
@@ -514,6 +578,13 @@ static const struct fapt_iface fapt_algos[] = {
 		.fapt_name     = "quick",
 		.fapt_validate = fapt_quick_validate,
 		.fapt_sort     = fapt_quick_sort
+	},
+#endif
+#if defined(CONFIG_FARR_INTRO_SORT)
+	{
+		.fapt_name     = "intro",
+		.fapt_validate = fapt_intro_validate,
+		.fapt_sort     = fapt_intro_sort
 	},
 #endif
 };
