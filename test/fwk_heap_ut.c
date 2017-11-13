@@ -820,11 +820,6 @@ CUTE_PNP_TEST(fwkhut_build_mixorder20, &fwkhut_build)
 
 static CUTE_PNP_SUITE(fwkhut_sort, &fwkhut);
 
-static int fwkhut_sort_compare_min(const char *first, const char *second)
-{
-	return 0 - fwkhut_compare_min(first, second);
-}
-
 static void fwkhut_check_entries(int          *entries,
                                   const int    *checks,
                                   unsigned int  nr)
@@ -832,7 +827,7 @@ static void fwkhut_check_entries(int          *entries,
 	unsigned int e;
 
 	fwk_heap_sort((char *)entries, sizeof(entries[0]), nr,
-	               fwkhut_sort_compare_min, fwkhut_copy);
+	               fwkhut_compare_min, fwkhut_copy);
 
 	for (e = 0; e < nr; e++)
 		cute_ensure(entries[e] == checks[e]);

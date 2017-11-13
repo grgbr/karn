@@ -26,6 +26,9 @@
 
 #include "fwk_heap.h"
 
+#define FWK_HEAP_REGULAR_ORDER (true)
+#define FWK_HEAP_REVERSE_ORDER (false)
+
 static unsigned int fwk_heap_parent_index(unsigned int index)
 {
 	assert(index);
@@ -107,7 +110,8 @@ static inline bool fwk_heap_join(const struct farr *nodes,
                                  unsigned int       dancestor,
                                  unsigned int       node,
                                  farr_compare_fn   *compare,
-                                 farr_copy_fn      *copy)
+                                 farr_copy_fn      *copy,
+                                 bool               regular)
 {
 	char *cnode;
 	char *dnode;
@@ -115,7 +119,7 @@ static inline bool fwk_heap_join(const struct farr *nodes,
 	cnode = farr_slot(nodes, node);
 	dnode = farr_slot(nodes, dancestor);
 
-	if (compare(cnode, dnode) < 0) {
+	if ((compare(cnode, dnode) < 0) == regular) {
 		/*
 		 * Swap node and its distinguished ancestor to restore proper
 		 * heap ordering.
@@ -174,7 +178,8 @@ void fwk_heap_insert(struct fwk_heap *heap, const char *node)
 			 * Join both sub-heaps rooted at current node and its
 			 * distinguished ancestor.
 			 */
-			if (fwk_heap_join(nodes, rbits, didx, idx, cmp, cpy))
+			if (fwk_heap_join(nodes, rbits, didx, idx, cmp, cpy,
+			                  FWK_HEAP_REGULAR_ORDER))
 				break;
 
 			/* Iterate up to root. */
@@ -203,7 +208,8 @@ static void fwk_heap_siftdown(const struct farr *nodes,
                               const struct fbmp *rbits,
                               unsigned int       count,
                               farr_compare_fn   *compare,
-                              farr_copy_fn      *copy)
+                              farr_copy_fn      *copy,
+                              bool               regular)
 {
 	unsigned int idx;
 
@@ -226,7 +232,7 @@ static void fwk_heap_siftdown(const struct farr *nodes,
 	 */
 	while (idx != FWK_HEAP_ROOT_INDEX) {
 		fwk_heap_join(nodes, rbits, FWK_HEAP_ROOT_INDEX, idx, compare,
-		              copy);
+		              copy, regular);
 
 		idx = fwk_heap_parent_index(idx);
 	}
@@ -251,7 +257,8 @@ void fwk_heap_extract(struct fwk_heap *heap, char *node)
 	/* Sift new root node down, i.e. reestablish heap ordering. */
 	if (cnt > 1)
 		fwk_heap_siftdown(nodes, &heap->fwk_rbits, cnt,
-		                  heap->fwk_compare, cpy);
+		                  heap->fwk_compare, cpy,
+		                  FWK_HEAP_REGULAR_ORDER);
 }
 
 void fwk_heap_clear(struct fwk_heap *heap)
@@ -289,12 +296,13 @@ static void fwk_heap_make(const struct farr *nodes,
                           const struct fbmp *rbits,
                           unsigned int       count,
                           farr_compare_fn   *compare,
-                          farr_copy_fn      *copy)
+                          farr_copy_fn      *copy,
+                          bool               regular)
 {
 	while (--count)
 		fwk_heap_join(nodes, rbits,
 		              fwk_heap_fast_dancestor_index(count), count,
-		              compare, copy);
+		              compare, copy, regular);
 }
 
 void fwk_heap_build(struct fwk_heap *heap, unsigned int count)
@@ -307,7 +315,8 @@ void fwk_heap_build(struct fwk_heap *heap, unsigned int count)
 	fbmp_clear_all(&heap->fwk_rbits, farr_nr(&heap->fwk_nodes));
 
 	fwk_heap_make(&heap->fwk_nodes, &heap->fwk_rbits, count,
-	              heap->fwk_compare, heap->fwk_copy);
+	              heap->fwk_compare, heap->fwk_copy,
+	              FWK_HEAP_REGULAR_ORDER);
 }
 
 int fwk_heap_init(struct fwk_heap *heap,
@@ -398,7 +407,8 @@ int fwk_heap_sort(char            *entries,
 
 		farr_init(&nodes, entries, entry_size, entry_nr);
 
-		fwk_heap_make(&nodes, &rbits, entry_nr, compare, copy);
+		fwk_heap_make(&nodes, &rbits, entry_nr, compare, copy,
+		              FWK_HEAP_REVERSE_ORDER);
 
 		root = farr_slot(&nodes, FWK_HEAP_ROOT_INDEX);
 		last = &entries[(entry_nr - 1) * entry_size];
@@ -412,7 +422,7 @@ int fwk_heap_sort(char            *entries,
 				break;
 
 			fwk_heap_siftdown(&nodes, &rbits, entry_nr, compare,
-			                  copy);
+			                  copy, FWK_HEAP_REVERSE_ORDER);
 
 			last -= entry_size;
 		}

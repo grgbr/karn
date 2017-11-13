@@ -414,7 +414,7 @@ static int fapt_fwk_heap_validate(void)
 	memcpy(keys, fapt_keys, sizeof(*keys) * fapt_entries.pt_nr);
 
 	if (fwk_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
-	                  pt_compare_max, pt_copy_key))
+	                  pt_compare_min, pt_copy_key))
 		goto free;
 
 	for (n = 1; n < fapt_entries.pt_nr; n++) {
@@ -446,7 +446,7 @@ static int fapt_fwk_heap_sort(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	if (fwk_heap_sort((char *)keys, sizeof(*keys), fapt_entries.pt_nr,
-	                  pt_compare_max, pt_copy_key))
+	                  pt_compare_min, pt_copy_key))
 		goto free;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
