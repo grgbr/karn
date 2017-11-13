@@ -194,6 +194,29 @@ static inline unsigned int farr_slot_index(const struct farr *array,
 	farr_slot_index(_array, sizeof(*(_entry)), (const char *)_entry)
 
 /**
+ * Exchange 2 slot contents by copy.
+ *
+ * @param first     first slot to swap with @p second
+ * @param second    second slot to swap with @p first
+ * @param auxiliary temporary memory space used to perform the swap
+ * @param copy      slot copy function
+ *
+ * @p first, @p second and @p auxiliary must point to equally sized memory
+ * spaces as expected by @p copy.
+ *
+ * @ingroup farr
+ */
+static inline void farr_swap(char         *first,
+                             char         *second,
+                             char         *auxiliary,
+                             farr_copy_fn *copy)
+{
+	copy(auxiliary, first);
+	copy(first, second);
+	copy(second, auxiliary);
+}
+
+/**
  * Initialize an farr
  *
  * @param array   farr to initialize

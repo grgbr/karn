@@ -26,6 +26,8 @@
 
 #include "fwk_heap.h"
 
+#if defined(CONFIG_FWK_HEAP_UTILS)
+
 #define FWK_HEAP_REGULAR_ORDER (true)
 #define FWK_HEAP_REVERSE_ORDER (false)
 
@@ -47,6 +49,143 @@ static unsigned int fwk_heap_right_index(const struct fbmp *rbits,
 {
 	return (2 * index) + 1 - (unsigned int)fbmp_test(rbits, index);
 }
+
+/*
+ * Join weak sub-heaps rooted at "node" node and its distinguished ancestor
+ * "dancestor" into a single one rooted at "dancestor" (ensuring proper nodes
+ * ordering).
+ *
+ * Let Ai and Aj be 2 nodes in a weak heap such that the element at Ai is
+ * smaller than or equal to every element in the left subtree of Aj.
+ * Conceptually, Aj and its right subtree form a weak heap, while Ai and the
+ * left subtree of Aj form another weak heap (note that Ai cannot be a
+ * descendant of Aj). If the element at Aj is smaller than that at Ai, the 2
+ * elements are swapped and Rj (Aj's reverse bit) is flipped. As a result, the
+ * element at Aj will be smaller than or equal to every element in its right
+ * subtree, and the element at Ai will be smaller than or equal to every element
+ * in the subtree rooted at Aj.
+
+ * Making this "inline" improves build heap runtime performance by around 90%
+ * upon random input (~ 25% for extraction)...
+ */
+static inline bool fwk_heap_join(const struct farr *nodes,
+                                 const struct fbmp *rbits,
+                                 unsigned int       dancestor,
+                                 unsigned int       node,
+                                 farr_compare_fn   *compare,
+                                 farr_copy_fn      *copy,
+                                 bool               regular)
+{
+	char *cnode;
+	char *dnode;
+
+	cnode = farr_slot(nodes, node);
+	dnode = farr_slot(nodes, dancestor);
+
+	if ((compare(cnode, dnode) < 0) == regular) {
+		/*
+		 * Swap node and its distinguished ancestor to restore proper
+		 * heap ordering.
+		 */
+		char tmp[farr_slot_size(nodes)];
+
+		farr_swap(cnode, dnode, tmp, copy);
+
+		/* Flip former distinguished ancestor's children. */
+		fbmp_toggle(rbits, node);
+
+		return false;
+	}
+
+	return true;
+}
+
+/*
+ * Re-establish weak-heap ordering between elements located at root and all its
+ * descendants (i.e., in root's right subtree since it has no left child).
+ *
+ * Starting from the right child of root, the last node on the left spine of the
+ * right subtree of root is identified by repeatedly visiting left children
+ * until reaching a node that has no left child.
+ * The path from this node to the right child of root is traversed upwards,
+ * and join operations are repeatedly performed between root and the nodes along
+ * this path.
+ * The correctness of the siftdown operation follows from the fact that, after
+ * each join, the element at root is less than or equal to every element in
+ * the left subtree of the node considered in the next join.
+ */
+static void fwk_heap_siftdown(const struct farr *nodes,
+                              const struct fbmp *rbits,
+                              unsigned int       count,
+                              farr_compare_fn   *compare,
+                              farr_copy_fn      *copy,
+                              bool               regular)
+{
+	unsigned int idx;
+
+	idx = fwk_heap_right_index(rbits, FWK_HEAP_ROOT_INDEX);
+
+	/* Identify last node of root's right subtree left spine. */
+	while (true) {
+		unsigned int cidx;
+
+		cidx = fwk_heap_left_index(rbits, idx);
+		if (cidx >= count)
+			break;
+
+		idx = cidx;
+	}
+
+	/*
+	 * Now, traverse back up to the root, restoring weak heap property at
+	 * each visited node.
+	 */
+	while (idx != FWK_HEAP_ROOT_INDEX) {
+		fwk_heap_join(nodes, rbits, FWK_HEAP_ROOT_INDEX, idx, compare,
+		              copy, regular);
+
+		idx = fwk_heap_parent_index(idx);
+	}
+}
+
+/*
+ *
+ * Compute index of the distinguished ancestor of node specified by index in an
+ * optimized manner.
+ *
+ * When reverse bits are known to be 0 and set bottom-up while scanning nodes,
+ * distinguished ancestor can be computed from the array index by considering
+ * the position of the least-significant 1-bit.
+ *
+ * Unpredictable result if a 0 "index" is passed as argument.
+ */
+static unsigned int fwk_heap_fast_dancestor_index(unsigned int index)
+{
+	assert(index);
+
+	return index >> (__builtin_ctz(index) + 1);
+}
+
+/*
+ * Perform bottom-up construction of a weak heap from the content of "nodes".
+ *
+ * Nodes are visited one by one in reverse order, and the two weak heaps rooted
+ * at a node and its distinguished ancestor are joined.
+ */
+static void fwk_heap_make(const struct farr *nodes,
+                          const struct fbmp *rbits,
+                          unsigned int       count,
+                          farr_compare_fn   *compare,
+                          farr_copy_fn      *copy,
+                          bool               regular)
+{
+	while (--count)
+		fwk_heap_join(nodes, rbits,
+		              fwk_heap_fast_dancestor_index(count), count,
+		              compare, copy, regular);
+}
+
+#endif /* defined(CONFIG_FWK_HEAP_UTILS) */
 
 static unsigned int fwk_heap_bottom_index(const struct fwk_heap *heap)
 {
@@ -85,58 +224,6 @@ static unsigned int fwk_heap_dancestor_index(const struct fwk_heap *heap,
 
 	/* Then return its parent. */
 	return fwk_heap_parent_index(index);
-}
-
-/*
- * Join weak sub-heaps rooted at "node" node and its distinguished ancestor
- * "dancestor" into a single one rooted at "dancestor" (ensuring proper nodes
- * ordering).
- *
- * Let Ai and Aj be 2 nodes in a weak heap such that the element at Ai is
- * smaller than or equal to every element in the left subtree of Aj.
- * Conceptually, Aj and its right subtree form a weak heap, while Ai and the
- * left subtree of Aj form another weak heap (note that Ai cannot be a
- * descendant of Aj). If the element at Aj is smaller than that at Ai, the 2
- * elements are swapped and Rj (Aj's reverse bit) is flipped. As a result, the
- * element at Aj will be smaller than or equal to every element in its right
- * subtree, and the element at Ai will be smaller than or equal to every element
- * in the subtree rooted at Aj.
-
- * Making this "inline" improves build runtime performance by around 90% upon
- * random input (~ 25% for extraction)...
- */
-static inline bool fwk_heap_join(const struct farr *nodes,
-                                 const struct fbmp *rbits,
-                                 unsigned int       dancestor,
-                                 unsigned int       node,
-                                 farr_compare_fn   *compare,
-                                 farr_copy_fn      *copy,
-                                 bool               regular)
-{
-	char *cnode;
-	char *dnode;
-
-	cnode = farr_slot(nodes, node);
-	dnode = farr_slot(nodes, dancestor);
-
-	if ((compare(cnode, dnode) < 0) == regular) {
-		/*
-		 * Swap node and its distinguished ancestor to restore proper
-		 * heap ordering.
-		 */
-		char tmp[farr_slot_size(nodes)];
-
-		copy(tmp, cnode);
-		copy(cnode, dnode);
-		copy(dnode, tmp);
-
-		/* Flip former distinguished ancestor's children. */
-		fbmp_toggle(rbits, node);
-
-		return false;
-	}
-
-	return true;
 }
 
 void fwk_heap_insert(struct fwk_heap *heap, const char *node)
@@ -190,54 +277,6 @@ void fwk_heap_insert(struct fwk_heap *heap, const char *node)
 	heap->fwk_count++;
 }
 
-/*
- * Re-establish weak-heap ordering between elements located at root and all its
- * descendants (i.e., in root's right subtree since it has no left child).
- *
- * Starting from the right child of root, the last node on the left spine of the
- * right subtree of root is identified by repeatedly visiting left children
- * until reaching a node that has no left child.
- * The path from this node to the right child of root is traversed upwards,
- * and join operations are repeatedly performed between root and the nodes along
- * this path.
- * The correctness of the siftdown operation follows from the fact that, after
- * each join, the element at root is less than or equal to every element in
- * the left subtree of the node considered in the next join.
- */
-static void fwk_heap_siftdown(const struct farr *nodes,
-                              const struct fbmp *rbits,
-                              unsigned int       count,
-                              farr_compare_fn   *compare,
-                              farr_copy_fn      *copy,
-                              bool               regular)
-{
-	unsigned int idx;
-
-	idx = fwk_heap_right_index(rbits, FWK_HEAP_ROOT_INDEX);
-
-	/* Identify last node of root's right subtree left spine. */
-	while (true) {
-		unsigned int cidx;
-
-		cidx = fwk_heap_left_index(rbits, idx);
-		if (cidx >= count)
-			break;
-
-		idx = cidx;
-	}
-
-	/*
-	 * Now, traverse back up to the root, restoring weak heap property at
-	 * each visited node.
-	 */
-	while (idx != FWK_HEAP_ROOT_INDEX) {
-		fwk_heap_join(nodes, rbits, FWK_HEAP_ROOT_INDEX, idx, compare,
-		              copy, regular);
-
-		idx = fwk_heap_parent_index(idx);
-	}
-}
-
 void fwk_heap_extract(struct fwk_heap *heap, char *node)
 {
 	assert(!fwk_heap_empty(heap));
@@ -266,43 +305,6 @@ void fwk_heap_clear(struct fwk_heap *heap)
 	heap->fwk_count = 0;
 
 	fbmp_clear_all(&heap->fwk_rbits, farr_nr(&heap->fwk_nodes));
-}
-
-/*
- *
- * Compute index of the distinguished ancestor of node specified by index in an
- * optimized manner.
- *
- * When reverse bits are known to be 0 and set bottom-up while scanning nodes,
- * distinguished ancestor can be computed from the array index by considering
- * the position of the least-significant 1-bit.
- *
- * Unpredictable result if a 0 "index" is passed as argument.
- */
-static unsigned int fwk_heap_fast_dancestor_index(unsigned int index)
-{
-	assert(index);
-
-	return index >> (__builtin_ctz(index) + 1);
-}
-
-/*
- * Perform bottom-up construction of a weak heap from the content of "nodes".
- *
- * Nodes are visited one by one in reverse order, and the two weak heaps rooted
- * at a node and its distinguished ancestor are joined.
- */
-static void fwk_heap_make(const struct farr *nodes,
-                          const struct fbmp *rbits,
-                          unsigned int       count,
-                          farr_compare_fn   *compare,
-                          farr_copy_fn      *copy,
-                          bool               regular)
-{
-	while (--count)
-		fwk_heap_join(nodes, rbits,
-		              fwk_heap_fast_dancestor_index(count), count,
-		              compare, copy, regular);
 }
 
 void fwk_heap_build(struct fwk_heap *heap, unsigned int count)
@@ -414,9 +416,7 @@ int fwk_heap_sort(char            *entries,
 		last = &entries[(entry_nr - 1) * entry_size];
 
 		while (true) {
-			copy(tmp, root);
-			copy(root, last);
-			copy(last, tmp);
+			farr_swap(root, last, tmp, copy);
 
 			if (--entry_nr <= 1)
 				break;

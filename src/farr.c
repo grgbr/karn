@@ -1,16 +1,6 @@
 #include "farr.h"
 #include <stdbool.h>
 
-static inline void farr_swap(char         *first,
-                             char         *second,
-                             char         *auxiliary,
-                             farr_copy_fn *copy)
-{
-	copy(auxiliary, first);
-	copy(first, second);
-	copy(second, auxiliary);
-}
-
 #if defined(CONFIG_FARR_BUBBLE_SORT)
 
 void farr_bubble_sort(char            *entries,

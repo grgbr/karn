@@ -50,13 +50,18 @@ config DBNM_HEAP
 	select DLIST
 	default y
 
+config FWK_HEAP_UTILS
+	bool "Fixed length array based weak heap utilities"
+	default n
+
 config FWK_HEAP
 	bool "Fixed length array based weak heap"
+	select FWK_HEAP_UTILS
 	default y
 
 config FWK_HEAP_SORT
 	bool "Fixed length array based weak heap sorting"
-	select FWK_HEAP
+	select FWK_HEAP_UTILS
 	default y
 
 config FARR_BUBBLE_SORT
