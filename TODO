@@ -1,9 +1,24 @@
-* binary heaps:
-  * rename
-  * merge (shadow ?)
-  * decrease key
+General:
 * exclude measurement outliers and document this
 * enhance coverage
 * splint
 * metrics
 * check_patch
+
+Heaps:
+* shadow heaps
+* (rank-)pairing heaps:
+  * http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.154.8227&rep=rep1&type=pdf
+* run/rank-relaxed weak heaps:
+  * https://www.google.fr/search?client=ubuntu&channel=fs&q=rank+pairing+heap+vs+relaxed+weak+queue&ie=utf-8&oe=utf-8&gfe_rd=cr&dcr=0&ei=R7EKWpS8Aoju8wfsgqSIAg
+  * http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=B00F7490B4935C49732AE3603FB12EF8?doi=10.1.1.324.4425&rep=rep1&type=pdf
+  * https://pdfs.semanticscholar.org/9f14/280e74d43584a10efce9087554a8d5ca58ce.pdf
+  * http://cphstl.dk/Report/2010-4/paper.pdf
+
+Sort:
+* odd-even/brick sort
+* cyclesort ?
+* quickselect ?
+* introselect ?
+* bingosort
+* countingsort

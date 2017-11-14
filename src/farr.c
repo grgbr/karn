@@ -193,8 +193,8 @@ static bool farr_quick_switch_insert(const char *begin,
 }
 
 struct farr_quick_part {
-	char *begin;
-	char *end;
+	char *quick_begin;
+	char *quick_end;
 };
 
 void farr_quick_sort(char            *entries,
@@ -223,8 +223,8 @@ void farr_quick_sort(char            *entries,
 				return farr_insertion_sort(entries, entry_size,
 				                           entry_nr, compare,
 				                           copy);
-			begin = parts[ptop].begin;
-			end = parts[ptop].end;
+			begin = parts[ptop].quick_begin;
+			end = parts[ptop].quick_end;
 		}
 
 		pivot = farr_quick_hoare_part(begin, end, entry_size, compare,
@@ -233,13 +233,13 @@ void farr_quick_sort(char            *entries,
 
 		high = pivot + entry_size;
 		if ((high - begin) >= (end - pivot)) {
-			parts[ptop].begin = begin;
-			parts[ptop].end = pivot;
+			parts[ptop].quick_begin = begin;
+			parts[ptop].quick_end = pivot;
 			begin = high;
 		}
 		else {
-			parts[ptop].begin = high;
-			parts[ptop].end = end;
+			parts[ptop].quick_begin = high;
+			parts[ptop].quick_end = end;
 			end = pivot;
 		}
 
@@ -282,9 +282,9 @@ static bool farr_intro_switch_insert(const char *begin,
 }
 
 struct farr_intro_part {
-	char         *begin;
-	char         *end;
-	unsigned int  threshold;
+	char         *intro_begin;
+	char         *intro_end;
+	unsigned int  intro_thres;
 };
 
 void farr_intro_sort(char            *entries,
@@ -315,9 +315,9 @@ void farr_intro_sort(char            *entries,
 			if (!ptop--)
 				return;
 
-			begin = parts[ptop].begin;
-			end = parts[ptop].end;
-			thres = parts[ptop].threshold;
+			begin = parts[ptop].intro_begin;
+			end = parts[ptop].intro_end;
+			thres = parts[ptop].intro_thres;
 		}
 
 		if (!thres) {
@@ -327,9 +327,9 @@ void farr_intro_sort(char            *entries,
 			if (!ptop--)
 				return;
 
-			begin = parts[ptop].begin;
-			end = parts[ptop].end;
-			thres = parts[ptop].threshold;
+			begin = parts[ptop].intro_begin;
+			end = parts[ptop].intro_end;
+			thres = parts[ptop].intro_thres;
 
 			continue;
 		}
@@ -340,16 +340,16 @@ void farr_intro_sort(char            *entries,
 
 		high = pivot + entry_size;
 		if ((high - begin) >= (end - pivot)) {
-			parts[ptop].begin = begin;
-			parts[ptop].end = pivot;
+			parts[ptop].intro_begin = begin;
+			parts[ptop].intro_end = pivot;
 			begin = high;
 		}
 		else {
-			parts[ptop].begin = high;
-			parts[ptop].end = end;
+			parts[ptop].intro_begin = high;
+			parts[ptop].intro_end = end;
 			end = pivot;
 		}
-		parts[ptop].threshold = --thres;
+		parts[ptop].intro_thres = --thres;
 
 		ptop++;
 	}

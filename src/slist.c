@@ -582,14 +582,3 @@ void slist_merge_sort(struct slist     *list,
 }
 
 #endif /* defined(CONFIG_SLIST_MERGE_SORT) */
-
-#if 0
-odd-even/brick sort
-cyclesort ?
-introsort ?
-quicksort ?
-quickselect ?
-introselect ?
-bingosort
-countingsort
-#endif
