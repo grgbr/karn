@@ -50,6 +50,10 @@ config DBNM_HEAP
 	select DLIST
 	default y
 
+config SPAIR_HEAP
+	bool "Singly linked list based pairing heap"
+	default y
+
 config FWK_HEAP_UTILS
 	bool "Fixed length array based weak heap utilities"
 	default n

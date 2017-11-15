@@ -188,6 +188,12 @@ ut_src  += dbnm_heap_ut.c
 pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
+ifeq ($(CONFIG_SPAIR_HEAP),y)
+lib_src += spair_heap.c
+ut_src  += spair_heap_ut.c
+#pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
+endif
+
 ifeq ($(CONFIG_FARR_BUBBLE_SORT),y)
 lib_src += $(sort $(lib_src) farr.c) # remove duplicates
 ut_src  += $(sort $(ut_src) farr_ut.c) # remove duplicates

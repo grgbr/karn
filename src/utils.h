@@ -24,8 +24,6 @@
 #include <limits.h>
 #include <assert.h>
 
-#define __unused __attribute__((unused))
-
 #if __WORDSIZE == 64
 #define __UINTPTR_C(c) c ## UL
 #elif __WORDSIZE == 32
@@ -33,6 +31,9 @@
 #else
 #error "Unsupported machine word size !"
 #endif
+
+#define __unused     __attribute__((unused))
+#define __align(...) __attribute__((aligned(__VA_ARGS__)))
 
 /**
  * Retrieve the maximum number of slots a static array may contain
