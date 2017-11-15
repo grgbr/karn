@@ -372,7 +372,7 @@ CUTE_PNP_TEST(sbnmhut_revorder4, &sbnmhut_revorder)
 	unsigned int          count = 4;
 	struct sbnmhut_node **checks =
 		&sbnmhut_revorder_checks[array_nr(sbnmhut_revorder_checks) -
-		                        count];
+		                         count];
 
 	sbnmhut_check_heap(&sbnmhut_heap, sbnmhut_revorder_nodes, checks,
 	                   count);

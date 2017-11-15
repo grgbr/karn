@@ -27,9 +27,8 @@
 #ifndef _KARN_SBNM_HEAP_H
 #define _KARN_SBNM_HEAP_H
 
-#include <stddef.h>
+#include <utils.h>
 #include <stdbool.h>
-#include <assert.h>
 
 struct sbnm_heap_node {
 	struct sbnm_heap_node *sbnm_eldest;
@@ -122,12 +121,17 @@ sbnm_heap_merge(struct sbnm_heap     *result,
 }
 
 static inline void
-sbnm_heap_init(struct sbnm_heap* heap)
+sbnm_heap_init(struct sbnm_heap *heap)
 {
 	assert(heap);
 
 	heap->sbnm_trees = NULL;
 	heap->sbnm_count = 0;
+}
+
+static inline void sbnm_heap_fini(struct sbnm_heap *heap __unused)
+{
+	sbnm_heap_assert(heap);
 }
 
 #endif
