@@ -147,19 +147,12 @@ static void spairhut_check_root(const struct spair_heap_node *parent,
 	}
 }
 
-static void spairhut_check_heap(struct spair_heap      *heap,
-                                struct spairhut_node   *nodes,
-                                struct spairhut_node  **checks,
-                                unsigned int            count,
-                                spair_heap_compare_fn  *compare)
+static void spairhut_check_heap_nodes(struct spair_heap      *heap,
+                                      struct spairhut_node  **checks,
+                                      unsigned int            count,
+                                      spair_heap_compare_fn  *compare)
 {
 	unsigned int n;
-
-	for (n = 0; n < count; n++) {
-		spair_heap_insert(heap, &nodes[n].heap, compare);
-
-		cute_ensure(spair_heap_count(heap) == (n + 1));
-	}
 
 	spairhut_check_root(heap->spair_root, compare);
 
@@ -177,6 +170,30 @@ static void spairhut_check_heap(struct spair_heap      *heap,
 		cute_ensure(node == &check->heap);
 		cute_ensure(!compare(node, &check->heap));
 	}
+}
+
+static void spairhut_fill_heap(struct spair_heap      *heap,
+                               struct spairhut_node   *nodes,
+                               unsigned int            count,
+                               spair_heap_compare_fn  *compare)
+{
+	unsigned int n;
+
+	for (n = 0; n < count; n++) {
+		spair_heap_insert(heap, &nodes[n].heap, compare);
+
+		cute_ensure(spair_heap_count(heap) == (n + 1));
+	}
+}
+
+static void spairhut_check_heap(struct spair_heap      *heap,
+                                struct spairhut_node   *nodes,
+                                struct spairhut_node  **checks,
+                                unsigned int            count,
+                                spair_heap_compare_fn  *compare)
+{
+	spairhut_fill_heap(heap, nodes, count, compare);
+	spairhut_check_heap_nodes(heap, checks, count, compare);
 }
 
 static CUTE_PNP_FIXTURED_SUITE(spairhut_inorder, &spairhut,
@@ -894,19 +911,8 @@ static void spairhut_check_heap_merge(struct spairhut_node  *first,
 
 	spair_heap_merge(&fst, &snd, compare);
 
-	spairhut_check_root(fst.spair_root, compare);
-
-	for (n = 0; n < (first_count + second_count); n++) {
-		const struct spair_heap_node *node;
-		const struct spairhut_node   *check = checks[n];
-
-		node = spair_heap_extract(&fst, compare);
-
-		cute_ensure(spair_heap_count(&fst) ==
-		            first_count + second_count - n - 1);
-		cute_ensure(node == &check->heap);
-		cute_ensure(!compare(node, &check->heap));
-	}
+	spairhut_check_heap_nodes(&fst, checks, first_count + second_count,
+	                          compare);
 }
 
 CUTE_PNP_TEST(spairhut_merge_inorder11, &spairhut_merge)
@@ -1105,4 +1111,217 @@ CUTE_PNP_TEST(spairhut_merge_mit, &spairhut_merge)
 
 	spairhut_check_heap_merge(fst, array_nr(fst), snd, array_nr(snd),
 	                          checks, spairhut_compare_min);
+}
+
+static CUTE_PNP_FIXTURED_SUITE(spairhut_remove, &spairhut, spairhut_setup_empty,
+                               NULL);
+
+static void spairhut_check_heap_remove(struct spairhut_node   *nodes,
+                                       struct spairhut_node   *removed,
+                                       struct spairhut_node  **checks,
+                                       unsigned int            count,
+                                       spair_heap_compare_fn  *compare)
+{
+	spairhut_fill_heap(&spairhut_heap, nodes, count, compare);
+
+	spair_heap_remove(&spairhut_heap, &removed->heap, compare);
+
+	count--;
+	cute_ensure(spair_heap_count(&spairhut_heap) == count);
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks, count, compare);
+}
+
+CUTE_PNP_TEST(spairhut_remove_top, &spairhut_remove)
+{
+	struct spairhut_node        nodes[] = {
+		SPAIRHUT_INIT_NODE(0),
+		SPAIRHUT_INIT_NODE(2)
+	};
+	struct spairhut_node *checks[] = {
+		&nodes[1]
+	};
+
+	spairhut_check_heap_remove(nodes, &nodes[0], checks, array_nr(nodes),
+	                           spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_remove_bottom, &spairhut_remove)
+{
+	struct spairhut_node        nodes[] = {
+		SPAIRHUT_INIT_NODE(0),
+		SPAIRHUT_INIT_NODE(2)
+	};
+	struct spairhut_node *checks[] = {
+		&nodes[0]
+	};
+
+	spairhut_check_heap_remove(nodes, &nodes[1], checks, array_nr(nodes),
+	                           spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_remove_middle, &spairhut_remove)
+{
+	struct spairhut_node        nodes[] = {
+		SPAIRHUT_INIT_NODE(1),
+		SPAIRHUT_INIT_NODE(2),
+		SPAIRHUT_INIT_NODE(0)
+	};
+	struct spairhut_node *checks[] = {
+		&nodes[2],
+		&nodes[0],
+	};
+
+	spairhut_check_heap_remove(nodes, &nodes[1], checks, array_nr(nodes),
+	                           spairhut_compare_min);
+}
+
+static struct spairhut_node spairhut_remove_nodes[] = {
+	SPAIRHUT_INIT_NODE(1),
+	SPAIRHUT_INIT_NODE(2),
+	SPAIRHUT_INIT_NODE(8),
+	SPAIRHUT_INIT_NODE(0),
+	SPAIRHUT_INIT_NODE(4),
+	SPAIRHUT_INIT_NODE(5),
+	SPAIRHUT_INIT_NODE(11),
+	SPAIRHUT_INIT_NODE(7),
+	SPAIRHUT_INIT_NODE(3),
+	SPAIRHUT_INIT_NODE(6),
+	SPAIRHUT_INIT_NODE(10),
+	SPAIRHUT_INIT_NODE(9)
+};
+
+CUTE_PNP_TEST(spairhut_remove_inorder, &spairhut_remove)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_remove_nodes[3],
+		/* &spairhut_remove_nodes[0], */
+		/* &spairhut_remove_nodes[1], */
+		&spairhut_remove_nodes[8],
+		/* &spairhut_remove_nodes[4], */
+		&spairhut_remove_nodes[5],
+		&spairhut_remove_nodes[9],
+		/* &spairhut_remove_nodes[7], */
+		&spairhut_remove_nodes[2],
+		&spairhut_remove_nodes[11],
+		&spairhut_remove_nodes[10],
+		/* &spairhut_remove_nodes[6] */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_remove_nodes,
+	                   array_nr(spairhut_remove_nodes),
+	                   spairhut_compare_min);
+
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[0].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[1].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[4].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[7].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[6].heap,
+	                  spairhut_compare_min);
+
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            (array_nr(spairhut_remove_nodes) - 5));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_remove_nodes) - 5,
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_remove_revorder, &spairhut_remove)
+{
+	struct spairhut_node *checks[] = {
+		/* &spairhut_remove_nodes[3], */
+		&spairhut_remove_nodes[0],
+		&spairhut_remove_nodes[1],
+		&spairhut_remove_nodes[8],
+		/* &spairhut_remove_nodes[4], */
+		&spairhut_remove_nodes[5],
+		&spairhut_remove_nodes[9],
+		/* &spairhut_remove_nodes[7], */
+		&spairhut_remove_nodes[2],
+		/* &spairhut_remove_nodes[11], */
+		/* &spairhut_remove_nodes[10], */
+		&spairhut_remove_nodes[6]
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_remove_nodes,
+	                   array_nr(spairhut_remove_nodes),
+	                   spairhut_compare_min);
+
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[10].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[11].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[7].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[4].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[3].heap,
+	                  spairhut_compare_min);
+
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            (array_nr(spairhut_remove_nodes) - 5));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_remove_nodes) - 5,
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_remove_altorder, &spairhut_remove)
+{
+	struct spairhut_node *checks[] = {
+		/* &spairhut_remove_nodes[3], */
+		&spairhut_remove_nodes[0],
+		&spairhut_remove_nodes[1],
+		/* &spairhut_remove_nodes[8], */
+		&spairhut_remove_nodes[4],
+		/* &spairhut_remove_nodes[5], */
+		/* &spairhut_remove_nodes[9], */
+		&spairhut_remove_nodes[7],
+		&spairhut_remove_nodes[2],
+		/* &spairhut_remove_nodes[11], */
+		&spairhut_remove_nodes[10],
+		&spairhut_remove_nodes[6]
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_remove_nodes,
+	                   array_nr(spairhut_remove_nodes),
+	                   spairhut_compare_min);
+
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[5].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[9].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[8].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[11].heap,
+	                  spairhut_compare_min);
+	spair_heap_remove(&spairhut_heap,
+	                  &spairhut_remove_nodes[3].heap,
+	                  spairhut_compare_min);
+
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            (array_nr(spairhut_remove_nodes) - 5));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_remove_nodes) - 5,
+	                          spairhut_compare_min);
 }

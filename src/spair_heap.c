@@ -209,23 +209,30 @@ void spair_heap_remove(struct spair_heap      *heap,
 	assert(node);
 	assert(compare);
 
-	if (node == heap->spair_root) {
-		if (node->spair_youngest)
-			heap->spair_root =
-				spair_heap_merge_roots(node->spair_youngest,
-				                       compare);
-		else
-			heap->spair_root = NULL;
-	}
-	else {
-		spair_heap_remove_node(node);
-		node = spair_heap_merge_roots(node->spair_youngest, compare);
-
-		heap->spair_root = spair_heap_join(heap->spair_root, node,
-		                                   compare);
-	}
+	bool isroot = (node == heap->spair_root);
 
 	heap->spair_count--;
+
+	if (!node->spair_youngest) {
+		if (!isroot)
+			spair_heap_remove_node(node);
+		else
+			heap->spair_root = NULL;
+
+		return;
+	}
+
+	if (!isroot) {
+		spair_heap_remove_node(node);
+		node = spair_heap_merge_roots(node->spair_youngest, compare);
+		heap->spair_root = spair_heap_join(heap->spair_root, node,
+		                                   compare);
+
+		return;
+	}
+
+	heap->spair_root = spair_heap_merge_roots(node->spair_youngest,
+	                                          compare);
 }
 
 void spair_heap_merge(struct spair_heap     *result,
