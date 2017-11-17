@@ -88,7 +88,11 @@ extern void spair_heap_merge(struct spair_heap     *result,
                              struct spair_heap     *heap,
                              spair_heap_compare_fn *compare);
 
-extern void spair_heap_update(struct spair_heap      *heap,
+extern void spair_heap_promote(struct spair_heap      *heap,
+                               struct spair_heap_node *key,
+                               spair_heap_compare_fn  *compare);
+
+extern void spair_heap_demote(struct spair_heap      *heap,
                               struct spair_heap_node *key,
                               spair_heap_compare_fn  *compare);
 

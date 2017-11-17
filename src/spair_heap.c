@@ -77,6 +77,22 @@ static struct spair_heap_node * spair_heap_join(struct spair_heap_node *first,
 	return parent;
 }
 
+void spair_heap_merge(struct spair_heap     *result,
+                      struct spair_heap     *heap,
+                      spair_heap_compare_fn *compare)
+{
+	spair_heap_assert(result);
+	assert(result->spair_count);
+	spair_heap_assert(heap);
+	assert(heap->spair_count);
+	assert(compare);
+
+	result->spair_root = spair_heap_join(result->spair_root,
+	                                     heap->spair_root, compare);
+
+	result->spair_count += heap->spair_count;
+}
+
 void spair_heap_insert(struct spair_heap      *heap,
                        struct spair_heap_node *node,
                        spair_heap_compare_fn  *compare)
@@ -235,28 +251,55 @@ void spair_heap_remove(struct spair_heap      *heap,
 	                                          compare);
 }
 
-void spair_heap_merge(struct spair_heap     *result,
-                      struct spair_heap     *heap,
-                      spair_heap_compare_fn *compare)
+void spair_heap_promote(struct spair_heap      *heap,
+                        struct spair_heap_node *key,
+                        spair_heap_compare_fn  *compare)
 {
-	spair_heap_assert(result);
-	assert(result->spair_count);
 	spair_heap_assert(heap);
 	assert(heap->spair_count);
+	assert(key);
 	assert(compare);
 
-	result->spair_root = spair_heap_join(result->spair_root,
-	                                     heap->spair_root, compare);
+	if (key == heap->spair_root)
+		return;
 
-	result->spair_count += heap->spair_count;
+	spair_heap_remove_node(key);
+
+	heap->spair_root = spair_heap_join(heap->spair_root, key, compare);
 }
 
-void spair_heap_update(struct spair_heap      *heap __unused,
-                       struct spair_heap_node *key __unused,
-                       spair_heap_compare_fn  *compare __unused)
+void spair_heap_demote(struct spair_heap      *heap,
+                       struct spair_heap_node *key,
+                       spair_heap_compare_fn  *compare)
 {
-	/* Implement me ! */
-	assert(0);
+	spair_heap_assert(heap);
+	assert(heap->spair_count);
+	assert(key);
+	assert(compare);
+
+	if (key != heap->spair_root) {
+		spair_heap_remove_node(key);
+
+		if (key->spair_youngest) {
+			struct spair_heap_node *node;
+
+			node = spair_heap_merge_roots(key->spair_youngest,
+			                              compare);
+			key->spair_youngest = NULL;
+			key->spair_sibling = spair_heap_tail_sibling(NULL);
+			key = spair_heap_join(node, key, compare);
+		}
+	}
+	else {
+		if (!key->spair_youngest)
+			return;
+
+		heap->spair_root = spair_heap_merge_roots(key->spair_youngest,
+		                                          compare);
+		key->spair_youngest = NULL;
+	}
+
+	heap->spair_root = spair_heap_join(heap->spair_root, key, compare);
 }
 
 void spair_heap_init(struct spair_heap *heap)

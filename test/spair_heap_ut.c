@@ -1176,152 +1176,592 @@ CUTE_PNP_TEST(spairhut_remove_middle, &spairhut_remove)
 	                           spairhut_compare_min);
 }
 
-static struct spairhut_node spairhut_remove_nodes[] = {
-	SPAIRHUT_INIT_NODE(1),
-	SPAIRHUT_INIT_NODE(2),
-	SPAIRHUT_INIT_NODE(8),
-	SPAIRHUT_INIT_NODE(0),
-	SPAIRHUT_INIT_NODE(4),
-	SPAIRHUT_INIT_NODE(5),
+static struct spairhut_node spairhut_nodes[] = {
 	SPAIRHUT_INIT_NODE(11),
-	SPAIRHUT_INIT_NODE(7),
-	SPAIRHUT_INIT_NODE(3),
-	SPAIRHUT_INIT_NODE(6),
+	SPAIRHUT_INIT_NODE(12),
+	SPAIRHUT_INIT_NODE(18),
 	SPAIRHUT_INIT_NODE(10),
-	SPAIRHUT_INIT_NODE(9)
+	SPAIRHUT_INIT_NODE(14),
+	SPAIRHUT_INIT_NODE(15),
+	SPAIRHUT_INIT_NODE(21),
+	SPAIRHUT_INIT_NODE(17),
+	SPAIRHUT_INIT_NODE(13),
+	SPAIRHUT_INIT_NODE(16),
+	SPAIRHUT_INIT_NODE(20),
+	SPAIRHUT_INIT_NODE(19)
 };
 
 CUTE_PNP_TEST(spairhut_remove_inorder, &spairhut_remove)
 {
 	struct spairhut_node *checks[] = {
-		&spairhut_remove_nodes[3],
-		/* &spairhut_remove_nodes[0], */
-		/* &spairhut_remove_nodes[1], */
-		&spairhut_remove_nodes[8],
-		/* &spairhut_remove_nodes[4], */
-		&spairhut_remove_nodes[5],
-		&spairhut_remove_nodes[9],
-		/* &spairhut_remove_nodes[7], */
-		&spairhut_remove_nodes[2],
-		&spairhut_remove_nodes[11],
-		&spairhut_remove_nodes[10],
-		/* &spairhut_remove_nodes[6] */
+		&spairhut_nodes[3],
+		/* &spairhut_nodes[0], */
+		/* &spairhut_nodes[1], */
+		&spairhut_nodes[8],
+		/* &spairhut_nodes[4], */
+		&spairhut_nodes[5],
+		&spairhut_nodes[9],
+		/* &spairhut_nodes[7], */
+		&spairhut_nodes[2],
+		&spairhut_nodes[11],
+		&spairhut_nodes[10],
+		/* &spairhut_nodes[6] */
 	};
 
-	spairhut_fill_heap(&spairhut_heap, spairhut_remove_nodes,
-	                   array_nr(spairhut_remove_nodes),
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
 	                   spairhut_compare_min);
 
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[0].heap,
+	                  &spairhut_nodes[0].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[1].heap,
+	                  &spairhut_nodes[1].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[4].heap,
+	                  &spairhut_nodes[4].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[7].heap,
+	                  &spairhut_nodes[7].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[6].heap,
+	                  &spairhut_nodes[6].heap,
 	                  spairhut_compare_min);
 
 	cute_ensure(spair_heap_count(&spairhut_heap) ==
-	            (array_nr(spairhut_remove_nodes) - 5));
+	            (array_nr(spairhut_nodes) - 5));
 
 	spairhut_check_heap_nodes(&spairhut_heap, checks,
-	                          array_nr(spairhut_remove_nodes) - 5,
+	                          array_nr(spairhut_nodes) - 5,
 	                          spairhut_compare_min);
 }
 
 CUTE_PNP_TEST(spairhut_remove_revorder, &spairhut_remove)
 {
 	struct spairhut_node *checks[] = {
-		/* &spairhut_remove_nodes[3], */
-		&spairhut_remove_nodes[0],
-		&spairhut_remove_nodes[1],
-		&spairhut_remove_nodes[8],
-		/* &spairhut_remove_nodes[4], */
-		&spairhut_remove_nodes[5],
-		&spairhut_remove_nodes[9],
-		/* &spairhut_remove_nodes[7], */
-		&spairhut_remove_nodes[2],
-		/* &spairhut_remove_nodes[11], */
-		/* &spairhut_remove_nodes[10], */
-		&spairhut_remove_nodes[6]
+		/* &spairhut_nodes[3], */
+		&spairhut_nodes[0],
+		&spairhut_nodes[1],
+		&spairhut_nodes[8],
+		/* &spairhut_nodes[4], */
+		&spairhut_nodes[5],
+		&spairhut_nodes[9],
+		/* &spairhut_nodes[7], */
+		&spairhut_nodes[2],
+		/* &spairhut_nodes[11], */
+		/* &spairhut_nodes[10], */
+		&spairhut_nodes[6]
 	};
 
-	spairhut_fill_heap(&spairhut_heap, spairhut_remove_nodes,
-	                   array_nr(spairhut_remove_nodes),
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
 	                   spairhut_compare_min);
 
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[10].heap,
+	                  &spairhut_nodes[10].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[11].heap,
+	                  &spairhut_nodes[11].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[7].heap,
+	                  &spairhut_nodes[7].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[4].heap,
+	                  &spairhut_nodes[4].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[3].heap,
+	                  &spairhut_nodes[3].heap,
 	                  spairhut_compare_min);
 
 	cute_ensure(spair_heap_count(&spairhut_heap) ==
-	            (array_nr(spairhut_remove_nodes) - 5));
+	            (array_nr(spairhut_nodes) - 5));
 
 	spairhut_check_heap_nodes(&spairhut_heap, checks,
-	                          array_nr(spairhut_remove_nodes) - 5,
+	                          array_nr(spairhut_nodes) - 5,
 	                          spairhut_compare_min);
 }
 
 CUTE_PNP_TEST(spairhut_remove_altorder, &spairhut_remove)
 {
 	struct spairhut_node *checks[] = {
-		/* &spairhut_remove_nodes[3], */
-		&spairhut_remove_nodes[0],
-		&spairhut_remove_nodes[1],
-		/* &spairhut_remove_nodes[8], */
-		&spairhut_remove_nodes[4],
-		/* &spairhut_remove_nodes[5], */
-		/* &spairhut_remove_nodes[9], */
-		&spairhut_remove_nodes[7],
-		&spairhut_remove_nodes[2],
-		/* &spairhut_remove_nodes[11], */
-		&spairhut_remove_nodes[10],
-		&spairhut_remove_nodes[6]
+		/* &spairhut_nodes[3], */
+		&spairhut_nodes[0],
+		&spairhut_nodes[1],
+		/* &spairhut_nodes[8], */
+		&spairhut_nodes[4],
+		/* &spairhut_nodes[5], */
+		/* &spairhut_nodes[9], */
+		&spairhut_nodes[7],
+		&spairhut_nodes[2],
+		/* &spairhut_nodes[11], */
+		&spairhut_nodes[10],
+		&spairhut_nodes[6]
 	};
 
-	spairhut_fill_heap(&spairhut_heap, spairhut_remove_nodes,
-	                   array_nr(spairhut_remove_nodes),
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
 	                   spairhut_compare_min);
 
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[5].heap,
+	                  &spairhut_nodes[5].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[9].heap,
+	                  &spairhut_nodes[9].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[8].heap,
+	                  &spairhut_nodes[8].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[11].heap,
+	                  &spairhut_nodes[11].heap,
 	                  spairhut_compare_min);
 	spair_heap_remove(&spairhut_heap,
-	                  &spairhut_remove_nodes[3].heap,
+	                  &spairhut_nodes[3].heap,
 	                  spairhut_compare_min);
 
 	cute_ensure(spair_heap_count(&spairhut_heap) ==
-	            (array_nr(spairhut_remove_nodes) - 5));
+	            (array_nr(spairhut_nodes) - 5));
 
 	spairhut_check_heap_nodes(&spairhut_heap, checks,
-	                          array_nr(spairhut_remove_nodes) - 5,
+	                          array_nr(spairhut_nodes) - 5,
+	                          spairhut_compare_min);
+}
+
+static CUTE_PNP_FIXTURED_SUITE(spairhut_promote, &spairhut,
+                               spairhut_setup_empty, NULL);
+
+CUTE_PNP_TEST(spairhut_promote_inorder, &spairhut_promote)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_nodes[4],  /* 8 */
+		&spairhut_nodes[1],  /* 9 */
+		&spairhut_nodes[3],  /* 10 */
+		&spairhut_nodes[0],  /* 10 */
+		&spairhut_nodes[7],  /* 12 */
+		&spairhut_nodes[8],  /* 13 */
+		&spairhut_nodes[5],  /* 15 */
+		&spairhut_nodes[9],  /* 16 */
+		&spairhut_nodes[6],  /* 17 */
+		&spairhut_nodes[2],  /* 18 */
+		&spairhut_nodes[11], /* 19 */
+		&spairhut_nodes[10]  /* 20 */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
+	                   spairhut_compare_min);
+
+	spairhut_nodes[0].key -= 1;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[0].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[1].key -= 3;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[1].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[4].key -= 6;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[4].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[7].key -= 5;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[7].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[6].key -= 4;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[6].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_promote_revorder, &spairhut_promote)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_nodes[7],  /* 7 */
+		&spairhut_nodes[3],  /* 8 */
+		&spairhut_nodes[4],  /* 9 */
+		&spairhut_nodes[0],  /* 11 */
+		&spairhut_nodes[1],  /* 12 */
+		&spairhut_nodes[8],  /* 13 */
+		&spairhut_nodes[5],  /* 15 */
+		&spairhut_nodes[11], /* 16 */
+		&spairhut_nodes[9],  /* 16 */
+		&spairhut_nodes[2],  /* 18 */
+		&spairhut_nodes[10], /* 19 */
+		&spairhut_nodes[6]   /* 21 */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
+	                   spairhut_compare_min);
+
+	spairhut_nodes[10].key -= 1;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[10].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[11].key -= 3;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[11].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[7].key -= 10;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[7].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[4].key -= 5;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[4].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[3].key -= 2;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[3].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_promote_altorder, &spairhut_promote)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_nodes[8],  /* 8 */
+		&spairhut_nodes[9],  /* 9 */
+		&spairhut_nodes[3],  /* 9 */
+		&spairhut_nodes[0],  /* 11 */
+		&spairhut_nodes[1],  /* 12 */
+		&spairhut_nodes[5],  /* 13 */
+		&spairhut_nodes[4],  /* 14 */
+		&spairhut_nodes[11], /* 16 */
+		&spairhut_nodes[7],  /* 17 */
+		&spairhut_nodes[2],  /* 18 */
+		&spairhut_nodes[10], /* 20 */
+		&spairhut_nodes[6]   /* 21 */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
+	                   spairhut_compare_min);
+
+	spairhut_nodes[5].key -= 2;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[5].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[9].key -= 7;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[9].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[8].key -= 5;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[8].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[11].key -= 3;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[11].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[3].key -= 1;
+	spair_heap_promote(&spairhut_heap,
+	                   &spairhut_nodes[3].heap,
+	                   spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_nodes),
+	                          spairhut_compare_min);
+}
+
+static CUTE_PNP_FIXTURED_SUITE(spairhut_demote, &spairhut,
+                               spairhut_setup_empty, NULL);
+
+CUTE_PNP_TEST(spairhut_demote_single, &spairhut_demote)
+{
+	static struct spairhut_node nodes[] = {
+		SPAIRHUT_INIT_NODE(0)
+	};
+
+	struct spairhut_node *checks[] = {
+		&nodes[0]
+	};
+
+	spairhut_fill_heap(&spairhut_heap, nodes, array_nr(nodes),
+	                   spairhut_compare_min);
+
+	nodes[0].key += 1;
+	spair_heap_demote(&spairhut_heap, &nodes[0].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) == array_nr(nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks, array_nr(nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_demote_top, &spairhut_demote)
+{
+	static struct spairhut_node nodes[] = {
+		SPAIRHUT_INIT_NODE(0),
+		SPAIRHUT_INIT_NODE(1)
+	};
+	struct spairhut_node *checks[] = {
+		&nodes[1],
+		&nodes[0]
+	};
+
+	spairhut_fill_heap(&spairhut_heap, nodes, array_nr(nodes),
+	                   spairhut_compare_min);
+
+	nodes[0].key += 2;
+	spair_heap_demote(&spairhut_heap, &nodes[0].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) == array_nr(nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks, array_nr(nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_demote_bottom, &spairhut_demote)
+{
+	static struct spairhut_node nodes[] = {
+		SPAIRHUT_INIT_NODE(0),
+		SPAIRHUT_INIT_NODE(1)
+	};
+	struct spairhut_node *checks[] = {
+		&nodes[0],
+		&nodes[1]
+	};
+
+	spairhut_fill_heap(&spairhut_heap, nodes, array_nr(nodes),
+	                   spairhut_compare_min);
+
+	nodes[1].key += 2;
+	spair_heap_demote(&spairhut_heap, &nodes[1].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) == array_nr(nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks, array_nr(nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_demote_inorder, &spairhut_demote)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_nodes[3],  /* 10 */
+		&spairhut_nodes[0],  /* 12 */
+		&spairhut_nodes[8],  /* 13 */
+		&spairhut_nodes[5],  /* 15 */
+		&spairhut_nodes[1],  /* 15 */
+		&spairhut_nodes[9],  /* 16 */
+		&spairhut_nodes[2],  /* 18 */
+		&spairhut_nodes[11], /* 19 */
+		&spairhut_nodes[10], /* 20 */
+		&spairhut_nodes[4],  /* 20 */
+		&spairhut_nodes[7],  /* 22 */
+		&spairhut_nodes[6]   /* 25 */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
+	                   spairhut_compare_min);
+
+	spairhut_nodes[0].key += 1;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[0].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[1].key += 3;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[1].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[4].key += 6;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[4].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[7].key += 5;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[7].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[6].key += 4;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[6].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_demote_revorder, &spairhut_demote)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_nodes[0],  /* 11 */
+		&spairhut_nodes[1],  /* 12 */
+		&spairhut_nodes[8],  /* 13 */
+		&spairhut_nodes[5],  /* 15 */
+		&spairhut_nodes[9],  /* 16 */
+		&spairhut_nodes[4],  /* 17 */
+		&spairhut_nodes[2],  /* 18 */
+		&spairhut_nodes[3],  /* 19 */
+		&spairhut_nodes[11], /* 20 */
+		&spairhut_nodes[6],  /* 21 */
+		&spairhut_nodes[10], /* 22 */
+		&spairhut_nodes[7]   /* 24 */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
+	                   spairhut_compare_min);
+
+	spairhut_nodes[10].key += 2;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[10].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[11].key += 1;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[11].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[7].key += 7;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[7].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[4].key += 3;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[4].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[3].key += 9;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[3].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_nodes),
+	                          spairhut_compare_min);
+}
+
+CUTE_PNP_TEST(spairhut_demote_altorder, &spairhut_demote)
+{
+	struct spairhut_node *checks[] = {
+		&spairhut_nodes[0],  /* 11 */
+		&spairhut_nodes[1],  /* 12 */
+		&spairhut_nodes[3],  /* 13 */
+		&spairhut_nodes[4],  /* 14 */
+		&spairhut_nodes[8],  /* 15 */
+		&spairhut_nodes[5],  /* 16 */
+		&spairhut_nodes[7],  /* 17 */
+		&spairhut_nodes[2],  /* 18 */
+		&spairhut_nodes[10], /* 20 */
+		&spairhut_nodes[6],  /* 21 */
+		&spairhut_nodes[11], /* 22 */
+		&spairhut_nodes[9]   /* 24 */
+	};
+
+	spairhut_fill_heap(&spairhut_heap, spairhut_nodes,
+	                   array_nr(spairhut_nodes),
+	                   spairhut_compare_min);
+
+	spairhut_nodes[5].key += 1;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[10].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[9].key += 8;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[11].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[8].key += 2;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[7].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[11].key += 3;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[4].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_nodes[3].key += 3;
+	spair_heap_demote(&spairhut_heap,
+	                  &spairhut_nodes[3].heap,
+	                  spairhut_compare_min);
+	cute_ensure(spair_heap_count(&spairhut_heap) ==
+	            array_nr(spairhut_nodes));
+
+	spairhut_check_heap_nodes(&spairhut_heap, checks,
+	                          array_nr(spairhut_nodes),
 	                          spairhut_compare_min);
 }
