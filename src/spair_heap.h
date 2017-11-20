@@ -36,6 +36,9 @@ struct spair_heap_node {
 	struct spair_heap_node *spair_sibling;
 } __align(sizeof(uintptr_t));
 
+#define spair_heap_entry(_node, _type, _member) \
+	containerof(_node, _type, _member)
+
 struct spair_heap {
 	struct spair_heap_node *spair_root;
 	unsigned int            spair_count;
