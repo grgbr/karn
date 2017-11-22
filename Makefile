@@ -219,6 +219,11 @@ lib_src += fwk_heap.c
 ut_src  += fwk_heap_ut.c
 endif
 
+ifeq ($(CONFIG_LCRS),y)
+lib_src  += lcrs.c
+ut_src  += lcrs_ut.c
+endif
+
 # Needed for performance results generation rules (see below)
 .SECONDEXPANSION:
 
