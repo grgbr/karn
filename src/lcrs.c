@@ -25,24 +25,48 @@
  */
 #include "lcrs.h"
 
+void lcrs_split_tree(const struct lcrs_node *restrict tree,
+                     struct lcrs_node       *restrict parent)
+{
+	assert(tree != parent);
+	assert(!lcrs_istail_node(tree));
+	assert(lcrs_parent_node(tree) == parent);
+	assert(lcrs_node_has_child(parent));
+
+	if (tree != parent->lcrs_youngest) {
+		struct lcrs_node *prev;
+
+		prev = lcrs_previous_sibling(tree, parent->lcrs_youngest);
+		prev->lcrs_sibling = tree->lcrs_sibling;
+
+		return;
+	}
+
+	if (!lcrs_istail_node(tree->lcrs_sibling))
+		parent->lcrs_youngest = tree->lcrs_sibling;
+	else
+		parent->lcrs_youngest = NULL;
+}
+
 void lcrs_swap_down_node(struct lcrs_node *node, struct lcrs_node *child)
 {
-	assert(node);
-	assert(node->lcrs_youngest);
+	assert(node != child);
+	assert(lcrs_node_has_child(node));
 	assert(lcrs_parent_node(child) == node);
 
 	struct lcrs_node *tmp;
 	struct lcrs_node *parent;
 
-	if (child->lcrs_youngest) {
+	if (lcrs_node_has_child(child)) {
 		/*
 		 * "child" has children: update their parent pointer to make it
-		 * point to "node".
+		 * point to "node", the future child.
 		 */
 		tmp = lcrs_eldest_sibling(child->lcrs_youngest);
 		tmp->lcrs_sibling = lcrs_mktail_node(node);
 	}
 
+	/* make "node" a child of "node". */
 	tmp = node->lcrs_youngest;
 	node->lcrs_youngest = child->lcrs_youngest;
 	if (child != tmp) {
@@ -57,6 +81,7 @@ void lcrs_swap_down_node(struct lcrs_node *node, struct lcrs_node *child)
 	else
 		child->lcrs_youngest = node;
 
+	/* Update "child" siblings parent pointer to "node". */
 	tmp = lcrs_eldest_sibling(child);
 	tmp->lcrs_sibling = lcrs_mktail_node(child);
 
@@ -66,6 +91,7 @@ void lcrs_swap_down_node(struct lcrs_node *node, struct lcrs_node *child)
 	 */
 	parent = lcrs_parent_node(node);
 
+	/* swap "node" and "child" next sibling pointer. */
 	tmp = child->lcrs_sibling;
 	child->lcrs_sibling = node->lcrs_sibling;
 	node->lcrs_sibling = tmp;
@@ -73,6 +99,7 @@ void lcrs_swap_down_node(struct lcrs_node *node, struct lcrs_node *child)
 	if (!parent)
 		return;
 
+	/* "node" has a parent: make "child" a child of it. */
 	if (node != parent->lcrs_youngest) {
 		/*
 		 * "node" is not the youngest amongst its siblings: update its

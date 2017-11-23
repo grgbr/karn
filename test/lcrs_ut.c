@@ -44,7 +44,7 @@ CUTE_PNP_TEST(lcrsut_init, &lcrsut)
 	lcrs_init_node(&root);
 	cute_ensure(!lcrs_istail_node(&root));
 	cute_ensure(lcrs_eldest_sibling(&root) == &root);
-	cute_ensure(lcrs_isroot_node(&root));
+	cute_ensure(root.lcrs_sibling == lcrs_mktail_node(NULL));
 }
 
 static void lcrsut_check(const struct lcrs_node **nodes, unsigned int count)
@@ -54,7 +54,7 @@ static void lcrsut_check(const struct lcrs_node **nodes, unsigned int count)
 	unsigned int            busy = 1;
 	unsigned int            idx = 0;
 
-	cute_ensure(lcrs_isroot_node(nodes[0]));
+	cute_ensure(nodes[0]->lcrs_sibling == lcrs_mktail_node(NULL));
 
 	queue[0] = nodes[0];
 	while (busy) {

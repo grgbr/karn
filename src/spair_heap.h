@@ -27,21 +27,14 @@
 #ifndef _KARN_SPAIR_HEAP_H
 #define _KARN_SPAIR_HEAP_H
 
-#include <utils.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-struct spair_heap_node {
-	struct spair_heap_node *spair_youngest;
-	struct spair_heap_node *spair_sibling;
-} __align(sizeof(uintptr_t));
+#include <lcrs.h>
 
 #define spair_heap_entry(_node, _type, _member) \
 	containerof(_node, _type, _member)
 
 struct spair_heap {
-	struct spair_heap_node *spair_root;
-	unsigned int            spair_count;
+	struct lcrs_node *spair_root;
+	unsigned int      spair_count;
 };
 
 #define spair_heap_assert(_heap)                            \
@@ -50,9 +43,6 @@ struct spair_heap {
 
 #define SPAIR_HEAP_INIT(_heap) \
 	{ .spair_root = NULL, .spair_count = 0 }
-
-typedef int (spair_heap_compare_fn)(const struct spair_heap_node *restrict first,
-                                    const struct spair_heap_node *restrict second);
 
 static inline unsigned int spair_heap_count(const struct spair_heap* heap)
 {
@@ -68,7 +58,7 @@ static inline bool spair_heap_empty(const struct spair_heap* heap)
 	return heap->spair_count == 0;
 }
 
-static inline struct spair_heap_node *
+static inline struct lcrs_node *
 spair_heap_peek(const struct spair_heap *heap)
 {
 	spair_heap_assert(heap);
@@ -76,28 +66,28 @@ spair_heap_peek(const struct spair_heap *heap)
 	return heap->spair_root;
 }
 
-extern void spair_heap_insert(struct spair_heap      *heap,
-                              struct spair_heap_node *node,
-                              spair_heap_compare_fn  *compare);
+extern void spair_heap_insert(struct spair_heap *heap,
+                              struct lcrs_node  *node,
+                              lcrs_compare_fn   *compare);
 
-extern struct spair_heap_node *
-spair_heap_extract(struct spair_heap *heap, spair_heap_compare_fn *compare);
+extern struct lcrs_node *
+spair_heap_extract(struct spair_heap *heap, lcrs_compare_fn *compare);
 
-extern void spair_heap_remove(struct spair_heap      *heap,
-                              struct spair_heap_node *node,
-                              spair_heap_compare_fn  *compare);
+extern void spair_heap_remove(struct spair_heap *heap,
+                              struct lcrs_node  *node,
+                              lcrs_compare_fn   *compare);
 
-extern void spair_heap_merge(struct spair_heap     *result,
-                             struct spair_heap     *heap,
-                             spair_heap_compare_fn *compare);
+extern void spair_heap_merge(struct spair_heap *result,
+                             struct spair_heap *heap,
+                             lcrs_compare_fn   *compare);
 
-extern void spair_heap_promote(struct spair_heap      *heap,
-                               struct spair_heap_node *key,
-                               spair_heap_compare_fn  *compare);
+extern void spair_heap_promote(struct spair_heap *heap,
+                               struct lcrs_node  *key,
+                               lcrs_compare_fn   *compare);
 
-extern void spair_heap_demote(struct spair_heap      *heap,
-                              struct spair_heap_node *key,
-                              spair_heap_compare_fn  *compare);
+extern void spair_heap_demote(struct spair_heap *heap,
+                              struct lcrs_node  *key,
+                              lcrs_compare_fn   *compare);
 
 extern void spair_heap_init(struct spair_heap *heap);
 

@@ -30,41 +30,28 @@
 #include <cute/cute.h>
 
 struct spairhut_node {
-	struct spair_heap_node heap;
-	int                    key;
+	struct lcrs_node heap;
+	int              key;
 };
 
-#define SPAIRHUT_INIT_NODE(_key)                                               \
-	{                                                                      \
-		.heap = {                                                      \
-			.spair_youngest = (struct spair_heap_node *)0xdeadbeef,\
-			.spair_sibling  = (struct spair_heap_node *)0xdeadbeef,\
-		},                                                             \
-		.key = _key                                                    \
+#define SPAIRHUT_INIT_NODE(_key)                                         \
+	{                                                                \
+		.heap = {                                                \
+			.lcrs_sibling  = (struct lcrs_node *)0xdeadbeef, \
+			.lcrs_youngest = (struct lcrs_node *)0xdeadbeef, \
+		},                                                       \
+		.key = _key                                              \
 	}
 
 static struct spair_heap spairhut_heap;
 
-static const struct spair_heap_node *
-spairhut_tail_sibling(const struct spair_heap_node *node)
-{
-	return (const struct spair_heap_node *)((uintptr_t)node |
-	                                        (uintptr_t)1U);
-}
-
-static bool
-spairhut_istail_sibling(const struct spair_heap_node *node)
-{
-	return !!((uintptr_t)node & (uintptr_t)1U);
-}
-
-static int spairhut_compare_min(const struct spair_heap_node *first,
-                                const struct spair_heap_node *second)
+static int spairhut_compare_min(const struct lcrs_node *restrict first,
+                                const struct lcrs_node *restrict second)
 {
 	cute_ensure(first);
-	cute_ensure(!spairhut_istail_sibling(first));
+	cute_ensure(!lcrs_istail_node(first));
 	cute_ensure(second);
-	cute_ensure(!spairhut_istail_sibling(second));
+	cute_ensure(!lcrs_istail_node(second));
 
 	return ((struct spairhut_node *)first)->key -
 	       ((struct spairhut_node *)second)->key;
@@ -93,8 +80,8 @@ CUTE_PNP_TEST(spairhut_insert_single, &spairhut_empty)
 
 	cute_ensure(spair_heap_count(&spairhut_heap) == 1U);
 	cute_ensure(spairhut_heap.spair_root == &node.heap);
-	cute_ensure(node.heap.spair_youngest == NULL);
-	cute_ensure(node.heap.spair_sibling == spairhut_tail_sibling(NULL));
+	cute_ensure(!lcrs_node_has_child(&node.heap));
+	cute_ensure(node.heap.lcrs_sibling == lcrs_mktail_node(NULL));
 }
 
 CUTE_PNP_TEST(spairhut_peek_single, &spairhut_empty)
@@ -133,32 +120,32 @@ CUTE_PNP_TEST(spairhut_remove_single, &spairhut_empty)
 	cute_ensure(spair_heap_count(&spairhut_heap) == 0U);
 }
 
-static void spairhut_check_root(const struct spair_heap_node *parent,
-                                spair_heap_compare_fn        *compare)
+static void spairhut_check_root(const struct lcrs_node *parent,
+                                lcrs_compare_fn        *compare)
 {
-	const struct spair_heap_node *node = parent->spair_youngest;
+	const struct lcrs_node *node = lcrs_youngest_sibling(parent);
 
 	if (node) {
 		do {
 			cute_ensure(compare(parent, node) <= 0);
 			spairhut_check_root(node, compare);
-			node = node->spair_sibling;
-		} while (!spairhut_istail_sibling(node));
+			node = lcrs_next_sibling(node);
+		} while (!lcrs_istail_node(node));
 	}
 }
 
-static void spairhut_check_heap_nodes(struct spair_heap      *heap,
-                                      struct spairhut_node  **checks,
-                                      unsigned int            count,
-                                      spair_heap_compare_fn  *compare)
+static void spairhut_check_heap_nodes(struct spair_heap     *heap,
+                                      struct spairhut_node **checks,
+                                      unsigned int           count,
+                                      lcrs_compare_fn       *compare)
 {
 	unsigned int n;
 
 	spairhut_check_root(heap->spair_root, compare);
 
 	for (n = 0; n < count; n++) {
-		const struct spair_heap_node *node = NULL;
-		const struct spairhut_node   *check = checks[n];
+		const struct lcrs_node     *node = NULL;
+		const struct spairhut_node *check = checks[n];
 
 		node = spair_heap_peek(heap);
 		cute_ensure(node == &check->heap);
@@ -172,10 +159,10 @@ static void spairhut_check_heap_nodes(struct spair_heap      *heap,
 	}
 }
 
-static void spairhut_fill_heap(struct spair_heap      *heap,
-                               struct spairhut_node   *nodes,
-                               unsigned int            count,
-                               spair_heap_compare_fn  *compare)
+static void spairhut_fill_heap(struct spair_heap    *heap,
+                               struct spairhut_node *nodes,
+                               unsigned int          count,
+                               lcrs_compare_fn      *compare)
 {
 	unsigned int n;
 
@@ -186,11 +173,11 @@ static void spairhut_fill_heap(struct spair_heap      *heap,
 	}
 }
 
-static void spairhut_check_heap(struct spair_heap      *heap,
-                                struct spairhut_node   *nodes,
-                                struct spairhut_node  **checks,
-                                unsigned int            count,
-                                spair_heap_compare_fn  *compare)
+static void spairhut_check_heap(struct spair_heap     *heap,
+                                struct spairhut_node  *nodes,
+                                struct spairhut_node **checks,
+                                unsigned int           count,
+                                lcrs_compare_fn      *compare)
 {
 	spairhut_fill_heap(heap, nodes, count, compare);
 	spairhut_check_heap_nodes(heap, checks, count, compare);
@@ -887,7 +874,7 @@ static void spairhut_check_heap_merge(struct spairhut_node  *first,
                                      struct spairhut_node   *second,
                                      unsigned int            second_count,
                                      struct spairhut_node  **checks,
-                                     spair_heap_compare_fn  *compare)
+                                     lcrs_compare_fn       *compare)
 {
 	struct spair_heap fst;
 	struct spair_heap snd;
@@ -1120,7 +1107,7 @@ static void spairhut_check_heap_remove(struct spairhut_node   *nodes,
                                        struct spairhut_node   *removed,
                                        struct spairhut_node  **checks,
                                        unsigned int            count,
-                                       spair_heap_compare_fn  *compare)
+                                       lcrs_compare_fn        *compare)
 {
 	spairhut_fill_heap(&spairhut_heap, nodes, count, compare);
 
@@ -1148,7 +1135,7 @@ CUTE_PNP_TEST(spairhut_remove_top, &spairhut_remove)
 
 CUTE_PNP_TEST(spairhut_remove_bottom, &spairhut_remove)
 {
-	struct spairhut_node        nodes[] = {
+	struct spairhut_node  nodes[] = {
 		SPAIRHUT_INIT_NODE(0),
 		SPAIRHUT_INIT_NODE(2)
 	};

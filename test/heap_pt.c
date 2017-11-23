@@ -641,16 +641,16 @@ hppt_dbnm_promote(unsigned long long *nsecs)
 #if defined(CONFIG_SPAIR_HEAP)
 
 struct hppt_spair_key {
-	struct spair_heap_node node;
-	unsigned int           value;
+	struct lcrs_node node;
+	unsigned int     value;
 };
 
 static struct hppt_spair_key *spair_heap_keys;
 static unsigned int           spair_heap_min;
 
 static int
-hppt_spair_compare_min(const struct spair_heap_node *first,
-                       const struct spair_heap_node *second)
+hppt_spair_compare_min(const struct lcrs_node *restrict first,
+                       const struct lcrs_node *restrict second)
 {
 	return pt_compare_min((char *)&((struct hppt_spair_key *)
 	                                first)->value,
