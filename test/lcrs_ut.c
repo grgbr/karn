@@ -575,7 +575,7 @@ CUTE_PNP_TEST(lcrsut_swap_4level_parented_1gchild, &lcrsut)
 		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
 		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), &nodes[2]),
 		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), &nodes[3]),
-		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[2]), NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[2]), NULL)
 	};
 	const struct lcrs_node *pre[] = {
 		&nodes[0],
@@ -592,5 +592,204 @@ CUTE_PNP_TEST(lcrsut_swap_4level_parented_1gchild, &lcrsut)
 
 	lcrsut_check(pre, array_nr(pre));
 	lcrs_swap_down_node(&nodes[1], &nodes[2]);
+	lcrsut_check(post, array_nr(post));
+}
+
+CUTE_PNP_TEST(lcrsut_swap_4level_parented_2gchild, &lcrsut)
+{
+	struct lcrs_node        nodes[] = {
+		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), &nodes[2]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), &nodes[3]),
+		LCRSUT_INIT_NODE(&nodes[4], NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[2]), NULL)
+	};
+	const struct lcrs_node *pre[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[2],
+		&nodes[3],
+		&nodes[4]
+	};
+	const struct lcrs_node *post[] = {
+		&nodes[0],
+		&nodes[2],
+		&nodes[1],
+		&nodes[3],
+		&nodes[4]
+	};
+
+	lcrsut_check(pre, array_nr(pre));
+	lcrs_swap_down_node(&nodes[1], &nodes[2]);
+	lcrsut_check(post, array_nr(post));
+}
+
+CUTE_PNP_TEST(lcrsut_swap_4level_parented_5node, &lcrsut)
+{
+	struct lcrs_node        nodes[] = {
+		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
+		LCRSUT_INIT_NODE(&nodes[2], &nodes[3]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), &nodes[4]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[3]), NULL)
+	};
+	const struct lcrs_node *pre[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[2],
+		&nodes[3],
+		&nodes[4]
+	};
+	const struct lcrs_node *post[] = {
+		&nodes[0],
+		&nodes[3],
+		&nodes[2],
+		&nodes[1],
+		&nodes[4]
+	};
+
+	lcrsut_check(pre, array_nr(pre));
+	lcrs_swap_down_node(&nodes[1], &nodes[3]);
+	lcrsut_check(post, array_nr(post));
+}
+
+CUTE_PNP_TEST(lcrsut_swap_3level_parented_4node_0gchild, &lcrsut)
+{
+	struct lcrs_node        nodes[] = {
+		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
+		LCRSUT_INIT_NODE(&nodes[2], &nodes[3]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), NULL),
+		LCRSUT_INIT_NODE(&nodes[4], NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), NULL)
+	};
+	const struct lcrs_node *pre[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[2],
+		&nodes[3],
+		&nodes[4]
+	};
+	const struct lcrs_node *post[] = {
+		&nodes[0],
+		&nodes[3],
+		&nodes[2],
+		&nodes[1],
+		&nodes[4]
+	};
+
+	lcrsut_check(pre, array_nr(pre));
+	lcrs_swap_down_node(&nodes[1], &nodes[3]);
+	lcrsut_check(post, array_nr(post));
+
+}
+
+CUTE_PNP_TEST(lcrsut_swap_4level_parented_7node, &lcrsut)
+{
+	struct lcrs_node        nodes[] = {
+		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
+		LCRSUT_INIT_NODE(&nodes[2], &nodes[3]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), NULL),
+		LCRSUT_INIT_NODE(&nodes[4], &nodes[5]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), &nodes[6]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[3]), NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[4]), NULL)
+	};
+	const struct lcrs_node *pre[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[2],
+		&nodes[3],
+		&nodes[4],
+		&nodes[5],
+		&nodes[6],
+	};
+	const struct lcrs_node *post[] = {
+		&nodes[0],
+		&nodes[3],
+		&nodes[2],
+		&nodes[1],
+		&nodes[4],
+		&nodes[5],
+		&nodes[6]
+	};
+
+	lcrsut_check(pre, array_nr(pre));
+	lcrs_swap_down_node(&nodes[1], &nodes[3]);
+	lcrsut_check(post, array_nr(post));
+}
+
+CUTE_PNP_TEST(lcrsut_swap_4level_parented_7node_eldest, &lcrsut)
+{
+	struct lcrs_node        nodes[] = {
+		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
+		LCRSUT_INIT_NODE(&nodes[2], &nodes[3]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), NULL),
+		LCRSUT_INIT_NODE(&nodes[4], &nodes[5]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), &nodes[6]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[3]), NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[4]), NULL)
+	};
+	const struct lcrs_node *pre[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[2],
+		&nodes[3],
+		&nodes[4],
+		&nodes[5],
+		&nodes[6]
+	};
+	const struct lcrs_node *post[] = {
+		&nodes[0],
+		&nodes[4],
+		&nodes[2],
+		&nodes[3],
+		&nodes[1],
+		&nodes[5],
+		&nodes[6]
+	};
+
+	lcrsut_check(pre, array_nr(pre));
+	lcrs_swap_down_node(&nodes[1], &nodes[4]);
+	lcrsut_check(post, array_nr(post));
+}
+
+CUTE_PNP_TEST(lcrsut_swap_4level_parented_7node_middle, &lcrsut)
+{
+	struct lcrs_node        nodes[] = {
+		LCRSUT_INIT_NODE(lcrs_mktail_node(NULL), &nodes[1]),
+		LCRSUT_INIT_NODE(&nodes[2], &nodes[3]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[0]), NULL),
+		LCRSUT_INIT_NODE(&nodes[4], NULL),
+		LCRSUT_INIT_NODE(&nodes[5], &nodes[6]),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[1]), &nodes[8]),
+		LCRSUT_INIT_NODE(&nodes[7], NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[4]), NULL),
+		LCRSUT_INIT_NODE(lcrs_mktail_node(&nodes[5]), NULL)
+	};
+	const struct lcrs_node *pre[] = {
+		&nodes[0],
+		&nodes[1],
+		&nodes[2],
+		&nodes[3],
+		&nodes[4],
+		&nodes[5],
+		&nodes[6],
+		&nodes[7],
+		&nodes[8]
+	};
+	const struct lcrs_node *post[] = {
+		&nodes[0],
+		&nodes[4],
+		&nodes[2],
+		&nodes[3],
+		&nodes[1],
+		&nodes[5],
+		&nodes[6],
+		&nodes[7],
+		&nodes[8]
+	};
+
+	lcrsut_check(pre, array_nr(pre));
+	lcrs_swap_down_node(&nodes[1], &nodes[4]);
 	lcrsut_check(post, array_nr(post));
 }
