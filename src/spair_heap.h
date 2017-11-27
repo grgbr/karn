@@ -33,8 +33,8 @@
 	containerof(_node, _type, _member)
 
 struct spair_heap {
-	struct lcrs_node *spair_root;
 	unsigned int      spair_count;
+	struct lcrs_node *spair_root;
 };
 
 #define spair_heap_assert(_heap)                            \

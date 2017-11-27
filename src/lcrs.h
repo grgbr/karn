@@ -47,7 +47,7 @@ static inline bool lcrs_istail_node(const struct lcrs_node *node)
 	return ((uintptr_t)node & LCRS_TAIL_NODE);
 }
 
-static inline struct lcrs_node * lcrs_mktail_node(struct lcrs_node *node)
+static inline struct lcrs_node * lcrs_mktail_node(const struct lcrs_node *node)
 {
 	return (struct lcrs_node *)((uintptr_t)node | LCRS_TAIL_NODE);
 }
@@ -83,17 +83,17 @@ static inline struct lcrs_node * lcrs_next_sibling(const struct lcrs_node *node)
 }
 
 static inline bool
-lcrs_node_has_child(const struct lcrs_node * node)
+lcrs_node_has_child(const struct lcrs_node *node)
 {
 	assert(!lcrs_istail_node(node));
 
-	return node->lcrs_youngest;
+	return node->lcrs_youngest != lcrs_mktail_node(node);
 }
 
 static inline struct lcrs_node *
 lcrs_youngest_sibling(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail_node(node));
+	assert(lcrs_node_has_child(node));
 
 	return node->lcrs_youngest;
 }
@@ -109,6 +109,14 @@ lcrs_eldest_sibling(const struct lcrs_node *node)
 	return (struct lcrs_node *)node;
 }
 
+static inline bool
+lcrs_node_has_parent(const struct lcrs_node *node)
+{
+	assert(!lcrs_istail_node(node));
+
+	return node->lcrs_sibling != lcrs_mktail_node(NULL);
+}
+
 static inline struct lcrs_node * lcrs_parent_node(const struct lcrs_node *node)
 {
 	assert(!lcrs_istail_node(node));
@@ -122,11 +130,7 @@ static inline void lcrs_join_tree(struct lcrs_node *restrict tree,
 	assert(!lcrs_istail_node(tree));
 	assert(!lcrs_istail_node(parent));
 
-	if (parent->lcrs_youngest)
-		tree->lcrs_sibling = parent->lcrs_youngest;
-	else
-		tree->lcrs_sibling = lcrs_mktail_node(parent);
-
+	tree->lcrs_sibling = parent->lcrs_youngest;
 	parent->lcrs_youngest = tree;
 }
 
@@ -135,13 +139,13 @@ static inline void lcrs_init_node(struct lcrs_node *node)
 	assert(node);
 
 	node->lcrs_sibling = lcrs_mktail_node(NULL);
-	node->lcrs_youngest = NULL;
+	node->lcrs_youngest = lcrs_mktail_node(node);
 }
 
 extern void lcrs_split_tree(const struct lcrs_node *restrict tree,
                             struct lcrs_node       *restrict parent);
 
-extern void lcrs_swap_down_node(struct lcrs_node *node,
-                                struct lcrs_node *child);
+extern struct lcrs_node * lcrs_swap_down_node(struct lcrs_node *node,
+                                              struct lcrs_node *child);
 
 #endif

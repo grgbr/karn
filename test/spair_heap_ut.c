@@ -123,9 +123,9 @@ CUTE_PNP_TEST(spairhut_remove_single, &spairhut_empty)
 static void spairhut_check_root(const struct lcrs_node *parent,
                                 lcrs_compare_fn        *compare)
 {
-	const struct lcrs_node *node = lcrs_youngest_sibling(parent);
+	if (lcrs_node_has_child(parent)) {
+		const struct lcrs_node *node = lcrs_youngest_sibling(parent);
 
-	if (node) {
 		do {
 			cute_ensure(compare(parent, node) <= 0);
 			spairhut_check_root(node, compare);

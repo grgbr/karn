@@ -34,21 +34,15 @@ static struct lcrs_node * spair_heap_join(struct lcrs_node *first,
 	assert(second);
 	assert(compare);
 
-	struct lcrs_node *parent;
-	struct lcrs_node *child;
-
 	if (compare(first, second) <= 0) {
-		parent = first;
-		child = second;
-	}
-	else {
-		parent = second;
-		child = first;
+		lcrs_join_tree(second, first);
+
+		return first;
 	}
 
-	lcrs_join_tree(child, parent);
+	lcrs_join_tree(first, second);
 
-	return parent;
+	return second;
 }
 
 void spair_heap_merge(struct spair_heap *result,
@@ -61,29 +55,31 @@ void spair_heap_merge(struct spair_heap *result,
 	assert(heap->spair_count);
 	assert(compare);
 
+	result->spair_count += heap->spair_count;
+
 	result->spair_root = spair_heap_join(result->spair_root,
 	                                     heap->spair_root, compare);
-
-	result->spair_count += heap->spair_count;
 }
 
 void spair_heap_insert(struct spair_heap *heap,
-                       struct lcrs_node  *node,
+                       struct lcrs_node  *key,
                        lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
-	assert(node);
+	assert(key);
 	assert(compare);
 
-	lcrs_init_node(node);
-
-	if (heap->spair_root)
-		heap->spair_root = spair_heap_join(heap->spair_root, node,
-		                                   compare);
-	else
-		heap->spair_root = node;
-
 	heap->spair_count++;
+
+	lcrs_init_node(key);
+
+	if (!heap->spair_root) {
+		heap->spair_root = key;
+
+		return;
+	}
+
+	heap->spair_root = spair_heap_join(heap->spair_root, key, compare);
 }
 
 static struct lcrs_node *
@@ -94,6 +90,7 @@ spair_heap_merge_roots(struct lcrs_node *roots, lcrs_compare_fn *compare)
 	assert(compare);
 
 	struct lcrs_node *curr = roots;
+	struct lcrs_node *tmp;
 	struct lcrs_node *head = lcrs_mktail_node(NULL);
 
 	/* First pass pairing: move left to right merging pairs of trees. */
@@ -101,22 +98,20 @@ spair_heap_merge_roots(struct lcrs_node *roots, lcrs_compare_fn *compare)
 		struct lcrs_node *nxt;
 
 		nxt = curr->lcrs_sibling;
-
-		if (!lcrs_istail_node(nxt)) {
-			struct lcrs_node *tmp = nxt->lcrs_sibling;
-
-			curr = spair_heap_join(curr, nxt, compare);
-
-			curr->lcrs_sibling = head;
-			head = curr;
-
-			curr = tmp;
-		}
-		else {
+		if (lcrs_istail_node(nxt)) {
 			curr->lcrs_sibling = head;
 			head = curr;
 			break;
 		}
+
+		tmp = nxt->lcrs_sibling;
+
+		curr = spair_heap_join(curr, nxt, compare);
+
+		curr->lcrs_sibling = head;
+		head = curr;
+
+		curr = tmp;
 	} while (!lcrs_istail_node(curr));
 
 	/*
@@ -126,9 +121,10 @@ spair_heap_merge_roots(struct lcrs_node *roots, lcrs_compare_fn *compare)
 	curr = head;
 	head = head->lcrs_sibling;
 	while (!lcrs_istail_node(head)) {
-		struct lcrs_node *tmp = head->lcrs_sibling;
+		tmp = head->lcrs_sibling;
 
 		curr = spair_heap_join(curr, head, compare);
+
 		head = tmp;
 	}
 
@@ -144,39 +140,41 @@ struct lcrs_node * spair_heap_extract(struct spair_heap *heap,
 
 	struct lcrs_node *root = heap->spair_root;
 
-	if (lcrs_node_has_child(root))
-		heap->spair_root =
-			spair_heap_merge_roots(lcrs_youngest_sibling(root),
-			                       compare);
-	else
+	heap->spair_count--;
+
+	if (!lcrs_node_has_child(root)) {
 		heap->spair_root = NULL;
 
-	heap->spair_count--;
+		return root;
+	}
+
+	heap->spair_root = spair_heap_merge_roots(lcrs_youngest_sibling(root),
+	                                          compare);
 
 	return root;
 }
 
-static void spair_heap_remove_node(const struct lcrs_node *node)
+static void spair_heap_remove_node(const struct lcrs_node *key)
 {
-	lcrs_split_tree(node, lcrs_parent_node(node));
+	lcrs_split_tree(key, lcrs_parent_node(key));
 }
 
 void spair_heap_remove(struct spair_heap *heap,
-                       struct lcrs_node  *node,
+                       struct lcrs_node  *key,
                        lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
 	assert(heap->spair_count);
-	assert(node);
+	assert(key);
 	assert(compare);
 
-	bool isroot = (node == heap->spair_root);
+	bool isroot = (key == heap->spair_root);
 
 	heap->spair_count--;
 
-	if (!lcrs_node_has_child(node)) {
+	if (!lcrs_node_has_child(key)) {
 		if (!isroot)
-			spair_heap_remove_node(node);
+			spair_heap_remove_node(key);
 		else
 			heap->spair_root = NULL;
 
@@ -184,18 +182,18 @@ void spair_heap_remove(struct spair_heap *heap,
 	}
 
 	if (!isroot) {
-		spair_heap_remove_node(node);
+		spair_heap_remove_node(key);
 
-		node = spair_heap_merge_roots(lcrs_youngest_sibling(node),
-		                              compare);
+		key = spair_heap_merge_roots(lcrs_youngest_sibling(key),
+		                             compare);
 
-		heap->spair_root = spair_heap_join(heap->spair_root, node,
+		heap->spair_root = spair_heap_join(heap->spair_root, key,
 		                                   compare);
 
 		return;
 	}
 
-	heap->spair_root = spair_heap_merge_roots(lcrs_youngest_sibling(node),
+	heap->spair_root = spair_heap_merge_roots(lcrs_youngest_sibling(key),
 	                                          compare);
 }
 
@@ -231,10 +229,10 @@ void spair_heap_demote(struct spair_heap *heap,
 		if (lcrs_node_has_child(key)) {
 			struct lcrs_node *node;
 
-			node = spair_heap_merge_roots(lcrs_youngest_sibling(key),
-			                              compare);
-			key->lcrs_youngest = NULL;
-			key->lcrs_sibling = lcrs_mktail_node(NULL);
+			node = spair_heap_merge_roots(
+				lcrs_youngest_sibling(key), compare);
+
+			lcrs_init_node(key);
 			key = spair_heap_join(node, key, compare);
 		}
 	}
@@ -242,9 +240,9 @@ void spair_heap_demote(struct spair_heap *heap,
 		if (!lcrs_node_has_child(key))
 			return;
 
-		heap->spair_root = spair_heap_merge_roots(lcrs_youngest_sibling(key),
-		                                          compare);
-		key->lcrs_youngest = NULL;
+		heap->spair_root = spair_heap_merge_roots(
+			lcrs_youngest_sibling(key), compare);
+		key->lcrs_youngest =  lcrs_mktail_node(key);
 	}
 
 	heap->spair_root = spair_heap_join(heap->spair_root, key, compare);
