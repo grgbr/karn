@@ -16,7 +16,7 @@ struct hppt_iface {
 	void (*hppt_extract)(unsigned long long *nsecs);
 	void (*hppt_remove)(unsigned long long *nsecs);
 	void (*hppt_promote)(unsigned long long *nsecs);
-	//void (*hppt_decrease)(unsigned long long *nsecs);
+	void (*hppt_demote)(unsigned long long *nsecs);
 	//void (*hppt_merge)(unsigned long long *nsecs);
 	void (*hppt_build)(unsigned long long *nsecs);
 };
@@ -337,29 +337,64 @@ hppt_sbnm_insert_bulk(struct sbnm_heap *heap)
 }
 
 static int
-hppt_sbnm_validate(void)
+hppt_sbnm_check_heap(struct sbnm_heap *heap)
 {
-	struct sbnm_heap      heap;
-	struct hppt_sbnm_key *cur, *old;
 	int                   n;
+	struct hppt_sbnm_key *cur, *old;
 
-	hppt_sbnm_insert_bulk(&heap);
-
-	old = sbnm_heap_entry(sbnm_heap_extract(&heap, hppt_sbnm_compare_min),
+	old = sbnm_heap_entry(sbnm_heap_extract(heap, hppt_sbnm_compare_min),
 	                      struct hppt_sbnm_key, node);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
-		cur = sbnm_heap_entry(sbnm_heap_extract(&heap,
+		cur = sbnm_heap_entry(sbnm_heap_extract(heap,
 		                                        hppt_sbnm_compare_min),
 		                      struct hppt_sbnm_key, node);
 
-		if (old->value > cur->value) {
-			fprintf(stderr, "Bogus heap scheme\n");
+		if (old->value > cur->value)
 			return EXIT_FAILURE;
-		}
 
 		old = cur;
 	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_sbnm_validate(void)
+{
+	struct sbnm_heap      heap;
+#if 0
+	int                   n;
+	struct hppt_sbnm_key *k;
+#endif
+
+
+	hppt_sbnm_insert_bulk(&heap);
+
+	if (hppt_sbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap insert / extract scheme\n");
+		return EXIT_FAILURE;
+	}
+
+#if 0
+	hppt_sbnm_insert_bulk(&heap);
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value -= sbnm_heap_min;
+		sbnm_heap_promote(&heap, &k->node, hppt_sbnm_compare_min);
+	}
+
+	if (hppt_sbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap promote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += sbnm_heap_min;
+#endif
 
 	return EXIT_SUCCESS;
 }
@@ -464,6 +499,13 @@ hppt_sbnm_promote(unsigned long long *nsecs)
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
 	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += sbnm_heap_min;
 }
 
 #endif /* defined(CONFIG_SBNM_HEAP) */
@@ -503,29 +545,64 @@ hppt_dbnm_insert_bulk(struct dbnm_heap *heap)
 }
 
 static int
-hppt_dbnm_validate(void)
+hppt_dbnm_check_heap(struct dbnm_heap *heap)
 {
-	struct dbnm_heap      heap;
-	struct hppt_dbnm_key *cur, *old;
 	int                   n;
+	struct hppt_dbnm_key *cur, *old;
 
-	hppt_dbnm_insert_bulk(&heap);
-
-	old = dbnm_heap_entry(dbnm_heap_extract(&heap, hppt_dbnm_compare_min),
+	old = dbnm_heap_entry(dbnm_heap_extract(heap, hppt_dbnm_compare_min),
 	                      struct hppt_dbnm_key, node);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
-		cur = dbnm_heap_entry(dbnm_heap_extract(&heap,
+		cur = dbnm_heap_entry(dbnm_heap_extract(heap,
 		                                        hppt_dbnm_compare_min),
 		                      struct hppt_dbnm_key, node);
 
-		if (old->value > cur->value) {
-			fprintf(stderr, "Bogus heap scheme\n");
+		if (old->value > cur->value)
 			return EXIT_FAILURE;
-		}
 
 		old = cur;
 	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_dbnm_validate(void)
+{
+	struct dbnm_heap      heap;
+#if 0
+	int                   n;
+	struct hppt_dbnm_key *k;
+#endif
+
+
+	hppt_dbnm_insert_bulk(&heap);
+
+	if (hppt_dbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap insert / extract scheme\n");
+		return EXIT_FAILURE;
+	}
+
+#if 0
+	hppt_dbnm_insert_bulk(&heap);
+	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value -= dbnm_heap_min;
+		dbnm_heap_promote(&heap, &k->node, hppt_dbnm_compare_min);
+	}
+
+	if (hppt_dbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap promote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += dbnm_heap_min;
+#endif
 
 	return EXIT_SUCCESS;
 }
@@ -630,6 +707,13 @@ hppt_dbnm_promote(unsigned long long *nsecs)
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
 	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += dbnm_heap_min;
 }
 
 #endif /* defined(CONFIG_DBNM_HEAP) */
@@ -671,29 +755,74 @@ hppt_spair_insert_bulk(struct spair_heap *heap)
 }
 
 static int
-hppt_spair_validate(void)
+hppt_spair_check_heap(struct spair_heap *heap)
 {
-	struct spair_heap      heap;
+	int                    n;
 	struct hppt_spair_key *cur, *old;
-	int                   n;
 
-	hppt_spair_insert_bulk(&heap);
-
-	old = spair_heap_entry(spair_heap_extract(&heap, hppt_spair_compare_min),
-	                      struct hppt_spair_key, node);
+	old = spair_heap_entry(spair_heap_extract(heap, hppt_spair_compare_min),
+	                       struct hppt_spair_key, node);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
-		cur = spair_heap_entry(spair_heap_extract(&heap,
-		                                        hppt_spair_compare_min),
-		                      struct hppt_spair_key, node);
+		cur = spair_heap_entry(
+			spair_heap_extract(heap, hppt_spair_compare_min),
+			struct hppt_spair_key, node);
 
-		if (old->value > cur->value) {
-			fprintf(stderr, "Bogus heap scheme\n");
+		if (old->value > cur->value)
 			return EXIT_FAILURE;
-		}
 
 		old = cur;
 	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_spair_validate(void)
+{
+	struct spair_heap      heap;
+	int                    n;
+	struct hppt_spair_key *k;
+
+	hppt_spair_insert_bulk(&heap);
+	if (hppt_spair_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap insert / extract scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	hppt_spair_insert_bulk(&heap);
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value -= spair_heap_min;
+		spair_heap_promote(&heap, &k->node, hppt_spair_compare_min);
+	}
+	if (hppt_spair_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap promote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += spair_heap_min;
+
+	hppt_spair_insert_bulk(&heap);
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value += spair_heap_min;
+		spair_heap_demote(&heap, &k->node, hppt_spair_compare_min);
+	}
+	if (hppt_spair_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap demote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value -= spair_heap_min;
 
 	return EXIT_SUCCESS;
 }
@@ -798,6 +927,44 @@ hppt_spair_promote(unsigned long long *nsecs)
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
 	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += spair_heap_min;
+}
+
+static void
+hppt_spair_demote(unsigned long long *nsecs)
+{
+	int                    n;
+	struct hppt_spair_key *k;
+	struct spair_heap      heap;
+	struct timespec        start, elapse;
+
+	*nsecs = 0;
+
+	hppt_spair_insert_bulk(&heap);
+
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value += spair_heap_min;
+
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		spair_heap_demote(&heap, &k->node, hppt_spair_compare_min);
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value -= spair_heap_min;
 }
 
 #endif /* defined(CONFIG_SPAIR_HEAP) */
@@ -854,7 +1021,8 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_insert  = hppt_spair_insert,
 		.hppt_extract = hppt_spair_extract,
 		.hppt_remove  = hppt_spair_remove,
-		.hppt_promote = hppt_spair_promote
+		.hppt_promote = hppt_spair_promote,
+		.hppt_demote  = hppt_spair_demote
 	},
 #endif
 };
@@ -895,7 +1063,11 @@ pt_parse_scheme(const char               *arg,
 			goto inval;
 	}
 	else if (!strcmp(arg, "promote")) {
-		if (!algo->hppt_remove)
+		if (!algo->hppt_promote)
+			goto inval;
+	}
+	else if (!strcmp(arg, "demote")) {
+		if (!algo->hppt_demote)
 			goto inval;
 	}
 	else {
@@ -1021,10 +1193,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if ((!*scheme && algo->hppt_remove) || !strcmp(scheme, "promote")) {
+	if ((!*scheme && algo->hppt_promote) || !strcmp(scheme, "promote")) {
 		for (l = 0; l < loops; l++) {
 			algo->hppt_promote(&nsecs);
 			printf("promote: nsec=%llu\n", nsecs);
+		}
+	}
+
+	if ((!*scheme && algo->hppt_demote) || !strcmp(scheme, "demote")) {
+		for (l = 0; l < loops; l++) {
+			algo->hppt_demote(&nsecs);
+			printf("demote: nsec=%llu\n", nsecs);
 		}
 	}
 
