@@ -38,21 +38,31 @@ struct sbnmhut_node {
 #define SBNMHUT_INIT_NODE(_key)                                              \
 	{                                                                    \
 		.heap = {                                                    \
-			.sbnm_parent  = (struct sbnm_heap_node *)0xdeadbeef, \
-			.sbnm_eldest  = (struct sbnm_heap_node *)0xdeadbeef, \
-			.sbnm_sibling = (struct sbnm_heap_node *)0xdeadbeef, \
-			.sbnm_order   = 0xdeadbeef                           \
+			.sbnm_lcrs  = LCRS_INIT_NODE((struct lcrs_node *)    \
+			                             0xdeadbeef),            \
+			.sbnm_order = 0xdeadbeef                             \
 		},                                                           \
 		.key = _key                                                  \
 	}
 
 static struct sbnm_heap sbnmhut_heap;
 
-static int sbnmhut_compare_min(const struct sbnm_heap_node *first,
-                               const struct sbnm_heap_node *second)
+static int sbnmhut_compare_min(const struct lcrs_node *first,
+                               const struct lcrs_node *second)
 {
-	return ((struct sbnmhut_node *)first)->key -
-	       ((struct sbnmhut_node *)second)->key;
+	struct sbnmhut_node *fst = (struct sbnmhut_node *)
+	                           lcrs_entry(first, typeof(fst->heap),
+	                                      sbnm_lcrs);
+	struct sbnmhut_node *snd = (struct sbnmhut_node *)
+	                           lcrs_entry(second, typeof(snd->heap),
+	                                      sbnm_lcrs);
+
+	if (fst->key < snd->key)
+		return -1;
+	else if (fst->key > snd->key)
+		return 1;
+	else
+		return 0;
 }
 
 static CUTE_PNP_SUITE(sbnmhut, NULL);
@@ -78,10 +88,6 @@ CUTE_PNP_TEST(sbnmhut_insert_single, &sbnmhut_empty)
 	sbnm_heap_insert(&sbnmhut_heap, &node.heap, sbnmhut_compare_min);
 
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
-	cute_ensure(sbnmhut_heap.sbnm_trees == &node.heap);
-	cute_ensure(node.heap.sbnm_parent == NULL);
-	cute_ensure(node.heap.sbnm_eldest == NULL);
-	cute_ensure(node.heap.sbnm_sibling == NULL);
 	cute_ensure(node.heap.sbnm_order == 0);
 }
 
@@ -92,7 +98,8 @@ CUTE_PNP_TEST(sbnmhut_peek_single, &sbnmhut_empty)
 	sbnm_heap_insert(&sbnmhut_heap, &node.heap, sbnmhut_compare_min);
 
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
-	cute_ensure(sbnm_heap_peek(&sbnmhut_heap) == &node.heap);
+	cute_ensure(sbnm_heap_peek(&sbnmhut_heap, sbnmhut_compare_min) ==
+	            &node.heap);
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
 }
 
@@ -105,17 +112,18 @@ CUTE_PNP_TEST(sbnmhut_extract_single, &sbnmhut_empty)
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
 	cute_ensure(sbnm_heap_extract(&sbnmhut_heap, sbnmhut_compare_min) ==
 	            &node.heap);
-	cute_ensure(sbnmhut_heap.sbnm_trees == NULL);
+	cute_ensure(!lcrs_node_has_child(&sbnmhut_heap.sbnm_root));
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 0U);
 }
 
 static void sbnmhut_check_roots(const struct sbnm_heap* heap,
                                 unsigned int            count)
 {
-	const struct sbnm_heap_node *node = heap->sbnm_trees;
-	int                          order = -1;
+	const struct lcrs_node *node;
+	int                     order = -1;
 
-	while (node) {
+	node = lcrs_youngest_sibling(&heap->sbnm_root);
+	while (lcrs_node_has_child(node)) {
 		while (!(count & 1)) {
 			count >>= 1;
 			order++;
@@ -123,10 +131,13 @@ static void sbnmhut_check_roots(const struct sbnm_heap* heap,
 		order++;
 		count >>= 1;
 
-		cute_ensure(node->sbnm_parent == NULL);
-		cute_ensure(node->sbnm_order == (unsigned int)order);
+		cute_ensure(lcrs_parent_node(node) == &heap->sbnm_root);
+		cute_ensure(lcrs_entry(node,
+		                       struct sbnm_heap_node,
+		                       sbnm_lcrs)->sbnm_order ==
+		            (unsigned int)order);
 
-		node = node->sbnm_sibling;
+		node = lcrs_next_sibling(node);
 	}
 
 	cute_ensure(count == 0);
@@ -151,7 +162,7 @@ static void sbnmhut_check_heap(struct sbnm_heap     *heap,
 		const struct sbnm_heap_node *node = NULL;
 		const struct sbnmhut_node   *check = checks[n];
 
-		node = sbnm_heap_peek(heap);
+		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
 
@@ -1100,14 +1111,22 @@ static void sbnmhut_check_update(struct sbnm_heap     *heap,
 
 	sbnmhut_check_roots(heap, count);
 
-	nodes[new_index].key = new_key;
-	sbnm_heap_update(heap, &nodes[new_index].heap, sbnmhut_compare_min);
+	if (nodes[new_index].key <= new_key) {
+		nodes[new_index].key = new_key;
+		sbnm_heap_promote(heap, &nodes[new_index].heap,
+		                  sbnmhut_compare_min);
+	}
+	else {
+		nodes[new_index].key = new_key;
+		sbnm_heap_demote(heap, &nodes[new_index].heap,
+		                 sbnmhut_compare_min);
+	}
 
 	for (n = 0; n < count; n++) {
 		const struct sbnm_heap_node *node = NULL;
 		const struct sbnmhut_node   *check = checks[n];
 
-		node = sbnm_heap_peek(heap);
+		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
 
@@ -1831,7 +1850,7 @@ static void sbnmhut_check_remove(struct sbnm_heap     *heap,
 		const struct sbnm_heap_node *node = NULL;
 		const struct sbnmhut_node   *check = checks[n];
 
-		node = sbnm_heap_peek(heap);
+		node = sbnm_heap_peek(heap, sbnmhut_compare_min);
 		cute_ensure(node == &check->heap);
 		cute_ensure(((struct sbnmhut_node *)node)->key == check->key);
 
@@ -1868,7 +1887,7 @@ CUTE_PNP_TEST(sbnmhut_remove_alone, &sbnmhut_remove)
 
 	sbnm_heap_remove(&sbnmhut_heap, &node.heap, sbnmhut_compare_min);
 
-	cute_ensure(sbnmhut_heap.sbnm_trees == NULL);
+	cute_ensure(!lcrs_node_has_child(&sbnmhut_heap.sbnm_root));
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 0U);
 }
 

@@ -2,6 +2,7 @@
 #include "fwk_heap.h"
 #include "sbnm_heap.h"
 #include "dbnm_heap.h"
+#include "pbnm_heap.h"
 #include "spair_heap.h"
 #include "karn_pt.h"
 #include <stdlib.h>
@@ -116,10 +117,10 @@ hppt_fbnr_insert(unsigned long long *nsecs)
 
 	fbnr_heap_clear(hppt_fbnr_heap);
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0, k = hppt_fbnr_keys; n < hppt_entries.pt_nr; n++, k++)
 		fbnr_heap_insert(hppt_fbnr_heap, (char *)k);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -134,10 +135,10 @@ hppt_fbnr_extract(unsigned long long *nsecs)
 
 	hppt_fbnr_insert_bulk();
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
 		fbnr_heap_extract(hppt_fbnr_heap, (char *)&cur);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -152,9 +153,9 @@ hppt_fbnr_build(unsigned long long *nsecs)
 	       hppt_fbnr_keys,
 	       sizeof(*hppt_fbnr_keys * hppt_entries.pt_nr));
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	fbnr_heap_build(hppt_fbnr_heap, hppt_entries.pt_nr);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -256,10 +257,10 @@ hppt_fwk_insert(unsigned long long *nsecs)
 
 	fwk_heap_clear(hppt_fwk_heap);
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0, k = hppt_fwk_keys; n < hppt_entries.pt_nr; n++, k++)
 		fwk_heap_insert(hppt_fwk_heap, (char *)k);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -274,10 +275,10 @@ hppt_fwk_extract(unsigned long long *nsecs)
 
 	hppt_fwk_insert_bulk();
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
 		fwk_heap_extract(hppt_fwk_heap, (char *)&cur);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -292,9 +293,9 @@ hppt_fwk_build(unsigned long long *nsecs)
 	       hppt_fwk_keys,
 	       sizeof(*hppt_fwk_keys * hppt_entries.pt_nr));
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	fwk_heap_build(hppt_fwk_heap, hppt_entries.pt_nr);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -429,9 +430,9 @@ hppt_sbnm_insert(unsigned long long *nsecs)
 	struct timespec  start, elapse;
 	struct sbnm_heap heap;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	hppt_sbnm_insert_bulk(&heap);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -446,10 +447,10 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 
 	hppt_sbnm_insert_bulk(&heap);
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
 		sbnm_heap_extract(&heap, hppt_sbnm_compare_min);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -468,9 +469,9 @@ hppt_sbnm_remove(unsigned long long *nsecs)
 	hppt_sbnm_insert_bulk(&heap);
 
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		sbnm_heap_remove(&heap, &k->node, hppt_sbnm_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -492,9 +493,9 @@ hppt_sbnm_promote(unsigned long long *nsecs)
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		k->value -= sbnm_heap_min;
 
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		sbnm_heap_update(&heap, &k->node, hppt_sbnm_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -637,9 +638,9 @@ hppt_dbnm_insert(unsigned long long *nsecs)
 	struct timespec  start, elapse;
 	struct dbnm_heap heap;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	hppt_dbnm_insert_bulk(&heap);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -654,10 +655,10 @@ hppt_dbnm_extract(unsigned long long *nsecs)
 
 	hppt_dbnm_insert_bulk(&heap);
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
 		dbnm_heap_extract(&heap, hppt_dbnm_compare_min);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -676,9 +677,9 @@ hppt_dbnm_remove(unsigned long long *nsecs)
 	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		hppt_dbnm_insert_bulk(&heap);
 
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		dbnm_heap_remove(&heap, &k->node, hppt_dbnm_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -700,9 +701,9 @@ hppt_dbnm_promote(unsigned long long *nsecs)
 	for (n = 0, k = dbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		k->value -= dbnm_heap_min;
 
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		dbnm_heap_update(&k->node, hppt_dbnm_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -717,6 +718,311 @@ hppt_dbnm_promote(unsigned long long *nsecs)
 }
 
 #endif /* defined(CONFIG_DBNM_HEAP) */
+
+/******************************************************************************
+ * Parented LCRS based binomial heap
+ ******************************************************************************/
+
+#if defined(CONFIG_PBNM_HEAP)
+
+struct hppt_pbnm_key {
+	struct pbnm_heap_node *node;
+	unsigned int           value;
+};
+
+static struct hppt_pbnm_key *pbnm_heap_keys;
+static unsigned int          pbnm_heap_min;
+
+static int
+hppt_pbnm_compare_min(const struct pbnm_heap_node *restrict first,
+                      const struct pbnm_heap_node *restrict second)
+{
+	return pt_compare_min((char *)&pbnm_heap_entry(first,
+	                                               struct hppt_pbnm_key,
+	                                               node)->value,
+	                      (char *)&pbnm_heap_entry(second,
+	                                               struct hppt_pbnm_key,
+	                                               node)->value);
+}
+
+static int
+hppt_pbnm_doinsert(struct pbnm_heap *heap, struct hppt_pbnm_key *key)
+{
+	key->node = malloc(sizeof(*key->node));
+	if (!key->node)
+		return EXIT_FAILURE;
+
+	pbnm_heap_init_node(key->node, &key->node);
+
+	pbnm_heap_insert(heap, key->node);
+
+	return EXIT_SUCCESS;
+}
+
+static struct hppt_pbnm_key *
+hppt_pbnm_doextract(struct pbnm_heap *heap)
+{
+	struct hppt_pbnm_key *key;
+
+	key = pbnm_heap_entry(pbnm_heap_extract(heap), typeof(*key), node);
+
+	free(key->node);
+
+	return key;
+}
+
+static void
+hppt_pbnm_doremove(struct pbnm_heap *heap, struct hppt_pbnm_key *key)
+{
+	pbnm_heap_remove(heap, key->node);
+
+	free(key->node);
+}
+
+static int
+hppt_pbnm_insert_bulk(struct pbnm_heap *heap)
+{
+	int                   n;
+	struct hppt_pbnm_key *k;
+
+	pbnm_heap_init(heap, hppt_pbnm_compare_min);
+
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		if (hppt_pbnm_doinsert(heap, k))
+			break;
+
+	if (n == hppt_entries.pt_nr)
+		return EXIT_SUCCESS;
+
+	while (n--)
+		free(pbnm_heap_keys[n].node);
+
+	fprintf(stderr, "failed to allocate heap node\n");
+
+	return EXIT_FAILURE;
+}
+
+static int
+hppt_pbnm_check_heap(struct pbnm_heap *heap)
+{
+	int                   n;
+	struct hppt_pbnm_key *cur, *old;
+
+	old = hppt_pbnm_doextract(heap);
+
+	for (n = 1; n < hppt_entries.pt_nr; n++) {
+		cur = hppt_pbnm_doextract(heap);
+
+		if (old->value > cur->value)
+			return EXIT_FAILURE;
+
+		old = cur;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_pbnm_validate(void)
+{
+	struct pbnm_heap      heap;
+	int                   n;
+	struct hppt_pbnm_key *k;
+
+	if (hppt_pbnm_insert_bulk(&heap))
+		return EXIT_FAILURE;
+
+	if (hppt_pbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap insert / extract scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	if (hppt_pbnm_insert_bulk(&heap))
+		return EXIT_FAILURE;
+
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value -= pbnm_heap_min;
+		pbnm_heap_promote(&heap, k->node);
+	}
+	if (hppt_pbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap promote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value += pbnm_heap_min;
+
+	if (hppt_pbnm_insert_bulk(&heap))
+		return EXIT_FAILURE;
+
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value += pbnm_heap_min;
+		pbnm_heap_demote(&heap, k->node);
+	}
+	if (hppt_pbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap demote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value -= pbnm_heap_min;
+
+	return EXIT_SUCCESS;
+}
+
+static int
+hppt_pbnm_load(const char *pathname)
+{
+	struct hppt_pbnm_key *k;
+
+	if (pt_open_entries(pathname, &hppt_entries))
+		return EXIT_FAILURE;
+
+	pbnm_heap_keys = malloc(hppt_entries.pt_nr * sizeof(*pbnm_heap_keys));
+	if (!pbnm_heap_keys)
+		return EXIT_FAILURE;
+
+	pt_init_entry_iter(&hppt_entries);
+
+	k = pbnm_heap_keys;
+	pbnm_heap_min = UINT_MAX;
+	while (!pt_iter_entry(&hppt_entries, &k->value)) {
+		pbnm_heap_min = min(k->value, pbnm_heap_min);
+		k++;
+	}
+
+	return hppt_pbnm_validate();
+}
+
+static void
+hppt_pbnm_insert(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	struct pbnm_heap heap;
+
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+	hppt_pbnm_insert_bulk(&heap);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+}
+
+static void
+hppt_pbnm_extract(unsigned long long *nsecs)
+{
+	struct timespec  start, elapse;
+	struct pbnm_heap heap;
+	int              n;
+
+	hppt_pbnm_insert_bulk(&heap);
+
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+	for (n = 0; n < hppt_entries.pt_nr; n++)
+		hppt_pbnm_doextract(&heap);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
+
+	elapse = pt_tspec_sub(&elapse, &start);
+	*nsecs = pt_tspec2ns(&elapse);
+}
+
+static void
+hppt_pbnm_remove(unsigned long long *nsecs)
+{
+	int                   n;
+	struct hppt_pbnm_key *k;
+	struct pbnm_heap      heap;
+	struct timespec       start, elapse;
+
+	*nsecs = 0;
+
+	hppt_pbnm_insert_bulk(&heap);
+
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+		hppt_pbnm_doremove(&heap, k);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+}
+
+static void
+hppt_pbnm_promote(unsigned long long *nsecs)
+{
+	int                    n;
+	struct hppt_pbnm_key *k;
+	struct pbnm_heap      heap;
+	struct timespec        start, elapse;
+
+	*nsecs = 0;
+
+	hppt_pbnm_insert_bulk(&heap);
+
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value -= pbnm_heap_min;
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+		pbnm_heap_promote(&heap, k->node);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		free(k->node);
+		k->value += pbnm_heap_min;
+	}
+}
+
+static void
+hppt_pbnm_demote(unsigned long long *nsecs)
+{
+	int                    n;
+	struct hppt_pbnm_key *k;
+	struct pbnm_heap      heap;
+	struct timespec        start, elapse;
+
+	*nsecs = 0;
+
+	hppt_pbnm_insert_bulk(&heap);
+
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value += pbnm_heap_min;
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+		pbnm_heap_demote(&heap, k->node);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		free(k->node);
+		k->value -= pbnm_heap_min;
+	}
+}
+
+#endif /* defined(CONFIG_PBNM_HEAP) */
 
 /******************************************************************************
  * Singly linked list based pairing heap
@@ -857,9 +1163,9 @@ hppt_spair_insert(unsigned long long *nsecs)
 	struct timespec  start, elapse;
 	struct spair_heap heap;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	hppt_spair_insert_bulk(&heap);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -874,10 +1180,10 @@ hppt_spair_extract(unsigned long long *nsecs)
 
 	hppt_spair_insert_bulk(&heap);
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
 		spair_heap_extract(&heap, hppt_spair_compare_min);
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
 	*nsecs = pt_tspec2ns(&elapse);
@@ -896,9 +1202,9 @@ hppt_spair_remove(unsigned long long *nsecs)
 	hppt_spair_insert_bulk(&heap);
 
 	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		spair_heap_remove(&heap, &k->node, hppt_spair_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -920,9 +1226,9 @@ hppt_spair_promote(unsigned long long *nsecs)
 	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		k->value -= spair_heap_min;
 
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		spair_heap_promote(&heap, &k->node, hppt_spair_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -951,9 +1257,9 @@ hppt_spair_demote(unsigned long long *nsecs)
 	for (n = 0, k = spair_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		k->value += spair_heap_min;
 
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		spair_heap_demote(&heap, &k->node, hppt_spair_compare_min);
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &elapse);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
 		*nsecs += pt_tspec2ns(&elapse);
@@ -1023,6 +1329,17 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_remove  = hppt_spair_remove,
 		.hppt_promote = hppt_spair_promote,
 		.hppt_demote  = hppt_spair_demote
+	},
+#endif
+#if defined(CONFIG_PBNM_HEAP)
+	{
+		.hppt_name    = "pbnm",
+		.hppt_load    = hppt_pbnm_load,
+		.hppt_insert  = hppt_pbnm_insert,
+		.hppt_extract = hppt_pbnm_extract,
+		.hppt_remove  = hppt_pbnm_remove,
+		.hppt_promote = hppt_pbnm_promote,
+		.hppt_demote  = hppt_pbnm_demote
 	},
 #endif
 };
