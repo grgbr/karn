@@ -5,7 +5,7 @@
 
 struct pbnmhut_entry {
 	struct pbnm_heap_node *heap;
-	int                   key;
+	int                    key;
 };
 
 #define PBNMHUT_INIT_ENTRY(_key) \
@@ -40,7 +40,7 @@ pbnmhut_init_entries(struct pbnmhut_entry *entries, unsigned int count)
 	int          err;
 
 	for (c = 0, err = 0; !err && c < count; c++) {
-		struct plcrs_node *node;
+		struct pbnm_heap_node *node;
 
 		entries[c].heap = malloc(sizeof(*entries[c].heap));
 		if (!entries[c].heap) {
@@ -50,10 +50,10 @@ pbnmhut_init_entries(struct pbnmhut_entry *entries, unsigned int count)
 
 		pbnm_heap_init_node(entries[c].heap, &entries[c].heap);
 
-		node = &entries[c].heap->pbnm_plcrs;
-		node->plcrs_sibling = (struct plcrs_node *)0xdeadbeef;
-		node->plcrs_parent = (struct plcrs_node *)0xdeadbeef;
-		node->plcrs_youngest = (struct plcrs_node *)0xdeadbeef;
+		node = entries[c].heap;
+		node->pbnm_sibling = (struct pbnm_heap_node *)0xdeadbeef;
+		node->pbnm_parent = (struct pbnm_heap_node *)0xdeadbeef;
+		node->pbnm_youngest = (struct pbnm_heap_node *)0xdeadbeef;
 	}
 
 	if (err) {
@@ -75,22 +75,15 @@ static unsigned int
 pbnmhut_check_tree_prop(struct pbnm_heap            *heap,
                         const struct pbnm_heap_node *root)
 {
-	struct plcrs_node *node = plcrs_youngest_sibling(&root->pbnm_plcrs);
-	unsigned int       cnt = 1;
+	struct pbnm_heap_node *node = root->pbnm_youngest;
+	unsigned int           cnt = 1;
 
 	if (node) {
 		do {
-			struct pbnm_heap_node *parent;
-			struct pbnm_heap_node *child;
-
-			parent = plcrs_entry(plcrs_parent_node(node),
-			                     struct pbnm_heap_node, pbnm_plcrs);
-			child = plcrs_entry(node,
-			                    struct pbnm_heap_node, pbnm_plcrs);
-
-			cute_ensure(heap->pbnm_compare(parent, child) <= 0);
-			cnt += pbnmhut_check_tree_prop(heap, child);
-			node = plcrs_next_sibling(node);
+			cute_ensure(heap->pbnm_compare(node->pbnm_parent,
+			                               node) <= 0);
+			cnt += pbnmhut_check_tree_prop(heap, node);
+			node = node->pbnm_sibling;
 		} while (node);
 
 		return cnt;
@@ -102,21 +95,19 @@ pbnmhut_check_tree_prop(struct pbnm_heap            *heap,
 static void
 pbnmhut_check_heap_prop(struct pbnm_heap *heap, unsigned int count)
 {
-	const struct pbnm_heap_node *node;
+	const struct pbnm_heap_node *node = heap->pbnm_roots;
 	unsigned int                cnt = count;
 	int                         rank = -1;
 
 	if (!cnt) {
-		cute_ensure(!heap->pbnm_roots);
+		cute_ensure(!node);
 		return;
 	}
 
-	cute_ensure(heap->pbnm_roots);
+	cute_ensure(node);
 
-	node = plcrs_entry(heap->pbnm_roots, struct pbnm_heap_node, pbnm_plcrs);
-	while (true) {
-		struct plcrs_node *plcrs;
-
+	node = heap->pbnm_roots;
+	do {
 		while (!(cnt & 1)) {
 			cnt >>= 1;
 			rank++;
@@ -124,17 +115,13 @@ pbnmhut_check_heap_prop(struct pbnm_heap *heap, unsigned int count)
 		rank++;
 		cnt >>= 1;
 
-		cute_ensure(!plcrs_parent_node(&node->pbnm_plcrs));
+		cute_ensure(!node->pbnm_parent);
 		cute_ensure(node->pbnm_rank == (unsigned int)rank);
 
 		cute_ensure(pbnmhut_check_tree_prop(heap, node) == (1U << rank));
 
-		plcrs = plcrs_next_sibling(&node->pbnm_plcrs);
-		if (!plcrs)
-			break;
-
-		node = plcrs_entry(plcrs, struct pbnm_heap_node, pbnm_plcrs);
-	}
+		node = node->pbnm_sibling;
+	} while (node);
 
 	cute_ensure(cnt == 0);
 }

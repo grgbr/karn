@@ -2,6 +2,10 @@ config LCRS
 	bool "Left child right sibling tree"
 	default n
 
+config PLCRS
+	bool "Parented Left child right sibling tree"
+	default n
+
 config SLIST
 	bool "Singly linked list"
 	default n
@@ -45,6 +49,11 @@ config FBNR_HEAP_SORT
 	select FBNR_HEAP_UTILS
 	default y
 
+config PBNM_HEAP
+	bool "Parented LCRS based binomial heap"
+	select PLCRS
+	default y
+
 config SBNM_HEAP
 	bool "Singly linked list based binomial heap"
 	default y
@@ -56,6 +65,7 @@ config DBNM_HEAP
 
 config SPAIR_HEAP
 	bool "Singly linked list based pairing heap"
+	select LCRS
 	default y
 
 config FWK_HEAP_UTILS

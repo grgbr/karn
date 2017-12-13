@@ -1,11 +1,13 @@
 #ifndef _PBNM_HEAP_H
 #define _PBNM_HEAP_H
 
-#include <plcrs.h>
+#include <utils.h>
 #include <stdbool.h>
 
 struct pbnm_heap_node {
-	struct plcrs_node       pbnm_plcrs;
+	struct pbnm_heap_node  *pbnm_sibling;
+	struct pbnm_heap_node  *pbnm_parent;
+	struct pbnm_heap_node  *pbnm_youngest;
 	unsigned int            pbnm_rank;
 	struct pbnm_heap_node **pbnm_handle;
 };
@@ -24,9 +26,9 @@ typedef int (pbnm_heap_compare_fn)(const struct pbnm_heap_node *restrict first,
                                    const struct pbnm_heap_node *restrict second);
 
 struct pbnm_heap {
-	struct plcrs_node    *pbnm_roots;
-	unsigned int          pbnm_count;
-	pbnm_heap_compare_fn *pbnm_compare;
+	struct pbnm_heap_node *pbnm_roots;
+	unsigned int           pbnm_count;
+	pbnm_heap_compare_fn  *pbnm_compare;
 };
 
 #define PBNM_HEAP_INIT(_compare)          \

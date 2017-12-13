@@ -331,10 +331,10 @@ hppt_sbnm_insert_bulk(struct sbnm_heap *heap)
 	int                   n;
 	struct hppt_sbnm_key *k;
 
-	sbnm_heap_init(heap);
+	sbnm_heap_init(heap, hppt_sbnm_compare_min);
 
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
-		sbnm_heap_insert(heap, &k->node, hppt_sbnm_compare_min);
+		sbnm_heap_insert(heap, &k->node);
 }
 
 static int
@@ -343,12 +343,11 @@ hppt_sbnm_check_heap(struct sbnm_heap *heap)
 	int                   n;
 	struct hppt_sbnm_key *cur, *old;
 
-	old = sbnm_heap_entry(sbnm_heap_extract(heap, hppt_sbnm_compare_min),
+	old = sbnm_heap_entry(sbnm_heap_extract(heap),
 	                      struct hppt_sbnm_key, node);
 
 	for (n = 1; n < hppt_entries.pt_nr; n++) {
-		cur = sbnm_heap_entry(sbnm_heap_extract(heap,
-		                                        hppt_sbnm_compare_min),
+		cur = sbnm_heap_entry(sbnm_heap_extract(heap),
 		                      struct hppt_sbnm_key, node);
 
 		if (old->value > cur->value)
@@ -449,7 +448,7 @@ hppt_sbnm_extract(unsigned long long *nsecs)
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 	for (n = 0; n < hppt_entries.pt_nr; n++)
-		sbnm_heap_extract(&heap, hppt_sbnm_compare_min);
+		sbnm_heap_extract(&heap);
 	clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 	elapse = pt_tspec_sub(&elapse, &start);
@@ -470,7 +469,7 @@ hppt_sbnm_remove(unsigned long long *nsecs)
 
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		sbnm_heap_remove(&heap, &k->node, hppt_sbnm_compare_min);
+		sbnm_heap_remove(&heap, &k->node);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);
@@ -494,7 +493,7 @@ hppt_sbnm_promote(unsigned long long *nsecs)
 		k->value -= sbnm_heap_min;
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		sbnm_heap_update(&heap, &k->node, hppt_sbnm_compare_min);
+		sbnm_heap_promote(&heap, &k->node);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
 
 		elapse = pt_tspec_sub(&elapse, &start);

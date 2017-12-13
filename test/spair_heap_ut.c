@@ -49,9 +49,9 @@ static int spairhut_compare_min(const struct lcrs_node *restrict first,
                                 const struct lcrs_node *restrict second)
 {
 	cute_ensure(first);
-	cute_ensure(!lcrs_istail_node(first));
+	cute_ensure(!lcrs_istail(first));
 	cute_ensure(second);
-	cute_ensure(!lcrs_istail_node(second));
+	cute_ensure(!lcrs_istail(second));
 
 	return ((struct spairhut_node *)first)->key -
 	       ((struct spairhut_node *)second)->key;
@@ -80,8 +80,8 @@ CUTE_PNP_TEST(spairhut_insert_single, &spairhut_empty)
 
 	cute_ensure(spair_heap_count(&spairhut_heap) == 1U);
 	cute_ensure(spairhut_heap.spair_root == &node.heap);
-	cute_ensure(!lcrs_node_has_child(&node.heap));
-	cute_ensure(node.heap.lcrs_sibling == lcrs_mktail_node(NULL));
+	cute_ensure(!lcrs_has_child(&node.heap));
+	cute_ensure(node.heap.lcrs_sibling == lcrs_mktail(NULL));
 }
 
 CUTE_PNP_TEST(spairhut_peek_single, &spairhut_empty)
@@ -123,14 +123,14 @@ CUTE_PNP_TEST(spairhut_remove_single, &spairhut_empty)
 static void spairhut_check_root(const struct lcrs_node *parent,
                                 lcrs_compare_fn        *compare)
 {
-	if (lcrs_node_has_child(parent)) {
-		const struct lcrs_node *node = lcrs_youngest_sibling(parent);
+	if (lcrs_has_child(parent)) {
+		const struct lcrs_node *node = lcrs_youngest(parent);
 
 		do {
 			cute_ensure(compare(parent, node) <= 0);
 			spairhut_check_root(node, compare);
-			node = lcrs_next_sibling(node);
-		} while (!lcrs_istail_node(node));
+			node = lcrs_next(node);
+		} while (!lcrs_istail(node));
 	}
 }
 

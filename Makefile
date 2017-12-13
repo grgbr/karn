@@ -220,8 +220,18 @@ ut_src  += fwk_heap_ut.c
 endif
 
 ifeq ($(CONFIG_LCRS),y)
-lib_src  += lcrs.c
+lib_src += lcrs.c
 ut_src  += lcrs_ut.c
+endif
+
+ifeq ($(CONFIG_PLCRS),y)
+#ut_src  += plcrs_ut.c
+endif
+
+ifeq ($(CONFIG_PBNM_HEAP),y)
+lib_src += pbnm_heap.c
+ut_src  += pbnm_heap_ut.c
+pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
 # Needed for performance results generation rules (see below)
@@ -452,3 +462,7 @@ $(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir):
 	mkdir -p $@
 
 -include $(wildcard $(BUILD)/*.d)
+-include $(wildcard $(BUILD)/pt/*.d)
+-include $(wildcard $(BUILD)/utdbg/*.d)
+-include $(wildcard $(BUILD)/dbg/*.d)
+-include $(wildcard $(BUILD)/ut/*.d)

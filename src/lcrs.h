@@ -26,6 +26,10 @@
 #ifndef _LCRS_H
 #define _LCRS_H
 
+#ifndef CONFIG_LCRS
+#error LCRS configuration disabled !
+#endif
+
 #include <utils.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,114 +42,196 @@ struct lcrs_node {
 typedef int (lcrs_compare_fn)(const struct lcrs_node *restrict first,
                               const struct lcrs_node *restrict second);
 
-#define LCRS_TAIL_NODE ((uintptr_t)1U)
+#define LCRS_TAIL ((uintptr_t)1U)
 
-static inline bool lcrs_istail_node(const struct lcrs_node *node)
+#define LCRS_INIT(_node)                                                   \
+	{                                                                  \
+		.lcrs_sibling  = (struct lcrs_node *)(LCRS_TAIL),          \
+		.lcrs_youngest = (struct lcrs_node *)((uintptr_t)(_node) | \
+		                                      LCRS_TAIL)           \
+	}
+
+static inline bool lcrs_istail(const struct lcrs_node *node)
 {
 	assert(node);
 
-	return ((uintptr_t)node & LCRS_TAIL_NODE);
+	return ((uintptr_t)node & LCRS_TAIL);
 }
 
-static inline struct lcrs_node * lcrs_mktail_node(const struct lcrs_node *node)
+static inline struct lcrs_node * lcrs_mktail(const struct lcrs_node *node)
 {
-	return (struct lcrs_node *)((uintptr_t)node | LCRS_TAIL_NODE);
+	return (struct lcrs_node *)((uintptr_t)node | LCRS_TAIL);
 }
 
-static inline struct lcrs_node * lcrs_untail_node(struct lcrs_node *node)
+static inline struct lcrs_node * lcrs_untail(struct lcrs_node *node)
 {
 	assert(node);
 
-	return (struct lcrs_node *)((uintptr_t)node & ~LCRS_TAIL_NODE);
+	return (struct lcrs_node *)((uintptr_t)node & ~LCRS_TAIL);
 }
 
 static inline struct lcrs_node *
-lcrs_previous_sibling(const struct lcrs_node *restrict node,
-                      struct lcrs_node       *restrict start)
+lcrs_previous(const struct lcrs_node *restrict node,
+              struct lcrs_node       *restrict start)
 {
-	assert(!lcrs_istail_node(node));
-	assert(!lcrs_istail_node(start));
+	assert(!lcrs_istail(node));
+	assert(!lcrs_istail(start));
 	assert(start != node);
 
 	while (start->lcrs_sibling != node) {
-		assert(!lcrs_istail_node(start->lcrs_sibling));
+		assert(!lcrs_istail(start->lcrs_sibling));
 		start = start->lcrs_sibling;
 	}
 
 	return start;
 }
 
-static inline struct lcrs_node * lcrs_next_sibling(const struct lcrs_node *node)
+static inline struct lcrs_node *
+lcrs_next(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail_node(node));
+	assert(!lcrs_istail(node));
 
 	return node->lcrs_sibling;
 }
 
-static inline bool
-lcrs_node_has_child(const struct lcrs_node *node)
+static inline struct lcrs_node **
+lcrs_next_ref(struct lcrs_node *node)
 {
-	assert(!lcrs_istail_node(node));
+	assert(!lcrs_istail(node));
 
-	return node->lcrs_youngest != lcrs_mktail_node(node);
+	return &node->lcrs_sibling;
+}
+
+static inline void
+lcrs_assign_next(struct lcrs_node       *restrict node,
+                 const struct lcrs_node *restrict sibling)
+{
+	assert(!lcrs_istail(node));
+
+	node->lcrs_sibling = (struct lcrs_node *)sibling;
+}
+
+static inline bool
+lcrs_has_child(const struct lcrs_node *node)
+{
+	assert(!lcrs_istail(node));
+
+	return node->lcrs_youngest != lcrs_mktail(node);
 }
 
 static inline struct lcrs_node *
-lcrs_youngest_sibling(const struct lcrs_node *node)
+lcrs_youngest(const struct lcrs_node *node)
 {
-	assert(lcrs_node_has_child(node));
+	assert(!lcrs_istail(node));
 
 	return node->lcrs_youngest;
 }
 
-static inline struct lcrs_node *
-lcrs_eldest_sibling(const struct lcrs_node *node)
+static inline struct lcrs_node **
+lcrs_youngest_ref(struct lcrs_node *node)
 {
-	assert(!lcrs_istail_node(node));
+	assert(!lcrs_istail(node));
 
-	while (!lcrs_istail_node(node->lcrs_sibling))
+	return &node->lcrs_youngest;
+}
+
+static inline struct lcrs_node *
+lcrs_eldest(const struct lcrs_node *node)
+{
+	assert(!lcrs_istail(node));
+
+	while (!lcrs_istail(node->lcrs_sibling))
 		node = node->lcrs_sibling;
 
 	return (struct lcrs_node *)node;
 }
 
 static inline bool
-lcrs_node_has_parent(const struct lcrs_node *node)
+lcrs_has_parent(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail_node(node));
+	assert(!lcrs_istail(node));
 
-	return node->lcrs_sibling != lcrs_mktail_node(NULL);
+	return node->lcrs_sibling != lcrs_mktail(NULL);
 }
 
-static inline struct lcrs_node * lcrs_parent_node(const struct lcrs_node *node)
+static inline struct lcrs_node *
+lcrs_parent(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail_node(node));
+	assert(!lcrs_istail(node));
 
-	return lcrs_untail_node(lcrs_eldest_sibling(node)->lcrs_sibling);
+	return lcrs_untail(lcrs_eldest(node)->lcrs_sibling);
 }
 
-static inline void lcrs_join_tree(struct lcrs_node *restrict tree,
-                                  struct lcrs_node *restrict parent)
+static inline void
+lcrs_assign_parent(struct lcrs_node       *restrict node,
+                   const struct lcrs_node *restrict parent)
 {
-	assert(!lcrs_istail_node(tree));
-	assert(!lcrs_istail_node(parent));
+	lcrs_eldest(node)->lcrs_sibling = lcrs_mktail(parent);
+}
+
+static inline void
+lcrs_assign_youngest(struct lcrs_node       *restrict node,
+                     const struct lcrs_node *restrict youngest)
+{
+	assert(!lcrs_istail(node));
+
+	node->lcrs_youngest = (struct lcrs_node *)youngest;
+}
+
+static inline void
+lcrs_join(struct lcrs_node *restrict tree, struct lcrs_node *restrict parent)
+{
+	assert(!lcrs_istail(tree));
+	assert(!lcrs_istail(parent));
 
 	tree->lcrs_sibling = parent->lcrs_youngest;
-	parent->lcrs_youngest = tree;
+	lcrs_assign_youngest(parent, tree);
 }
 
-static inline void lcrs_init_node(struct lcrs_node *node)
+static inline void
+lcrs_split(const struct lcrs_node  *restrict tree,
+           struct lcrs_node       **restrict previous)
+{
+	assert(!lcrs_istail(tree));
+	assert(previous);
+	assert(!lcrs_istail(*previous));
+	assert(lcrs_parent(tree) == lcrs_parent(*previous));
+
+	while (*previous != tree)
+		previous = &(*previous)->lcrs_sibling;
+
+	*previous = tree->lcrs_sibling;
+}
+
+static inline void
+lcrs_init(struct lcrs_node *node)
 {
 	assert(node);
 
-	node->lcrs_sibling = lcrs_mktail_node(NULL);
-	node->lcrs_youngest = lcrs_mktail_node(node);
+	node->lcrs_sibling = lcrs_mktail(NULL);
+	node->lcrs_youngest = lcrs_mktail(node);
 }
 
-extern void lcrs_split_tree(const struct lcrs_node *restrict tree,
-                            struct lcrs_node       *restrict parent);
+extern struct lcrs_node * lcrs_swap_down(struct lcrs_node *node,
+                                         struct lcrs_node *child);
 
-extern struct lcrs_node * lcrs_swap_down_node(struct lcrs_node *node,
-                                              struct lcrs_node *child);
+#define lcrs_foreach_sibling(_youngest, _sibling)   \
+	for ((_sibling) = (_youngest);              \
+	     !lcrs_istail(_sibling);                \
+	     (_sibling) = (_sibling)->lcrs_sibling)
+
+#define lcrs_foreach_child(_node, _child) \
+	lcrs_foreach_sibling((_node)->lcrs_youngest, _child)
+
+#define lcrs_foreach_sibling_safe(_youngest, _sibling, _tmp)              \
+	for ((_sibling) = (_youngest), (_tmp) = (_sibling)->lcrs_sibling; \
+	     !lcrs_istail(_sibling);                                      \
+	     (_sibling) = (_tmp), (_tmp) = (_sibling)->lcrs_sibling)
+
+#define lcrs_foreach_child_safe(_node, _child, _tmp) \
+	lcrs_foreach_sibling_safe((_node)->lcrs_youngest, _child, _tmp)
+
+#define lcrs_entry(_node, _type, _member) \
+	containerof(_node, _type, _member)
 
 #endif
