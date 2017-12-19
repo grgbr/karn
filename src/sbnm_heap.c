@@ -122,34 +122,33 @@ sbnm_heap_peek(const struct sbnm_heap *heap)
 }
 
 static struct lcrs_node *
-sbnm_heap_1way_merge_roots(struct lcrs_node     *root,
+sbnm_heap_1way_merge_roots(struct lcrs_node     *node,
                            struct lcrs_node     *siblings,
                            sbnm_heap_compare_fn *compare)
 {
-	assert(root);
+	assert(node);
 	assert(siblings);
 	assert(compare);
 
-	struct sbnm_heap_node *rnode = sbnm_heap_node_from_lcrs(root);
+	struct sbnm_heap_node *youngest = sbnm_heap_node_from_lcrs(node);
 
 	while (!lcrs_istail(siblings)) {
 		struct sbnm_heap_node *curr;
-		struct lcrs_node      *nxt;
 
 		curr = sbnm_heap_node_from_lcrs(siblings);
-		if (rnode->sbnm_rank != curr->sbnm_rank)
+		if (youngest->sbnm_rank != curr->sbnm_rank)
 			break;
 
-		nxt = lcrs_next(siblings);
+		node = lcrs_next(siblings);
 
-		rnode = sbnm_heap_join(rnode, curr, compare);
+		youngest = sbnm_heap_join(youngest, curr, compare);
 
-		siblings = nxt;
+		siblings = node;
 	}
 
-	lcrs_assign_next(&rnode->sbnm_lcrs, siblings);
+	lcrs_assign_next(&youngest->sbnm_lcrs, siblings);
 
-	return &rnode->sbnm_lcrs;
+	return &youngest->sbnm_lcrs;
 }
 
 static struct sbnm_heap_node *
@@ -302,18 +301,17 @@ sbnm_heap_insert(struct sbnm_heap *heap, struct sbnm_heap_node *key)
 	sbnm_heap_assert(heap);
 	assert(key);
 
-	struct lcrs_node     *dummy = &heap->sbnm_dummy;
-	sbnm_heap_compare_fn *cmp = heap->sbnm_compare;
-	struct lcrs_node     *node;
+	struct lcrs_node *dummy = &heap->sbnm_dummy;
 
 	lcrs_init(&key->sbnm_lcrs);
 	key->sbnm_rank = 0;
 
 	heap->sbnm_count++;
 
-	node = sbnm_heap_1way_merge_roots(&key->sbnm_lcrs,
-	                                  lcrs_youngest(dummy), cmp);
-	lcrs_assign_youngest(dummy, node);
+	lcrs_assign_youngest(dummy,
+	                     sbnm_heap_1way_merge_roots(&key->sbnm_lcrs,
+	                                                lcrs_youngest(dummy),
+	                                                heap->sbnm_compare));
 }
 
 struct sbnm_heap_node *

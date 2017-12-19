@@ -363,11 +363,8 @@ static int
 hppt_sbnm_validate(void)
 {
 	struct sbnm_heap      heap;
-#if 0
 	int                   n;
 	struct hppt_sbnm_key *k;
-#endif
-
 
 	hppt_sbnm_insert_bulk(&heap);
 
@@ -376,13 +373,11 @@ hppt_sbnm_validate(void)
 		return EXIT_FAILURE;
 	}
 
-#if 0
 	hppt_sbnm_insert_bulk(&heap);
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
 		k->value -= sbnm_heap_min;
-		sbnm_heap_promote(&heap, &k->node, hppt_sbnm_compare_min);
+		sbnm_heap_promote(&heap, &k->node);
 	}
-
 	if (hppt_sbnm_check_heap(&heap)) {
 		fprintf(stderr, "Bogus heap promote scheme\n");
 		return EXIT_FAILURE;
@@ -394,7 +389,23 @@ hppt_sbnm_validate(void)
 	 */
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
 		k->value += sbnm_heap_min;
-#endif
+
+	hppt_sbnm_insert_bulk(&heap);
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value += sbnm_heap_min;
+		sbnm_heap_demote(&heap, &k->node);
+	}
+	if (hppt_sbnm_check_heap(&heap)) {
+		fprintf(stderr, "Bogus heap demote scheme\n");
+		return EXIT_FAILURE;
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value -= sbnm_heap_min;
 
 	return EXIT_SUCCESS;
 }
@@ -480,10 +491,10 @@ hppt_sbnm_remove(unsigned long long *nsecs)
 static void
 hppt_sbnm_promote(unsigned long long *nsecs)
 {
-	int                    n;
+	int                   n;
 	struct hppt_sbnm_key *k;
 	struct sbnm_heap      heap;
-	struct timespec        start, elapse;
+	struct timespec       start, elapse;
 
 	*nsecs = 0;
 
@@ -506,6 +517,37 @@ hppt_sbnm_promote(unsigned long long *nsecs)
 	 */
 	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
 		k->value += sbnm_heap_min;
+}
+
+static void
+hppt_sbnm_demote(unsigned long long *nsecs)
+{
+	int                   n;
+	struct hppt_sbnm_key *k;
+	struct sbnm_heap      heap;
+	struct timespec       start, elapse;
+
+	*nsecs = 0;
+
+	hppt_sbnm_insert_bulk(&heap);
+
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
+		k->value += sbnm_heap_min;
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+		sbnm_heap_demote(&heap, &k->node);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &elapse);
+
+		elapse = pt_tspec_sub(&elapse, &start);
+		*nsecs += pt_tspec2ns(&elapse);
+	}
+
+	/*
+	 * Reset keys to their original values so that next computation loop
+	 * gives consistent numbers...
+	 */
+	for (n = 0, k = sbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++)
+		k->value -= sbnm_heap_min;
 }
 
 #endif /* defined(CONFIG_SBNM_HEAP) */
@@ -958,10 +1000,10 @@ hppt_pbnm_remove(unsigned long long *nsecs)
 static void
 hppt_pbnm_promote(unsigned long long *nsecs)
 {
-	int                    n;
+	int                   n;
 	struct hppt_pbnm_key *k;
 	struct pbnm_heap      heap;
-	struct timespec        start, elapse;
+	struct timespec       start, elapse;
 
 	*nsecs = 0;
 
@@ -991,10 +1033,10 @@ hppt_pbnm_promote(unsigned long long *nsecs)
 static void
 hppt_pbnm_demote(unsigned long long *nsecs)
 {
-	int                    n;
+	int                   n;
 	struct hppt_pbnm_key *k;
 	struct pbnm_heap      heap;
-	struct timespec        start, elapse;
+	struct timespec       start, elapse;
 
 	*nsecs = 0;
 
@@ -1306,7 +1348,8 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_insert  = hppt_sbnm_insert,
 		.hppt_extract = hppt_sbnm_extract,
 		.hppt_remove  = hppt_sbnm_remove,
-		.hppt_promote = hppt_sbnm_promote
+		.hppt_promote = hppt_sbnm_promote,
+		.hppt_demote  = hppt_sbnm_demote
 	},
 #endif
 #if defined(CONFIG_DBNM_HEAP)

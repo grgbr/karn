@@ -1,8 +1,8 @@
 #include "pbnm_heap.h"
 
-#define pbnm_heap_assert_node(_node)              \
-	assert(_node);                            \
-	assert((_node)->pbnm_handle);             \
+#define pbnm_heap_assert_node(_node)             \
+	assert(_node);                           \
+	assert((_node)->pbnm_handle);            \
 	assert(*(_node)->pbnm_handle == (_node))
 
 static struct pbnm_heap_node *
