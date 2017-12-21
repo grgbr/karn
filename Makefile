@@ -224,8 +224,8 @@ lib_src += lcrs.c
 ut_src  += lcrs_ut.c
 endif
 
-ifeq ($(CONFIG_PLCRS),y)
-#ut_src  += plcrs_ut.c
+ifeq ($(CONFIG_FBMP),y)
+lib_src += fbmp.c
 endif
 
 ifeq ($(CONFIG_PBNM_HEAP),y)

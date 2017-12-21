@@ -48,7 +48,7 @@ struct fwk_heap {
 	 * Reverse bits bitmap used to identify wether a node is a left or right
 	 * child
 	 */
-	struct fbmp      fwk_rbits;
+	uintptr_t       *fwk_rbits;
 	/* Undelying array of data nodes */
 	struct farr      fwk_nodes;
 };

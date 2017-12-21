@@ -1,9 +1,9 @@
-config LCRS
-	bool "Left child right sibling tree"
+config FBMP
+	bool "Fixed length bitmap"
 	default n
 
-config PLCRS
-	bool "Parented Left child right sibling tree"
+config LCRS
+	bool "Left child right sibling tree"
 	default n
 
 config SLIST
@@ -51,11 +51,11 @@ config FBNR_HEAP_SORT
 
 config PBNM_HEAP
 	bool "Parented LCRS based binomial heap"
-	select PLCRS
 	default y
 
 config SBNM_HEAP
 	bool "Singly linked list based binomial heap"
+	select LCRS
 	default y
 
 config DBNM_HEAP
@@ -70,6 +70,7 @@ config SPAIR_HEAP
 
 config FWK_HEAP_UTILS
 	bool "Fixed length array based weak heap utilities"
+	select FBMP
 	default n
 
 config FWK_HEAP

@@ -21,7 +21,10 @@
 #define _UTILS_H
 
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <limits.h>
+#include <sys/user.h>
 #include <assert.h>
 
 #if __WORDSIZE == 64
@@ -68,6 +71,15 @@
 		(type *)((char *)__p - offsetof(type, member)); \
 	 })
 
+#define PREFETCH_ACCESS_RO     (0)
+#define PREFETCH_ACCESS_RW     (1)
+#define PREFETCH_LOCALITY_TMP  (0)
+#define PREFETCH_LOCALITY_LOW  (1)
+#define PREFETCH_LOCALITY_FAIR (2)
+#define PREFETCH_LOCALITY_HIGH (3)
+
+#define prefetch(_address, ...) __builtin_prefetch(_address, ## __VA_ARGS__)
+
 static inline unsigned int
 lower_pow2(unsigned int value)
 {
@@ -88,13 +100,36 @@ upper_pow2(unsigned int value)
 	return lower_pow2(value + (1U << lower_pow2(value)) - 1);
 }
 
-#define PREFETCH_ACCESS_RO     (0)
-#define PREFETCH_ACCESS_RW     (1)
-#define PREFETCH_LOCALITY_TMP  (0)
-#define PREFETCH_LOCALITY_LOW  (1)
-#define PREFETCH_LOCALITY_FAIR (2)
-#define PREFETCH_LOCALITY_HIGH (3)
+#if __WORDSIZE == 64
+static inline int ffsw(uintptr_t word)
+{
+	return __builtin_ffsl((unsigned long)word);
+}
+#elif __WORDSIZE == 32
+static inline int ffsw(uintptr_t word)
+{
+	return __builtin_ffs((unsigned int)word);
+}
+#else
+#error "Unsupported machine word size !"
+#endif
 
-#define prefetch(_address, ...) __builtin_prefetch(_address, ## __VA_ARGS__)
+static inline size_t
+page_size(void)
+{
+	return PAGE_SIZE;
+}
+
+static inline void *
+page_alloc(void)
+{
+	return malloc(PAGE_SIZE);
+}
+
+static inline void *
+page_start(const void *ptr)
+{
+	return (void *)((uintptr_t)ptr & ~((uintptr_t)PAGE_SIZE - 1));
+}
 
 #endif

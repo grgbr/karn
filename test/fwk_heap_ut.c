@@ -119,7 +119,7 @@ static CUTE_PNP_FIXTURED_SUITE(fwkhut_insert, &fwkhut,
 
 static bool fwkhut_isleft_child(const struct fwk_heap *heap, unsigned int index)
 {
-	return (!!(index & 1)) == fbmp_test(&heap->fwk_rbits, index / 2);
+	return (!!(index & 1)) == fbmp_test(heap->fwk_rbits, index / 2);
 }
 
 static unsigned int fwkhut_dancestor_index(const struct fwk_heap *heap,
