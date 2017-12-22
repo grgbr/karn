@@ -6,22 +6,23 @@
 	assert(*(_node)->pbnm_handle == (_node))
 
 static struct pbnm_heap_node *
-pbnm_heap_swap(struct pbnm_heap_node *child, struct pbnm_heap_node *parent)
+pbnm_heap_swap(struct pbnm_heap_node *node, struct pbnm_heap_node *child)
 {
 	pbnm_heap_assert_node(child);
-	pbnm_heap_assert_node(parent);
-	assert(child != parent);
+	pbnm_heap_assert_node(node);
+	assert(node != child);
+	assert(child->pbnm_parent == node);
 
 	struct pbnm_heap_node **hndl = child->pbnm_handle;
-	struct pbnm_heap_node  *node = *hndl;
+	struct pbnm_heap_node  *tmp = *hndl;
 
-	*hndl = *(parent->pbnm_handle);
-	*(parent->pbnm_handle) = node;
+	*hndl = *(node->pbnm_handle);
+	*(node->pbnm_handle) = tmp;
 
-	child->pbnm_handle = parent->pbnm_handle;
-	parent->pbnm_handle = hndl;
+	child->pbnm_handle = node->pbnm_handle;
+	node->pbnm_handle = hndl;
 
-	return parent;
+	return node;
 }
 
 static struct pbnm_heap_node *
@@ -200,7 +201,7 @@ pbnm_heap_remove_key(struct pbnm_heap *heap, struct pbnm_heap_node *key)
 	struct pbnm_heap_node **prev;
 	
 	while (key->pbnm_parent)
-		key = pbnm_heap_swap(key, key->pbnm_parent);
+		key = pbnm_heap_swap(key->pbnm_parent, key);
 
 	prev = &heap->pbnm_roots;
 	while (*prev != key)
@@ -295,7 +296,7 @@ pbnm_heap_promote(struct pbnm_heap *heap, struct pbnm_heap_node *key)
 
 	while (key->pbnm_parent &&
 	       (heap->pbnm_compare(key, key->pbnm_parent) < 0))
-		key = pbnm_heap_swap(key, key->pbnm_parent);
+		key = pbnm_heap_swap(key->pbnm_parent, key);
 }
 
 void
