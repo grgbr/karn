@@ -2,6 +2,7 @@
 #include "fwk_heap.h"
 #include "sbnm_heap.h"
 #include "dbnm_heap.h"
+#include "falloc.h"
 #include "pbnm_heap.h"
 #include "spair_heap.h"
 #include "karn_pt.h"
@@ -771,6 +772,7 @@ struct hppt_pbnm_key {
 	unsigned int           value;
 };
 
+static struct falloc         pbnm_alloc;
 static struct hppt_pbnm_key *pbnm_heap_keys;
 static unsigned int          pbnm_heap_min;
 
@@ -789,7 +791,8 @@ hppt_pbnm_compare_min(const struct pbnm_heap_node *restrict first,
 static int
 hppt_pbnm_doinsert(struct pbnm_heap *heap, struct hppt_pbnm_key *key)
 {
-	key->node = malloc(sizeof(*key->node));
+	key->node = falloc_alloc(&pbnm_alloc);
+	//key->node = malloc(sizeof(*key->node));
 	if (!key->node)
 		return EXIT_FAILURE;
 
@@ -807,7 +810,8 @@ hppt_pbnm_doextract(struct pbnm_heap *heap)
 
 	key = pbnm_heap_entry(pbnm_heap_extract(heap), typeof(*key), node);
 
-	free(key->node);
+	//free(key->node);
+	falloc_free(&pbnm_alloc, key->node);
 
 	return key;
 }
@@ -817,7 +821,8 @@ hppt_pbnm_doremove(struct pbnm_heap *heap, struct hppt_pbnm_key *key)
 {
 	pbnm_heap_remove(heap, key->node);
 
-	free(key->node);
+	//free(key->node);
+	falloc_free(&pbnm_alloc, key->node);
 }
 
 static int
@@ -836,7 +841,8 @@ hppt_pbnm_insert_bulk(struct pbnm_heap *heap)
 		return EXIT_SUCCESS;
 
 	while (n--)
-		free(pbnm_heap_keys[n].node);
+		//free(pbnm_heap_keys[n].node);
+		falloc_free(&pbnm_alloc, pbnm_heap_keys[n].node);
 
 	fprintf(stderr, "failed to allocate heap node\n");
 
@@ -930,6 +936,8 @@ hppt_pbnm_load(const char *pathname)
 	pbnm_heap_keys = malloc(hppt_entries.pt_nr * sizeof(*pbnm_heap_keys));
 	if (!pbnm_heap_keys)
 		return EXIT_FAILURE;
+
+	falloc_init(&pbnm_alloc, sizeof(*k->node));
 
 	pt_init_entry_iter(&hppt_entries);
 
@@ -1025,7 +1033,8 @@ hppt_pbnm_promote(unsigned long long *nsecs)
 	 * gives consistent numbers...
 	 */
 	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
-		free(k->node);
+		//free(k->node);
+		falloc_free(&pbnm_alloc, k->node);
 		k->value += pbnm_heap_min;
 	}
 }
@@ -1058,7 +1067,8 @@ hppt_pbnm_demote(unsigned long long *nsecs)
 	 * gives consistent numbers...
 	 */
 	for (n = 0, k = pbnm_heap_keys; n < hppt_entries.pt_nr; n++, k++) {
-		free(k->node);
+		//free(k->node);
+		falloc_free(&pbnm_alloc, k->node);
 		k->value -= pbnm_heap_min;
 	}
 }

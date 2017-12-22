@@ -292,6 +292,25 @@ static inline void dlist_replace(struct dlist_node *restrict old,
 }
 
 /**
+ * Move entry from one location to another.
+ *
+ * @param at   Node after which to append @p node.
+ * @param node Node to move.
+ *
+ * @warning Behavior is unpredictable if @p old node is empty.
+ *
+ * @ingroup dlist
+ */
+static inline void dlist_move_after(struct dlist_node *restrict at,
+                                    struct dlist_node *restrict node)
+{
+	assert(at);
+
+	dlist_remove(node);
+	dlist_inject(at, node, at->dlist_next);
+}
+
+/**
  * Extract / remove a portion of nodes from a dlist.
  *
  * @param first First node of portion to remove.

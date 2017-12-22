@@ -24,8 +24,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
-#include <sys/user.h>
 #include <assert.h>
+#include <sys/user.h>
+#include <sys/mman.h>
+#include <asm/mman.h>
 
 #if __WORDSIZE == 64
 #define __UINTPTR_C(c) c ## UL
@@ -123,7 +125,18 @@ page_size(void)
 static inline void *
 page_alloc(void)
 {
-	return malloc(PAGE_SIZE);
+	void *page;
+
+	page = mmap(NULL, page_size(), PROT_READ | PROT_WRITE,
+	            MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+
+	return (page != MAP_FAILED) ? page : NULL;
+}
+
+static inline void
+page_free(void *page)
+{
+       munmap(page, PAGE_SIZE);
 }
 
 static inline void *

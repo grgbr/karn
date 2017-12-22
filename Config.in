@@ -2,6 +2,10 @@ config FBMP
 	bool "Fixed length bitmap"
 	default n
 
+config FALLOC
+	bool "Fixed length chunk allocator"
+	default n
+
 config LCRS
 	bool "Left child right sibling tree"
 	default n
