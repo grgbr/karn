@@ -22,8 +22,8 @@ pbnm_heap_init_node(struct pbnm_heap_node *node, struct pbnm_heap_node **handle)
 	*handle = node;
 }
 
-typedef int (pbnm_heap_compare_fn)(const struct pbnm_heap_node *restrict first,
-                                   const struct pbnm_heap_node *restrict second);
+typedef int (pbnm_heap_compare_fn)(const struct pbnm_heap_node *first,
+                                   const struct pbnm_heap_node *second);
 
 struct pbnm_heap {
 	struct pbnm_heap_node *pbnm_roots;

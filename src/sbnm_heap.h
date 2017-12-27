@@ -45,26 +45,25 @@ sbnm_heap_node_from_lcrs(const struct lcrs_node *node)
 	return lcrs_entry(node, struct sbnm_heap_node, sbnm_lcrs);
 }
 
-typedef int (sbnm_heap_compare_fn)(const struct sbnm_heap_node *restrict first,
-                                   const struct sbnm_heap_node *restrict second);
+typedef int (sbnm_heap_compare_fn)(const struct sbnm_heap_node *first,
+                                   const struct sbnm_heap_node *second);
 
 struct sbnm_heap {
 	unsigned int          sbnm_count;
-	struct lcrs_node      sbnm_dummy;
+	struct lcrs_node     *sbnm_roots;
 	sbnm_heap_compare_fn *sbnm_compare;
 };
 
-#define sbnm_heap_assert(_heap)                        \
-	assert(_heap);                                 \
-	assert(!lcrs_has_child(&(_heap)->sbnm_dummy) ^ \
-	       (_heap)->sbnm_count);                   \
+#define sbnm_heap_assert(_heap)                                         \
+	assert(_heap);                                                  \
+	assert(lcrs_istail((_heap)->sbnm_roots) ^ (_heap)->sbnm_count); \
 	assert((_heap)->sbnm_compare)
 
-#define SBNM_HEAP_INIT(_heap, _compare)                          \
-	{                                                        \
-		.sbnm_count   = 0,                               \
-		.sbnm_dummy   = LCRS_INIT(&(_heap)->sbnm_dummy), \
-		.sbnm_compare = _compare                         \
+#define SBNM_HEAP_INIT(_heap, _compare)    \
+	{                                  \
+		.sbnm_count   = 0,         \
+		.sbnm_roots   = LCRS_TAIL, \
+		.sbnm_compare = _compare   \
 	}
 
 extern struct sbnm_heap_node * sbnm_heap_peek(const struct sbnm_heap *heap);
@@ -83,8 +82,7 @@ extern void sbnm_heap_promote(struct sbnm_heap      *heap,
 extern void sbnm_heap_demote(struct sbnm_heap      *heap,
                              struct sbnm_heap_node *key);
 
-extern void sbnm_heap_merge(struct sbnm_heap *restrict result,
-                            struct sbnm_heap *restrict source);
+extern void sbnm_heap_merge(struct sbnm_heap *result, struct sbnm_heap *source);
 
 static inline unsigned int
 sbnm_heap_count(const struct sbnm_heap* heap)
@@ -109,7 +107,7 @@ sbnm_heap_init(struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
 	assert(compare);
 
 	heap->sbnm_count = 0;
-	lcrs_init(&heap->sbnm_dummy);
+	heap->sbnm_roots = lcrs_mktail(NULL);
 	heap->sbnm_compare = compare;
 }
 

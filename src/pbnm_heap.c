@@ -57,7 +57,7 @@ pbnm_heap_join(struct pbnm_heap_node *first,
 	return parent;
 }
 
-static struct pbnm_heap_node *
+static inline struct pbnm_heap_node *
 pbnm_heap_1way_merge_roots(struct pbnm_heap_node *node,
                            struct pbnm_heap_node *roots,
                            pbnm_heap_compare_fn  *compare)
@@ -78,7 +78,7 @@ pbnm_heap_1way_merge_roots(struct pbnm_heap_node *node,
 	return node;
 }
 
-static struct pbnm_heap_node *
+static inline struct pbnm_heap_node *
 pbnm_heap_2way_merge_roots(struct pbnm_heap_node **first,
                            struct pbnm_heap_node **second,
                            pbnm_heap_compare_fn   *compare)

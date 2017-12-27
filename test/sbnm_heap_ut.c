@@ -106,7 +106,7 @@ CUTE_PNP_TEST(sbnmhut_extract_single, &sbnmhut_empty)
 
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 1U);
 	cute_ensure(sbnm_heap_extract(&sbnmhut_heap) == &node.heap);
-	cute_ensure(!lcrs_has_child(&sbnmhut_heap.sbnm_dummy));
+	cute_ensure(lcrs_istail(sbnmhut_heap.sbnm_roots));
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 0U);
 }
 
@@ -116,7 +116,7 @@ static void sbnmhut_check_roots(const struct sbnm_heap* heap,
 	const struct lcrs_node *node;
 	int                     order = -1;
 
-	node = lcrs_youngest(&heap->sbnm_dummy);
+	node = heap->sbnm_roots;
 	while (!lcrs_istail(node)) {
 		while (!(count & 1)) {
 			count >>= 1;
@@ -125,7 +125,7 @@ static void sbnmhut_check_roots(const struct sbnm_heap* heap,
 		order++;
 		count >>= 1;
 
-		cute_ensure(lcrs_parent(node) == &heap->sbnm_dummy);
+		cute_ensure(!lcrs_parent(node));
 		cute_ensure(lcrs_entry(node,
 		                       struct sbnm_heap_node,
 		                       sbnm_lcrs)->sbnm_rank ==
@@ -1879,7 +1879,7 @@ CUTE_PNP_TEST(sbnmhut_remove_alone, &sbnmhut_remove)
 
 	sbnm_heap_remove(&sbnmhut_heap, &node.heap);
 
-	cute_ensure(!lcrs_has_child(&sbnmhut_heap.sbnm_dummy));
+	cute_ensure(lcrs_istail(sbnmhut_heap.sbnm_roots));
 	cute_ensure(sbnm_heap_count(&sbnmhut_heap) == 0U);
 }
 

@@ -71,22 +71,6 @@ static inline struct lcrs_node * lcrs_untail(struct lcrs_node *node)
 }
 
 static inline struct lcrs_node *
-lcrs_previous(const struct lcrs_node *restrict node,
-              struct lcrs_node       *restrict start)
-{
-	assert(!lcrs_istail(node));
-	assert(!lcrs_istail(start));
-	assert(start != node);
-
-	while (start->lcrs_sibling != node) {
-		assert(!lcrs_istail(start->lcrs_sibling));
-		start = start->lcrs_sibling;
-	}
-
-	return start;
-}
-
-static inline struct lcrs_node *
 lcrs_next(const struct lcrs_node *node)
 {
 	assert(!lcrs_istail(node));
@@ -109,6 +93,35 @@ lcrs_assign_next(struct lcrs_node       *restrict node,
 	assert(!lcrs_istail(node));
 
 	node->lcrs_sibling = (struct lcrs_node *)sibling;
+}
+
+static inline struct lcrs_node *
+lcrs_previous(const struct lcrs_node *restrict node,
+              const struct lcrs_node *restrict start)
+{
+	assert(!lcrs_istail(node));
+	assert(!lcrs_istail(start));
+	assert(start != node);
+
+	while (start->lcrs_sibling != node) {
+		assert(!lcrs_istail(start->lcrs_sibling));
+		start = start->lcrs_sibling;
+	}
+
+	return (struct lcrs_node *)start;
+}
+
+static inline struct lcrs_node **
+lcrs_previous_ref(const struct lcrs_node  *restrict node,
+                  struct lcrs_node       **restrict start)
+{
+	assert(!lcrs_istail(node));
+	assert(!lcrs_istail(*start));
+
+	while (*start != node)
+		start = lcrs_next_ref(*start);
+
+	return (struct lcrs_node **)start;
 }
 
 static inline bool
