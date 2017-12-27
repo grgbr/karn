@@ -78,7 +78,7 @@ extern void spair_heap_remove(struct spair_heap *heap,
                               lcrs_compare_fn   *compare);
 
 extern void spair_heap_merge(struct spair_heap *result,
-                             struct spair_heap *heap,
+                             struct spair_heap *source,
                              lcrs_compare_fn   *compare);
 
 extern void spair_heap_promote(struct spair_heap *heap,
