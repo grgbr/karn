@@ -234,6 +234,14 @@ ut_src  += pbnm_heap_ut.c
 pt_bin  := $(sort $(pt_bin) heap_pt) # remove duplicates
 endif
 
+ifeq ($(CONFIG_PLBST),y)
+lib_src += plbst.c
+endif
+
+ifeq ($(CONFIG_HPAIR_HEAP),y)
+lib_src += hpair_heap.c
+endif
+
 ifeq ($(CONFIG_FALLOC),y)
 lib_src += falloc.c
 endif
