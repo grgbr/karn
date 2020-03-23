@@ -310,7 +310,7 @@ static void dbnm_heap_swap(struct dbnm_heap_node *parent,
 	assert(parent->dbnm_child);
 	assert(parent->dbnm_order);
 	assert(node);
-	assert(node->dbnm_parent = parent);
+	assert(node->dbnm_parent == parent);
 
 	struct dbnm_heap_node *ancestor = parent->dbnm_parent;
 	struct dbnm_heap_node *child = dbnm_heap_sbl2node(node->dbnm_child);
