@@ -31,7 +31,7 @@ includedir=$${prefix}/include
 Name: libkarn
 Description: Karn data structure library
 Version: %%PKG_VERSION%%
-Requires:
+Requires.private: libutils
 Cflags: -I$${includedir}
 Libs: -L$${libdir} -lkarn
 endef

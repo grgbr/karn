@@ -3,7 +3,7 @@
 ################################################################################
 
 bins               := karn_ut
-karn_ut-cflags     := -I$(TOPDIR)/include \
+karn_ut-cflags     := -I$(SRCDIR)/../include \
                       $(EXTRA_CFLAGS) -Wall -Wextra -D_GNU_SOURCE \
                       -ftest-coverage -fprofile-arcs
 karn_ut-ldflags    := $(EXTRA_LDFLAGS) -lkarn -lgcov
@@ -31,7 +31,7 @@ endif
 
 ifeq ($(CONFIG_KARN_PERF),y)
 
-KARN_PT_CFLAGS      := -I$(TOPDIR)/include \
+KARN_PT_CFLAGS      := -I$(SRCDIR)/../include \
                        $(EXTRA_CFLAGS) -Wall -Wextra -D_GNU_SOURCE
 KARN_PT_LDFLAGS     := $(EXTRA_LDFLAGS) -lkarn
 KARN_PT_PKGCONF     := libutils

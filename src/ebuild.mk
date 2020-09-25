@@ -1,6 +1,6 @@
 solibs             := libkarn.so
 
-libkarn.so-objs    := farr.o
+libkarn.so-objs     = farr.o
 libkarn.so-objs    += $(call kconf_enabled,KARN_SLIST,slist.o)
 libkarn.so-objs    += $(call kconf_enabled,KARN_DLIST,dlist.o)
 libkarn.so-objs    += $(call kconf_enabled,KARN_FBNR_HEAP,fbnr_heap.o)
@@ -15,8 +15,9 @@ libkarn.so-objs    += $(call kconf_enabled,KARN_FALLOC,falloc.o)
 libkarn.so-objs    += $(call kconf_enabled,KARN_AVL,avl.o)
 libkarn.so-objs    += $(call kconf_enabled,KARN_PAVL,pavl.o)
 
-libkarn.so-cflags  := -I$(TOPDIR)/include \
+libkarn.so-cflags  := -I$(SRCDIR)/../include \
                       $(EXTRA_CFLAGS) -Wall -Wextra -D_GNU_SOURCE -DPIC -fpic
 
 libkarn.so-ldflags := $(EXTRA_LDFLAGS) -shared -fpic -Wl,-soname,libkarn.so
 libkarn.so-ldflags += $(call kconf_enabled,KARN_BTRACE,-rdynamic)
+libkarn.so-pkgconf  = libutils
