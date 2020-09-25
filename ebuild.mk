@@ -19,6 +19,8 @@ headers   += $(call kconf_enabled,KARN_FBMP,karn/fbmp.h)
 headers   += $(call kconf_enabled,KARN_FWK_HEAP,karn/fwk_heap.h)
 headers   += $(call kconf_enabled,KARN_PBNM_HEAP,karn/pbnm_heap.h)
 headers   += $(call kconf_enabled,KARN_FALLOC,karn/falloc.h)
+headers   += $(call kconf_enabled,KARN_AVL,karn/avl.h)
+headers   += $(call kconf_enabled,KARN_PAVL,karn/pavl.h)
 
 define libkarn_pkgconf_tmpl
 prefix=$(PREFIX)

@@ -32,7 +32,7 @@
 
 #if defined(CONFIG_KARN_ASSERT)
 
-#include <karn/assert.h>
+#include <utils/assert.h>
 
 #define karn_assert(_expr) \
 	uassert("karn", _expr)

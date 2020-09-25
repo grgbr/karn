@@ -103,6 +103,14 @@ config KARN_FWK_HEAP
 	select KARN_FWK_HEAP_UTILS
 	default y
 
+config KARN_AVL
+	bool "AVL tree"
+	default n
+
+config KARN_PAVL
+	bool "AVL tree with parent pointer"
+	default y
+
 config KARN_FWK_HEAP_SORT
 	bool "Fixed length array based weak heap sorting"
 	select KARN_FWK_HEAP_UTILS
