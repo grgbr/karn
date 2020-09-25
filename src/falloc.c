@@ -1,18 +1,51 @@
-#include "falloc.h"
+#include <karn/falloc.h>
+#include <stdint.h>
+#include <sys/user.h>
+#include <sys/mman.h>
+#include <asm/mman.h>
 
-#define falloc_assert(_allocator)                                         \
-	assert(_allocator);                                               \
-	assert((_allocator)->falloc_nr);                                  \
-	assert((_allocator)->falloc_size >= sizeof(unsigned int));        \
-	assert((sizeof(struct falloc_page) +                              \
-	        ((_allocator)->falloc_nr * (_allocator)->falloc_size)) <= \
-	       page_size())
+#define falloc_assert(_allocator) \
+	karn_assert(_allocator); \
+	karn_assert((_allocator)->falloc_nr); \
+	karn_assert((_allocator)->falloc_size >= sizeof(unsigned int)); \
+	karn_assert((sizeof(struct falloc_page) + \
+	             ((_allocator)->falloc_nr * (_allocator)->falloc_size)) <= \
+	             page_size())
 
-#define falloc_assert_page(_allocator, _page)                    \
-	assert(_allocator);                                      \
-	assert(_page);                                           \
-	assert((_page)->falloc_free <= (_page)->falloc_valid);   \
-	assert((_page)->falloc_valid <= (_allocator)->falloc_nr)
+#define falloc_assert_page(_allocator, _page) \
+	karn_assert(_allocator); \
+	karn_assert(_page); \
+	karn_assert((_page)->falloc_free <= (_page)->falloc_valid); \
+	karn_assert((_page)->falloc_valid <= (_allocator)->falloc_nr)
+
+static inline size_t
+page_size(void)
+{
+	return PAGE_SIZE;
+}
+
+static inline void *
+page_alloc(void)
+{
+	void *page;
+
+	page = mmap(NULL, page_size(), PROT_READ | PROT_WRITE,
+	            MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED, -1, 0);
+
+	return (page != MAP_FAILED) ? page : NULL;
+}
+
+static inline void
+page_free(void *page)
+{
+       munmap(page, PAGE_SIZE);
+}
+
+static inline void *
+page_start(const void *ptr)
+{
+	return (void *)((uintptr_t)ptr & ~((uintptr_t)PAGE_SIZE - 1));
+}
 
 static void *
 falloc_alloc_page(struct falloc *allocator)
@@ -84,7 +117,7 @@ void
 falloc_free(struct falloc *allocator, void *chunk)
 {
 	falloc_assert(allocator);
-	assert(chunk);
+	karn_assert(chunk);
 
 	struct falloc_page *page;
 
@@ -113,9 +146,10 @@ falloc_free(struct falloc *allocator, void *chunk)
 void
 falloc_init(struct falloc *allocator, size_t chunk_size)
 {
-	assert(allocator);
-	assert(chunk_size >= sizeof(unsigned int));
-	assert((sizeof(struct falloc_page) + (2 * chunk_size)) <= page_size());
+	karn_assert(allocator);
+	karn_assert(chunk_size >= sizeof(unsigned int));
+	karn_assert((sizeof(struct falloc_page) + (2 * chunk_size)) <=
+	            page_size());
 
 	allocator->falloc_nr = (page_size() - sizeof(struct falloc_page)) /
 	                       chunk_size;

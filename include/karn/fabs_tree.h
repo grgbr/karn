@@ -26,10 +26,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _FABS_TREE_H
-#define _FABS_TREE_H
+#ifndef _KARN_FABS_TREE_H
+#define _KARN_FABS_TREE_H
 
-#include <farr.h>
+#include <karn/farr.h>
+#include <utils/pow2.h>
 #include <stdbool.h>
 
 /**
@@ -45,9 +46,9 @@ struct fabs_tree {
 };
 
 /* Internal fabs_tree consistency checker */
-#define fabs_tree_assert(_tree)                                       \
-	assert(_tree);                                                \
-	assert((_tree)->fabs_count <= farr_nr(&(_tree)->fabs_nodes)); \
+#define fabs_tree_assert(_tree) \
+	karn_assert(_tree); \
+	karn_assert((_tree)->fabs_count <= farr_nr(&(_tree)->fabs_nodes))
 
 #define FABS_TREE_ROOT_INDEX (0U)
 
@@ -145,7 +146,7 @@ static inline char * fabs_tree_node(const struct fabs_tree *tree,
                                     unsigned int            index)
 {
 	fabs_tree_assert(tree);
-	assert(index < farr_nr(&tree->fabs_nodes));
+	karn_assert(index < farr_nr(&tree->fabs_nodes));
 
 	return farr_slot(&tree->fabs_nodes, index);
 }
@@ -181,7 +182,7 @@ static inline unsigned int fabs_tree_node_index(const struct fabs_tree *tree,
  */
 static inline char * fabs_tree_root(const struct fabs_tree *tree)
 {
-	assert(!fabs_tree_empty(tree));
+	karn_assert(!fabs_tree_empty(tree));
 
 	return farr_slot(&tree->fabs_nodes, FABS_TREE_ROOT_INDEX);
 }
@@ -200,7 +201,7 @@ static inline char * fabs_tree_root(const struct fabs_tree *tree)
 static inline unsigned int
 fabs_tree_last_index(const struct fabs_tree *tree)
 {
-	assert(!fabs_tree_empty(tree));
+	karn_assert(!fabs_tree_empty(tree));
 
 	return fabs_tree_count(tree) - 1;
 }
@@ -235,7 +236,7 @@ static inline char * fabs_tree_last(const struct fabs_tree *tree)
  */
 static inline unsigned int fabs_tree_bottom_index(const struct fabs_tree *tree)
 {
-	assert(!fabs_tree_full(tree));
+	karn_assert(!fabs_tree_full(tree));
 
 	return fabs_tree_count(tree);
 }
@@ -296,7 +297,7 @@ static inline unsigned int fabs_tree_right_child_index(unsigned int index)
  */
 static inline unsigned int fabs_tree_parent_index(unsigned int index)
 {
-	assert(index);
+	karn_assert(index);
 
 	return (index - 1) / 2;
 }
@@ -312,7 +313,7 @@ static inline unsigned int fabs_tree_parent_index(unsigned int index)
  */
 static inline unsigned int fabs_tree_index_depth(unsigned int index)
 {
-	return lower_pow2(index + 1);
+	return pow2_lower(index + 1);
 }
 
 /**
@@ -339,7 +340,7 @@ static inline unsigned int fabs_tree_index_depth(unsigned int index)
 static inline unsigned int
 fabs_tree_ancestor_index(unsigned int index, unsigned int depth_offset)
 {
-	assert(depth_offset <= fabs_tree_index_depth(index));
+	karn_assert(depth_offset <= fabs_tree_index_depth(index));
 
 	return (index - (1U << depth_offset) + 1) >> depth_offset;
 }
@@ -369,7 +370,7 @@ static inline void fabs_tree_clear(struct fabs_tree *tree)
  */
 static inline void fabs_tree_credit(struct fabs_tree *tree)
 {
-	assert(!fabs_tree_full(tree));
+	karn_assert(!fabs_tree_full(tree));
 
 	tree->fabs_count++;
 }
@@ -385,7 +386,7 @@ static inline void fabs_tree_credit(struct fabs_tree *tree)
  */
 static inline void fabs_tree_debit(struct fabs_tree *tree)
 {
-	assert(!fabs_tree_empty(tree));
+	karn_assert(!fabs_tree_empty(tree));
 
 	tree->fabs_count--;
 }
@@ -410,10 +411,10 @@ static inline void fabs_tree_init(struct fabs_tree *tree,
                                   size_t            node_size,
                                   unsigned int      node_nr)
 {
-	assert(tree);
-	assert(nodes);
-	assert(node_size);
-	assert(node_nr);
+	karn_assert(tree);
+	karn_assert(nodes);
+	karn_assert(node_size);
+	karn_assert(node_nr);
 
 	tree->fabs_count = 0;
 	farr_init(&tree->fabs_nodes, nodes, node_size, node_nr);
@@ -433,4 +434,4 @@ static inline void fabs_tree_fini(struct fabs_tree *tree __unused)
 	farr_fini(&tree->fabs_nodes);
 }
 
-#endif
+#endif /* _KARN_FABS_TREE_H */

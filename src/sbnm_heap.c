@@ -24,8 +24,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sbnm_heap.h"
-#include <assert.h>
+#include <karn/sbnm_heap.h>
 
 static struct sbnm_heap_node *
 sbnm_heap_parent_node(const struct sbnm_heap_node *node)
@@ -56,11 +55,11 @@ sbnm_heap_join(struct sbnm_heap_node *first,
                struct sbnm_heap_node *second,
                sbnm_heap_compare_fn  *compare)
 {
-	assert(first);
-	assert(second);
-	assert(first != second);
-	assert(first->sbnm_rank == second->sbnm_rank);
-	assert(compare);
+	karn_assert(first);
+	karn_assert(second);
+	karn_assert(first != second);
+	karn_assert(first->sbnm_rank == second->sbnm_rank);
+	karn_assert(compare);
 
 	struct sbnm_heap_node *parent;
 	struct sbnm_heap_node *child;
@@ -96,7 +95,7 @@ struct sbnm_heap_node *
 sbnm_heap_peek(const struct sbnm_heap *heap)
 {
 	sbnm_heap_assert(heap);
-	assert(heap->sbnm_count);
+	karn_assert(heap->sbnm_count);
 
 	const struct sbnm_heap_node *key;
 	const struct sbnm_heap_node *curr;
@@ -125,9 +124,9 @@ sbnm_heap_1way_merge_roots(struct lcrs_node     *node,
                            struct lcrs_node     *siblings,
                            sbnm_heap_compare_fn *compare)
 {
-	assert(node);
-	assert(siblings);
-	assert(compare);
+	karn_assert(node);
+	karn_assert(siblings);
+	karn_assert(compare);
 
 	struct sbnm_heap_node *youngest = sbnm_heap_node_from_lcrs(node);
 
@@ -155,13 +154,13 @@ sbnm_heap_2way_merge_roots(struct lcrs_node     **first,
                            struct lcrs_node     **second,
                            sbnm_heap_compare_fn  *compare)
 {
-	assert(first);
-	assert(*first);
-	assert(second);
-	assert(*second);
-	assert(first != second);
-	assert(*first != *second);
-	assert(compare);
+	karn_assert(first);
+	karn_assert(*first);
+	karn_assert(second);
+	karn_assert(*second);
+	karn_assert(first != second);
+	karn_assert(*first != *second);
+	karn_assert(compare);
 
 	struct sbnm_heap_node *fst = sbnm_heap_node_from_lcrs(*first);
 	struct sbnm_heap_node *snd = sbnm_heap_node_from_lcrs(*second);
@@ -189,12 +188,12 @@ sbnm_heap_merge_roots(struct lcrs_node     *first,
                       struct lcrs_node     *second,
                       sbnm_heap_compare_fn *compare)
 {
-	assert(first);
-	assert(!lcrs_istail(first));
-	assert(second);
-	assert(!lcrs_istail(second));
-	assert(first != second);
-	assert(compare);
+	karn_assert(first);
+	karn_assert(!lcrs_istail(first));
+	karn_assert(second);
+	karn_assert(!lcrs_istail(second));
+	karn_assert(first != second);
+	karn_assert(compare);
 
 	struct lcrs_node  *res;
 	struct lcrs_node **tail = &res;
@@ -207,9 +206,9 @@ sbnm_heap_merge_roots(struct lcrs_node     *first,
 
 		tmp = sbnm_heap_2way_merge_roots(&first, &second, compare);
 
-		assert(!lcrs_istail(*tail));
+		karn_assert(!lcrs_istail(*tail));
 		last = sbnm_heap_node_from_lcrs(*tail);
-		assert(last->sbnm_rank <= tmp->sbnm_rank);
+		karn_assert(last->sbnm_rank <= tmp->sbnm_rank);
 
 		if (last->sbnm_rank != tmp->sbnm_rank)
 			tail = lcrs_next_ref(*tail);
@@ -233,9 +232,9 @@ sbnm_heap_remove_root(struct sbnm_heap  *heap,
                       struct lcrs_node **previous,
                       struct lcrs_node  *root)
 {
-	assert(heap);
-	assert(previous);
-	assert(root);
+	karn_assert(heap);
+	karn_assert(previous);
+	karn_assert(root);
 
 	struct lcrs_node *trees;
 
@@ -271,7 +270,7 @@ static void
 sbnm_heap_remove_key(struct sbnm_heap *heap, struct sbnm_heap_node *key)
 {
 	sbnm_heap_assert(heap);
-	assert(heap->sbnm_count);
+	karn_assert(heap->sbnm_count);
 
 	struct lcrs_node *root = &key->sbnm_lcrs;
 	
@@ -295,7 +294,7 @@ void
 sbnm_heap_insert(struct sbnm_heap *heap, struct sbnm_heap_node *key)
 {
 	sbnm_heap_assert(heap);
-	assert(key);
+	karn_assert(key);
 
 	lcrs_init(&key->sbnm_lcrs);
 	key->sbnm_rank = 0;
@@ -311,7 +310,7 @@ struct sbnm_heap_node *
 sbnm_heap_extract(struct sbnm_heap *heap)
 {
 	sbnm_heap_assert(heap);
-	assert(heap->sbnm_count);
+	karn_assert(heap->sbnm_count);
 
 	struct lcrs_node      **prev = &heap->sbnm_roots;
 	struct sbnm_heap_node  *key;
@@ -350,7 +349,7 @@ void
 sbnm_heap_promote(struct sbnm_heap *heap, struct sbnm_heap_node *key)
 {
 	sbnm_heap_assert(heap);
-	assert(heap->sbnm_count);
+	karn_assert(heap->sbnm_count);
 
 	sbnm_heap_compare_fn  *cmp = heap->sbnm_compare;
 	struct sbnm_heap_node *parent;
@@ -380,10 +379,10 @@ void
 sbnm_heap_merge(struct sbnm_heap *result, struct sbnm_heap *source)
 {
 	sbnm_heap_assert(result);
-	assert(result->sbnm_count);
+	karn_assert(result->sbnm_count);
 	sbnm_heap_assert(source);
-	assert(source->sbnm_count);
-	assert(result->sbnm_compare == source->sbnm_compare);
+	karn_assert(source->sbnm_count);
+	karn_assert(result->sbnm_compare == source->sbnm_compare);
 
 	result->sbnm_count += source->sbnm_count;
 

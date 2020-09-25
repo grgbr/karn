@@ -23,14 +23,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "lcrs.h"
+#include <karn/lcrs.h>
 
 static void
 lcrs_substitute_siblings(const struct lcrs_node *restrict node,
                          struct lcrs_node       *restrict start,
                          struct lcrs_node       *restrict substitute)
 {
-	assert(substitute);
+	karn_assert(substitute);
 
 	lcrs_previous(node, start)->lcrs_sibling = substitute;
 }
@@ -47,9 +47,9 @@ static void lcrs_swap_ref(struct lcrs_node **restrict first,
 struct lcrs_node *
 lcrs_swap_down(struct lcrs_node *node, struct lcrs_node *child)
 {
-	assert(node != child);
-	assert(lcrs_has_child(node));
-	assert(lcrs_parent(child) == node);
+	karn_assert(node != child);
+	karn_assert(lcrs_has_child(node));
+	karn_assert(lcrs_parent(child) == node);
 
 	struct lcrs_node *tmp = node->lcrs_youngest;
 

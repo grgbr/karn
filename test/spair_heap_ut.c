@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spair_heap.h"
+#include <karn/spair_heap.h>
 #include <cute/cute.h>
 
 struct spairhut_node {

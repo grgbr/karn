@@ -24,15 +24,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "spair_heap.h"
+#include <karn/spair_heap.h>
 
 static struct lcrs_node * spair_heap_join(struct lcrs_node *first,
                                           struct lcrs_node *second,
                                           lcrs_compare_fn  *compare)
 {
-	assert(first);
-	assert(second);
-	assert(compare);
+	karn_assert(first);
+	karn_assert(second);
+	karn_assert(compare);
 
 	if (compare(first, second) <= 0) {
 		lcrs_join(second, first);
@@ -48,9 +48,9 @@ static struct lcrs_node * spair_heap_join(struct lcrs_node *first,
 static struct lcrs_node *
 spair_heap_merge_roots(struct lcrs_node *roots, lcrs_compare_fn *compare)
 {
-	assert(roots);
-	assert(!lcrs_istail(roots));
-	assert(compare);
+	karn_assert(roots);
+	karn_assert(!lcrs_istail(roots));
+	karn_assert(compare);
 
 	struct lcrs_node *curr = roots;
 	struct lcrs_node *tmp;
@@ -100,9 +100,9 @@ spair_heap_remove_key(struct lcrs_node *root,
                       bool              isroot,
                       lcrs_compare_fn  *compare)
 {
-	assert(root);
-	assert(key);
-	assert(compare);
+	karn_assert(root);
+	karn_assert(key);
+	karn_assert(compare);
 
 	if (!lcrs_has_child(key)) {
 		if (!isroot) {
@@ -144,10 +144,10 @@ void spair_heap_merge(struct spair_heap *result,
                       lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(result);
-	assert(result->spair_count);
+	karn_assert(result->spair_count);
 	spair_heap_assert(source);
-	assert(source->spair_count);
-	assert(compare);
+	karn_assert(source->spair_count);
+	karn_assert(compare);
 
 	result->spair_count += source->spair_count;
 
@@ -160,8 +160,8 @@ void spair_heap_insert(struct spair_heap *heap,
                        lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
-	assert(key);
-	assert(compare);
+	karn_assert(key);
+	karn_assert(compare);
 
 	heap->spair_count++;
 
@@ -180,8 +180,8 @@ struct lcrs_node * spair_heap_extract(struct spair_heap *heap,
                                       lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
-	assert(heap->spair_count);
-	assert(compare);
+	karn_assert(heap->spair_count);
+	karn_assert(compare);
 
 	struct lcrs_node *root = heap->spair_root;
 
@@ -203,9 +203,9 @@ void spair_heap_remove(struct spair_heap *heap,
                        lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
-	assert(heap->spair_count);
-	assert(key);
-	assert(compare);
+	karn_assert(heap->spair_count);
+	karn_assert(key);
+	karn_assert(compare);
 
 	heap->spair_count--;
 
@@ -219,9 +219,9 @@ void spair_heap_promote(struct spair_heap *heap,
                         lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
-	assert(heap->spair_count);
-	assert(key);
-	assert(compare);
+	karn_assert(heap->spair_count);
+	karn_assert(key);
+	karn_assert(compare);
 
 	bool isroot = (key == heap->spair_root);
 
@@ -239,9 +239,9 @@ void spair_heap_demote(struct spair_heap *heap,
                        lcrs_compare_fn   *compare)
 {
 	spair_heap_assert(heap);
-	assert(heap->spair_count);
-	assert(key);
-	assert(compare);
+	karn_assert(heap->spair_count);
+	karn_assert(key);
+	karn_assert(compare);
 
 	if (heap->spair_count == 1)
 		return;

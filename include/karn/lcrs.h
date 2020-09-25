@@ -23,16 +23,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _LCRS_H
-#define _LCRS_H
+#ifndef _KARN_LCRS_H
+#define _KARN_LCRS_H
 
-#ifndef CONFIG_LCRS
-#error LCRS configuration disabled !
-#endif
-
-#include <utils.h>
+#include <karn/common.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#ifndef CONFIG_KARN_LCRS
+#error LCRS configuration disabled !
+#endif
 
 struct lcrs_node {
 	struct lcrs_node *lcrs_sibling;
@@ -53,7 +53,7 @@ typedef int (lcrs_compare_fn)(const struct lcrs_node *restrict first,
 
 static inline bool lcrs_istail(const struct lcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return ((uintptr_t)node & LCRS_TAIL);
 }
@@ -65,7 +65,7 @@ static inline struct lcrs_node * lcrs_mktail(const struct lcrs_node *node)
 
 static inline struct lcrs_node * lcrs_untail(struct lcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return (struct lcrs_node *)((uintptr_t)node & ~LCRS_TAIL);
 }
@@ -73,7 +73,7 @@ static inline struct lcrs_node * lcrs_untail(struct lcrs_node *node)
 static inline struct lcrs_node *
 lcrs_next(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return node->lcrs_sibling;
 }
@@ -81,7 +81,7 @@ lcrs_next(const struct lcrs_node *node)
 static inline struct lcrs_node **
 lcrs_next_ref(struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return &node->lcrs_sibling;
 }
@@ -90,7 +90,7 @@ static inline void
 lcrs_assign_next(struct lcrs_node       *restrict node,
                  const struct lcrs_node *restrict sibling)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	node->lcrs_sibling = (struct lcrs_node *)sibling;
 }
@@ -99,12 +99,12 @@ static inline struct lcrs_node *
 lcrs_previous(const struct lcrs_node *restrict node,
               const struct lcrs_node *restrict start)
 {
-	assert(!lcrs_istail(node));
-	assert(!lcrs_istail(start));
-	assert(start != node);
+	karn_assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(start));
+	karn_assert(start != node);
 
 	while (start->lcrs_sibling != node) {
-		assert(!lcrs_istail(start->lcrs_sibling));
+		karn_assert(!lcrs_istail(start->lcrs_sibling));
 		start = start->lcrs_sibling;
 	}
 
@@ -115,8 +115,8 @@ static inline struct lcrs_node **
 lcrs_previous_ref(const struct lcrs_node  *restrict node,
                   struct lcrs_node       **restrict start)
 {
-	assert(!lcrs_istail(node));
-	assert(!lcrs_istail(*start));
+	karn_assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(*start));
 
 	while (*start != node)
 		start = lcrs_next_ref(*start);
@@ -127,7 +127,7 @@ lcrs_previous_ref(const struct lcrs_node  *restrict node,
 static inline bool
 lcrs_has_child(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return node->lcrs_youngest != lcrs_mktail(node);
 }
@@ -135,7 +135,7 @@ lcrs_has_child(const struct lcrs_node *node)
 static inline struct lcrs_node *
 lcrs_youngest(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return node->lcrs_youngest;
 }
@@ -143,7 +143,7 @@ lcrs_youngest(const struct lcrs_node *node)
 static inline struct lcrs_node **
 lcrs_youngest_ref(struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return &node->lcrs_youngest;
 }
@@ -151,7 +151,7 @@ lcrs_youngest_ref(struct lcrs_node *node)
 static inline struct lcrs_node *
 lcrs_eldest(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	while (!lcrs_istail(node->lcrs_sibling))
 		node = node->lcrs_sibling;
@@ -162,7 +162,7 @@ lcrs_eldest(const struct lcrs_node *node)
 static inline bool
 lcrs_has_parent(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return node->lcrs_sibling != lcrs_mktail(NULL);
 }
@@ -170,7 +170,7 @@ lcrs_has_parent(const struct lcrs_node *node)
 static inline struct lcrs_node *
 lcrs_parent(const struct lcrs_node *node)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	return lcrs_untail(lcrs_eldest(node)->lcrs_sibling);
 }
@@ -186,7 +186,7 @@ static inline void
 lcrs_assign_youngest(struct lcrs_node       *restrict node,
                      const struct lcrs_node *restrict youngest)
 {
-	assert(!lcrs_istail(node));
+	karn_assert(!lcrs_istail(node));
 
 	node->lcrs_youngest = (struct lcrs_node *)youngest;
 }
@@ -194,8 +194,8 @@ lcrs_assign_youngest(struct lcrs_node       *restrict node,
 static inline void
 lcrs_join(struct lcrs_node *restrict tree, struct lcrs_node *restrict parent)
 {
-	assert(!lcrs_istail(tree));
-	assert(!lcrs_istail(parent));
+	karn_assert(!lcrs_istail(tree));
+	karn_assert(!lcrs_istail(parent));
 
 	tree->lcrs_sibling = parent->lcrs_youngest;
 	lcrs_assign_youngest(parent, tree);
@@ -205,10 +205,10 @@ static inline void
 lcrs_split(const struct lcrs_node  *restrict tree,
            struct lcrs_node       **restrict previous)
 {
-	assert(!lcrs_istail(tree));
-	assert(previous);
-	assert(!lcrs_istail(*previous));
-	assert(lcrs_parent(tree) == lcrs_parent(*previous));
+	karn_assert(!lcrs_istail(tree));
+	karn_assert(previous);
+	karn_assert(!lcrs_istail(*previous));
+	karn_assert(lcrs_parent(tree) == lcrs_parent(*previous));
 
 	while (*previous != tree)
 		previous = &(*previous)->lcrs_sibling;
@@ -219,7 +219,7 @@ lcrs_split(const struct lcrs_node  *restrict tree,
 static inline void
 lcrs_init(struct lcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	node->lcrs_sibling = lcrs_mktail(NULL);
 	node->lcrs_youngest = lcrs_mktail(node);
@@ -247,4 +247,4 @@ extern struct lcrs_node * lcrs_swap_down(struct lcrs_node *node,
 #define lcrs_entry(_node, _type, _member) \
 	containerof(_node, _type, _member)
 
-#endif
+#endif /* _KARN_LCRS_H */

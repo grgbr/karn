@@ -1,4 +1,5 @@
 #include "karn_pt.h"
+#include <utils/cdefs.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -77,7 +78,7 @@ static int fapt_qsort_sort(unsigned long long *nsecs)
  * Bubble sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FARR_BUBBLE_SORT)
+#if defined(CONFIG_KARN_FARR_BUBBLE_SORT)
 
 #include "farr.h"
 
@@ -135,13 +136,13 @@ static int fapt_bubble_sort(unsigned long long *nsecs)
 	return EXIT_SUCCESS;
 }
 
-#endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_BUBBLE_SORT) */
 
 /******************************************************************************
  * Selection sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FARR_SELECTION_SORT)
+#if defined(CONFIG_KARN_FARR_SELECTION_SORT)
 
 #include "farr.h"
 
@@ -199,13 +200,13 @@ static int fapt_selection_sort(unsigned long long *nsecs)
 	return EXIT_SUCCESS;
 }
 
-#endif /* defined(CONFIG_FARR_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_SELECTION_SORT) */
 
 /******************************************************************************
  * Insertion sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FARR_INSERTION_SORT)
+#if defined(CONFIG_KARN_FARR_INSERTION_SORT)
 
 #include "farr.h"
 
@@ -263,13 +264,13 @@ static int fapt_insertion_sort(unsigned long long *nsecs)
 	return EXIT_SUCCESS;
 }
 
-#endif /* defined(CONFIG_FARR_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_INSERTION_SORT) */
 
 /******************************************************************************
  * Quick sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FARR_QUICK_SORT)
+#if defined(CONFIG_KARN_FARR_QUICK_SORT)
 
 #include "farr.h"
 
@@ -327,13 +328,13 @@ static int fapt_quick_sort(unsigned long long *nsecs)
 	return EXIT_SUCCESS;
 }
 
-#endif /* defined(CONFIG_FARR_QUICK_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_QUICK_SORT) */
 
 /******************************************************************************
  * Fixed array based binary heap sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FBNR_HEAP_SORT)
+#if defined(CONFIG_KARN_FBNR_HEAP_SORT)
 
 #include "fbnr_heap.h"
 
@@ -391,13 +392,13 @@ static int fapt_fbnr_heap_sort(unsigned long long *nsecs)
 	return EXIT_SUCCESS;
 }
 
-#endif /* defined(CONFIG_FBNR_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FBNR_HEAP_SORT) */
 
 /******************************************************************************
  * Fixed array based weak heap sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FWK_HEAP_SORT)
+#if defined(CONFIG_KARN_FWK_HEAP_SORT)
 
 #include "fwk_heap.h"
 
@@ -462,13 +463,13 @@ free:
 	return ret;
 }
 
-#endif /* defined(CONFIG_FWK_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FWK_HEAP_SORT) */
 
 /******************************************************************************
  * Fixed array based introspective sorting
  ******************************************************************************/
 
-#if defined(CONFIG_FARR_INTRO_SORT)
+#if defined(CONFIG_KARN_FARR_INTRO_SORT)
 
 #include "farr.h"
 
@@ -526,7 +527,7 @@ static int fapt_intro_sort(unsigned long long *nsecs)
 	return EXIT_SUCCESS;
 }
 
-#endif /* defined(CONFIG_FARR_INTRO_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_INTRO_SORT) */
 
 /******************************************************************************
  * Main measurment task handling
@@ -538,49 +539,49 @@ static const struct fapt_iface fapt_algos[] = {
 		.fapt_validate = fapt_qsort_validate,
 		.fapt_sort     = fapt_qsort_sort
 	},
-#if defined(CONFIG_FBNR_HEAP_SORT)
+#if defined(CONFIG_KARN_FBNR_HEAP_SORT)
 	{
 		.fapt_name     = "fbnrh",
 		.fapt_validate = fapt_fbnr_heap_validate,
 		.fapt_sort     = fapt_fbnr_heap_sort
 	},
 #endif
-#if defined(CONFIG_FWK_HEAP_SORT)
+#if defined(CONFIG_KARN_FWK_HEAP_SORT)
 	{
 		.fapt_name     = "fwkh",
 		.fapt_validate = fapt_fwk_heap_validate,
 		.fapt_sort     = fapt_fwk_heap_sort
 	},
 #endif
-#if defined(CONFIG_FARR_BUBBLE_SORT)
+#if defined(CONFIG_KARN_FARR_BUBBLE_SORT)
 	{
 		.fapt_name     = "bubble",
 		.fapt_validate = fapt_bubble_validate,
 		.fapt_sort     = fapt_bubble_sort
 	},
 #endif
-#if defined(CONFIG_FARR_SELECTION_SORT)
+#if defined(CONFIG_KARN_FARR_SELECTION_SORT)
 	{
 		.fapt_name     = "selection",
 		.fapt_validate = fapt_selection_validate,
 		.fapt_sort     = fapt_selection_sort
 	},
 #endif
-#if defined(CONFIG_FARR_INSERTION_SORT)
+#if defined(CONFIG_KARN_FARR_INSERTION_SORT)
 	{
 		.fapt_name     = "insertion",
 		.fapt_validate = fapt_insertion_validate,
 		.fapt_sort     = fapt_insertion_sort
 	},
 #endif
-#if defined(CONFIG_FARR_QUICK_SORT)
+#if defined(CONFIG_KARN_FARR_QUICK_SORT)
 	{
 		.fapt_name     = "quick",
 		.fapt_validate = fapt_quick_validate,
 		.fapt_sort     = fapt_quick_sort
 	},
 #endif
-#if defined(CONFIG_FARR_INTRO_SORT)
+#if defined(CONFIG_KARN_FARR_INTRO_SORT)
 	{
 		.fapt_name     = "intro",
 		.fapt_validate = fapt_intro_validate,

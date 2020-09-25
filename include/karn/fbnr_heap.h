@@ -26,10 +26,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _FBNR_HEAP_H
-#define _FBNR_HEAP_H
+#ifndef _KARN_FBNR_HEAP_H
+#define _KARN_FBNR_HEAP_H
 
-#include <fabs_tree.h>
+#include <karn/fabs_tree.h>
 
 /**
  * Fixed length array based binary heap
@@ -45,10 +45,10 @@ struct fbnr_heap {
 	struct fabs_tree  fbnr_tree;
 };
 
-#define fbnr_heap_assert(_heap)        \
-	assert(_heap);                 \
-	assert((_heap)->fbnr_compare); \
-	assert((_heap)->fbnr_copy)
+#define fbnr_heap_assert(_heap) \
+	karn_assert(_heap); \
+	karn_assert((_heap)->fbnr_compare); \
+	karn_assert((_heap)->fbnr_copy)
 
 /**
  * Return capacity of a fbnr_heap in number of nodes
@@ -135,7 +135,7 @@ static inline bool fbnr_heap_full(const struct fbnr_heap *heap)
  */
 static inline char * fbnr_heap_peek(const struct fbnr_heap *heap)
 {
-	assert(!fbnr_heap_empty(heap));
+	karn_assert(!fbnr_heap_empty(heap));
 
 	return fabs_tree_root(&heap->fbnr_tree);
 }
@@ -272,7 +272,7 @@ extern struct fbnr_heap * fbnr_heap_create(size_t           node_size,
  */
 extern void fbnr_heap_destroy(struct fbnr_heap *heap);
 
-#if defined(CONFIG_FBNR_HEAP_SORT)
+#if defined(CONFIG_KARN_FBNR_HEAP_SORT)
 
 /**
  * Sort array passed as argument according to binary heap sort scheme.
@@ -292,6 +292,6 @@ extern void fbnr_heap_sort(char            *entries,
                            farr_compare_fn *compare,
                            farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FBNR_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FBNR_HEAP_SORT) */
 
-#endif
+#endif /* _KARN_FBNR_HEAP_H */

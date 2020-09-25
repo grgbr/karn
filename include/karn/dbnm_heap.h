@@ -27,8 +27,7 @@
 #ifndef _KARN_DBNM_HEAP_H
 #define _KARN_DBNM_HEAP_H
 
-#include "dlist.h"
-#include <assert.h>
+#include <karn/dlist.h>
 
 struct dbnm_heap_node {
 	struct dlist_node      dbnm_sibling;
@@ -45,9 +44,9 @@ struct dbnm_heap {
 	unsigned int      dbnm_count;
 };
 
-#define dbnm_heap_assert(_heap)                                       \
-	assert(_heap);                                                \
-	assert(dlist_empty(&(_heap)->dbnm_roots) ^ (_heap)->dbnm_count)
+#define dbnm_heap_assert(_heap) \
+	karn_assert(_heap); \
+	karn_assert(dlist_empty(&(_heap)->dbnm_roots) ^ (_heap)->dbnm_count)
 
 #define DBNM_HEAP_INIT(_heap)                                 \
 	{                                                     \
@@ -100,8 +99,8 @@ dbnm_heap_merge(struct dbnm_heap     *result,
                 struct dbnm_heap     *source,
                 dbnm_heap_compare_fn *compare)
 {
-	assert(result);
-	assert(source);
+	karn_assert(result);
+	karn_assert(source);
 
 	dbnm_heap_merge_trees(&result->dbnm_roots, &source->dbnm_roots,
 	                      compare);
@@ -112,10 +111,10 @@ dbnm_heap_merge(struct dbnm_heap     *result,
 static inline void
 dbnm_heap_init(struct dbnm_heap* heap)
 {
-	assert(heap);
+	karn_assert(heap);
 
 	dlist_init(&heap->dbnm_roots);
 	heap->dbnm_count = 0;
 }
 
-#endif
+#endif /* _KARN_DBNM_HEAP_H */

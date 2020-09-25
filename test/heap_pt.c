@@ -1,11 +1,11 @@
-#include "fbnr_heap.h"
-#include "fwk_heap.h"
-#include "sbnm_heap.h"
-#include "dbnm_heap.h"
-#include "falloc.h"
-#include "pbnm_heap.h"
-#include "spair_heap.h"
 #include "karn_pt.h"
+#include <karn/fbnr_heap.h>
+#include <karn/fwk_heap.h>
+#include <karn/sbnm_heap.h>
+#include <karn/dbnm_heap.h>
+#include <karn/falloc.h>
+#include <karn/pbnm_heap.h>
+#include <karn/spair_heap.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
@@ -29,7 +29,7 @@ static struct pt_entries hppt_entries;
  * Fixed array based binomial heap
  ******************************************************************************/
 
-#if defined(CONFIG_FBNR_HEAP)
+#if defined(CONFIG_KARN_FBNR_HEAP)
 
 static unsigned int     *hppt_fbnr_keys;
 static struct fbnr_heap *hppt_fbnr_heap;
@@ -162,13 +162,13 @@ hppt_fbnr_build(unsigned long long *nsecs)
 	*nsecs = pt_tspec2ns(&elapse);
 }
 
-#endif /* defined(CONFIG_FBNR_HEAP) */
+#endif /* defined(CONFIG_KARN_FBNR_HEAP) */
 
 /******************************************************************************
  * Fixed array based weak heap
  ******************************************************************************/
 
-#if defined(CONFIG_FWK_HEAP)
+#if defined(CONFIG_KARN_FWK_HEAP)
 
 static unsigned int    *hppt_fwk_keys;
 static struct fwk_heap *hppt_fwk_heap;
@@ -302,13 +302,13 @@ hppt_fwk_build(unsigned long long *nsecs)
 	*nsecs = pt_tspec2ns(&elapse);
 }
 
-#endif /* defined(CONFIG_FWK_HEAP) */
+#endif /* defined(CONFIG_KARN_FWK_HEAP) */
 
 /******************************************************************************
  * Singly linked list based binomial heap
  ******************************************************************************/
 
-#if defined(CONFIG_SBNM_HEAP)
+#if defined(CONFIG_KARN_SBNM_HEAP)
 
 struct hppt_sbnm_key {
 	struct sbnm_heap_node node;
@@ -428,7 +428,7 @@ hppt_sbnm_load(const char *pathname)
 	k = sbnm_heap_keys;
 	sbnm_heap_min = UINT_MAX;
 	while (!pt_iter_entry(&hppt_entries, &k->value)) {
-		sbnm_heap_min = min(k->value, sbnm_heap_min);
+		sbnm_heap_min = umin(k->value, sbnm_heap_min);
 		k++;
 	}
 
@@ -551,13 +551,13 @@ hppt_sbnm_demote(unsigned long long *nsecs)
 		k->value -= sbnm_heap_min;
 }
 
-#endif /* defined(CONFIG_SBNM_HEAP) */
+#endif /* defined(CONFIG_KARN_SBNM_HEAP) */
 
 /******************************************************************************
  * Doubly linked list based binomial heap
  ******************************************************************************/
 
-#if defined(CONFIG_DBNM_HEAP)
+#if defined(CONFIG_KARN_DBNM_HEAP)
 
 struct hppt_dbnm_key {
 	struct dbnm_heap_node node;
@@ -667,7 +667,7 @@ hppt_dbnm_load(const char *pathname)
 	k = dbnm_heap_keys;
 	dbnm_heap_min = UINT_MAX;
 	while (!pt_iter_entry(&hppt_entries, &k->value)) {
-		dbnm_heap_min = min(k->value, dbnm_heap_min);
+		dbnm_heap_min = umin(k->value, dbnm_heap_min);
 		k++;
 	}
 
@@ -759,13 +759,13 @@ hppt_dbnm_promote(unsigned long long *nsecs)
 		k->value += dbnm_heap_min;
 }
 
-#endif /* defined(CONFIG_DBNM_HEAP) */
+#endif /* defined(CONFIG_KARN_DBNM_HEAP) */
 
 /******************************************************************************
  * Parented LCRS based binomial heap
  ******************************************************************************/
 
-#if defined(CONFIG_PBNM_HEAP)
+#if defined(CONFIG_KARN_PBNM_HEAP)
 
 struct hppt_pbnm_key {
 	struct pbnm_heap_node *node;
@@ -944,7 +944,7 @@ hppt_pbnm_load(const char *pathname)
 	k = pbnm_heap_keys;
 	pbnm_heap_min = UINT_MAX;
 	while (!pt_iter_entry(&hppt_entries, &k->value)) {
-		pbnm_heap_min = min(k->value, pbnm_heap_min);
+		pbnm_heap_min = umin(k->value, pbnm_heap_min);
 		k++;
 	}
 
@@ -1073,13 +1073,13 @@ hppt_pbnm_demote(unsigned long long *nsecs)
 	}
 }
 
-#endif /* defined(CONFIG_PBNM_HEAP) */
+#endif /* defined(CONFIG_KARN_PBNM_HEAP) */
 
 /******************************************************************************
  * Singly linked list based pairing heap
  ******************************************************************************/
 
-#if defined(CONFIG_SPAIR_HEAP)
+#if defined(CONFIG_KARN_SPAIR_HEAP)
 
 struct hppt_spair_key {
 	struct lcrs_node node;
@@ -1201,7 +1201,7 @@ hppt_spair_load(const char *pathname)
 	k = spair_heap_keys;
 	spair_heap_min = UINT_MAX;
 	while (!pt_iter_entry(&hppt_entries, &k->value)) {
-		spair_heap_min = min(k->value, spair_heap_min);
+		spair_heap_min = umin(k->value, spair_heap_min);
 		k++;
 	}
 
@@ -1324,14 +1324,14 @@ hppt_spair_demote(unsigned long long *nsecs)
 		k->value -= spair_heap_min;
 }
 
-#endif /* defined(CONFIG_SPAIR_HEAP) */
+#endif /* defined(CONFIG_KARN_SPAIR_HEAP) */
 
 /******************************************************************************
  * Main measurment task handling
  ******************************************************************************/
 
 static const struct hppt_iface hppt_algos[] = {
-#if defined(CONFIG_FBNR_HEAP)
+#if defined(CONFIG_KARN_FBNR_HEAP)
 	{
 		.hppt_name    = "fbnr",
 		.hppt_load    = hppt_fbnr_load,
@@ -1341,7 +1341,7 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_build   = hppt_fbnr_build
 	},
 #endif
-#if defined(CONFIG_FWK_HEAP)
+#if defined(CONFIG_KARN_FWK_HEAP)
 	{
 		.hppt_name    = "fwk",
 		.hppt_load    = hppt_fwk_load,
@@ -1351,7 +1351,7 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_build   = hppt_fwk_build
 	},
 #endif
-#if defined(CONFIG_SBNM_HEAP)
+#if defined(CONFIG_KARN_SBNM_HEAP)
 	{
 		.hppt_name    = "sbnm",
 		.hppt_load    = hppt_sbnm_load,
@@ -1362,7 +1362,7 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_demote  = hppt_sbnm_demote
 	},
 #endif
-#if defined(CONFIG_DBNM_HEAP)
+#if defined(CONFIG_KARN_DBNM_HEAP)
 	{
 		.hppt_name    = "dbnm",
 		.hppt_load    = hppt_dbnm_load,
@@ -1372,7 +1372,7 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_promote = hppt_dbnm_promote
 	},
 #endif
-#if defined(CONFIG_SPAIR_HEAP)
+#if defined(CONFIG_KARN_SPAIR_HEAP)
 	{
 		.hppt_name    = "spair",
 		.hppt_load    = hppt_spair_load,
@@ -1383,7 +1383,7 @@ static const struct hppt_iface hppt_algos[] = {
 		.hppt_demote  = hppt_spair_demote
 	},
 #endif
-#if defined(CONFIG_PBNM_HEAP)
+#if defined(CONFIG_KARN_PBNM_HEAP)
 	{
 		.hppt_name    = "pbnm",
 		.hppt_load    = hppt_pbnm_load,

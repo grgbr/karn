@@ -26,8 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sbnm_heap.h"
-#include "utils.h"
+#include <karn/sbnm_heap.h>
 #include <cute/cute.h>
 
 struct sbnmhut_node {

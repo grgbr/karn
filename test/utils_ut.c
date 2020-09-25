@@ -1,4 +1,4 @@
-#include "utils.h"
+#include <utils/pow2.h>
 #include <cute/cute.h>
 
 struct utilsut_pow2_check {
@@ -29,7 +29,7 @@ CUTE_PNP_TEST(utilsut_upper_pow2, &utilsut)
 	};
 
 	for (c = 0; c < array_nr(checks); c++)
-		cute_ensure(lower_pow2(checks[c].value) == checks[c].expect);
+		cute_ensure(pow2_lower(checks[c].value) == checks[c].expect);
 }
 
 CUTE_PNP_TEST(utilsut_lower_pow2, &utilsut)
@@ -52,5 +52,5 @@ CUTE_PNP_TEST(utilsut_lower_pow2, &utilsut)
 	};
 
 	for (c = 0; c < array_nr(checks); c++)
-		cute_ensure(upper_pow2(checks[c].value) == checks[c].expect);
+		cute_ensure(pow2_upper(checks[c].value) == checks[c].expect);
 }

@@ -1,3 +1,13 @@
+EBUILDDIR     := $(CURDIR)/ebuild
+PACKAGE       := karn
+EXTRA_CFLAGS  := -O2 -DNDEBUG
+EXTRA_LDFLAGS := -O2
+
+export EXTRA_CFLAGS EXTRA_LDFLAGS
+
+include $(EBUILDDIR)/main.mk
+
+ifeq (0,1)
 ################################################################################
 # Helper macros
 ################################################################################
@@ -470,3 +480,4 @@ $(doxybuilddir) $(sphinxbuilddir) $(sphinxsrcdir):
 -include $(wildcard $(BUILD)/utdbg/*.d)
 -include $(wildcard $(BUILD)/dbg/*.d)
 -include $(wildcard $(BUILD)/ut/*.d)
+endif

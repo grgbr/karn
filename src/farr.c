@@ -1,7 +1,8 @@
-#include "farr.h"
+#include <karn/farr.h>
+#include <utils/pow2.h>
 #include <stdbool.h>
 
-#if defined(CONFIG_FARR_BUBBLE_SORT)
+#if defined(CONFIG_KARN_FARR_BUBBLE_SORT)
 
 void farr_bubble_sort(char            *entries,
                       size_t           entry_size,
@@ -33,9 +34,9 @@ void farr_bubble_sort(char            *entries,
 	}
 }
 
-#endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_BUBBLE_SORT) */
 
-#if defined(CONFIG_FARR_SELECTION_SORT)
+#if defined(CONFIG_KARN_FARR_SELECTION_SORT)
 
 void farr_selection_sort(char            *entries,
                          size_t           entry_size,
@@ -64,9 +65,9 @@ void farr_selection_sort(char            *entries,
 	}
 }
 
-#endif /* defined(CONFIG_FARR_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_SELECTION_SORT) */
 
-#if defined(CONFIG_FARR_INSERTION_SORT)
+#if defined(CONFIG_KARN_FARR_INSERTION_SORT)
 
 static void _farr_insertion_sort(char            *begin,
                                  char            *end,
@@ -103,10 +104,9 @@ void farr_insertion_sort(char            *entries,
 	                     entry_size, compare, copy);
 }
 
+#endif /* defined(CONFIG_KARN_FARR_INSERTION_SORT) */
 
-#endif /* defined(CONFIG_FARR_INSERTION_SORT) */
-
-#if defined(CONFIG_FARR_QUICK_SORT_UTILS)
+#if defined(CONFIG_KARN_FARR_QUICK_SORT_UTILS)
 
 /*
  * TODO:
@@ -164,29 +164,29 @@ static char * farr_quick_hoare_part(char            *begin,
 
 	pivot = _farr_quick_hoare_part(begin, end, entry_size, compare, copy);
 
-	assert(begin <= pivot);
-	assert(pivot < end);
+	karn_assert(begin <= pivot);
+	karn_assert(pivot < end);
 
 	return pivot;
 }
 
-#endif /* defined(CONFIG_FARR_QUICK_SORT_UTILS) */
+#endif /* defined(CONFIG_KARN_FARR_QUICK_SORT_UTILS) */
 
-#if defined(CONFIG_FARR_QUICK_SORT)
+#if defined(CONFIG_KARN_FARR_QUICK_SORT)
 
 #define FARR_QUICK_INSERT_THRESHOLD (32U)
 
 static unsigned int farr_quick_stack_depth(size_t entry_nr)
 {
-	return upper_pow2(max((entry_nr + FARR_QUICK_INSERT_THRESHOLD - 1) /
-	                      FARR_QUICK_INSERT_THRESHOLD, 2U));
+	return pow2_upper(umax((entry_nr + FARR_QUICK_INSERT_THRESHOLD - 1) /
+	                       FARR_QUICK_INSERT_THRESHOLD, 2U));
 }
 
 static bool farr_quick_switch_insert(const char *begin,
                                      const char *end,
                                      size_t      entry_size)
 {
-	assert(end >= begin);
+	karn_assert(end >= begin);
 
 	return ((size_t)(end - begin) <=
 	        ((FARR_QUICK_INSERT_THRESHOLD - 1) * entry_size));
@@ -203,11 +203,11 @@ void farr_quick_sort(char            *entries,
                      farr_compare_fn *compare,
                      farr_copy_fn    *copy)
 {
-	assert(entries);
-	assert(entry_size);
-	assert(entry_nr);
-	assert(compare);
-	assert(copy);
+	karn_assert(entries);
+	karn_assert(entry_size);
+	karn_assert(entry_nr);
+	karn_assert(compare);
+	karn_assert(copy);
 
 	char                   *begin = entries;
 	char                   *end = &begin[(entry_nr - 1) * entry_size];
@@ -229,7 +229,7 @@ void farr_quick_sort(char            *entries,
 
 		pivot = farr_quick_hoare_part(begin, end, entry_size, compare,
 		                              copy);
-		assert(ptop < array_nr(parts));
+		karn_assert(ptop < array_nr(parts));
 
 		high = pivot + entry_size;
 		if ((high - begin) >= (end - pivot)) {
@@ -247,23 +247,23 @@ void farr_quick_sort(char            *entries,
 	}
 }
 
-#endif /* defined(CONFIG_FARR_QUICK_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_QUICK_SORT) */
 
-#if defined(CONFIG_FARR_INTRO_SORT)
+#if defined(CONFIG_KARN_FARR_INTRO_SORT)
 
 /*
  * TODO:
  *  - docs !! https://www.google.fr/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwi01va3-LvXAhUEORoKHc8HBWgQFggqMAA&url=http%3A%2F%2Fwww.cs.rpi.edu%2F~musser%2Fgp%2Fintrosort.ps&usg=AOvVaw0aZOd7_zwQpTwbJAb5ymAn
  */
 
-#include "fbnr_heap.h"
+#include <karn/fbnr_heap.h>
 
 #define FARR_INTRO_INSERT_THRESHOLD (32U)
 
 static unsigned int farr_intro_stack_depth(size_t entry_nr)
 {
-	return upper_pow2(max((entry_nr + FARR_INTRO_INSERT_THRESHOLD - 1) /
-	                      FARR_INTRO_INSERT_THRESHOLD, 2U));
+	return pow2_upper(umax((entry_nr + FARR_INTRO_INSERT_THRESHOLD - 1) /
+	                       FARR_INTRO_INSERT_THRESHOLD, 2U));
 }
 
 static unsigned int farr_intro_heap_threshold(size_t entry_nr)
@@ -275,7 +275,7 @@ static bool farr_intro_switch_insert(const char *begin,
                                      const char *end,
                                      size_t      entry_size)
 {
-	assert(end >= begin);
+	karn_assert(end >= begin);
 
 	return ((size_t)(end - begin) <=
 	        ((FARR_INTRO_INSERT_THRESHOLD - 1) * entry_size));
@@ -293,11 +293,11 @@ void farr_intro_sort(char            *entries,
                      farr_compare_fn *compare,
                      farr_copy_fn    *copy)
 {
-	assert(entries);
-	assert(entry_size);
-	assert(entry_nr);
-	assert(compare);
-	assert(copy);
+	karn_assert(entries);
+	karn_assert(entry_size);
+	karn_assert(entry_nr);
+	karn_assert(compare);
+	karn_assert(copy);
 
 	char                   *begin = entries;
 	char                   *end = &begin[(entry_nr - 1) * entry_size];
@@ -336,7 +336,7 @@ void farr_intro_sort(char            *entries,
 
 		pivot = farr_quick_hoare_part(begin, end, entry_size, compare,
 		                              copy);
-		assert(ptop < array_nr(parts));
+		karn_assert(ptop < array_nr(parts));
 
 		high = pivot + entry_size;
 		if ((high - begin) >= (end - pivot)) {
@@ -355,4 +355,4 @@ void farr_intro_sort(char            *entries,
 	}
 }
 
-#endif /* defined(CONFIG_FARR_INTRO_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_INTRO_SORT) */

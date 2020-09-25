@@ -26,11 +26,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _FWK_HEAP_H
-#define _FWK_HEAP_H
+#ifndef _KARN_FWK_HEAP_H
+#define _KARN_FWK_HEAP_H
 
-#include <fbmp.h>
-#include <farr.h>
+#include <karn/fbmp.h>
+#include <karn/farr.h>
 
 /**
  * Fixed length array based weak heap
@@ -53,11 +53,11 @@ struct fwk_heap {
 	struct farr      fwk_nodes;
 };
 
-#define fwk_heap_assert(_heap)                                     \
-	assert(_heap);                                             \
-	assert((_heap)->fwk_compare);                              \
-	assert((_heap)->fwk_copy);                                 \
-	assert((_heap)->fwk_count <= farr_nr(&(_heap)->fwk_nodes))
+#define fwk_heap_assert(_heap) \
+	karn_assert(_heap); \
+	karn_assert((_heap)->fwk_compare); \
+	karn_assert((_heap)->fwk_copy); \
+	karn_assert((_heap)->fwk_count <= farr_nr(&(_heap)->fwk_nodes))
 
 #define FWK_HEAP_ROOT_INDEX (0U)
 
@@ -142,7 +142,7 @@ static inline unsigned int fwk_heap_full(const struct fwk_heap *heap)
  */
 static inline char * fwk_heap_peek(const struct fwk_heap *heap)
 {
-	assert(!fwk_heap_empty(heap));
+	karn_assert(!fwk_heap_empty(heap));
 
 	return farr_slot(&heap->fwk_nodes, FWK_HEAP_ROOT_INDEX);
 }
@@ -274,7 +274,7 @@ extern struct fwk_heap * fwk_heap_create(size_t           node_size,
  */
 extern void fwk_heap_destroy(struct fwk_heap *heap);
 
-#if defined(CONFIG_FWK_HEAP_SORT)
+#if defined(CONFIG_KARN_FWK_HEAP_SORT)
 
 /**
  * Sort array passed as argument according to weak heap sort scheme.
@@ -294,6 +294,6 @@ extern int fwk_heap_sort(char            *entries,
                          farr_compare_fn *compare,
                          farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FWK_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FWK_HEAP_SORT) */
 
-#endif
+#endif /* _KARN_FWK_HEAP_H */

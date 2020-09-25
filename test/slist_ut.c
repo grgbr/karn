@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "slist.h"
+#include <karn/slist.h>
 #include <cute/cute.h>
 
 struct slistut_entry {
@@ -673,7 +673,7 @@ CUTE_PNP_TEST(slistut_remove_penultimate, &slistut_remove)
 	slistut_check_nodes(check_nodes, array_nr(check_nodes));
 }
 
-#if defined(CONFIG_SLIST_BUBBLE_SORT)
+#if defined(CONFIG_KARN_SLIST_BUBBLE_SORT)
 
 static void slistut_setup_bubble_sort(void)
 {
@@ -787,9 +787,9 @@ CUTE_PNP_TEST(slistut_bubble_sort_large_mix, &slistut_bubble_sort)
 	slistut_sort_large_mix();
 }
 
-#endif /* defined(CONFIG_SLIST_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_BUBBLE_SORT) */
 
-#if defined(CONFIG_SLIST_SELECTION_SORT)
+#if defined(CONFIG_KARN_SLIST_SELECTION_SORT)
 
 static void slistut_setup_selection_sort(void)
 {
@@ -904,9 +904,9 @@ CUTE_PNP_TEST(slistut_selection_sort_large_mix, &slistut_selection_sort)
 	slistut_sort_large_mix();
 }
 
-#endif /* defined(CONFIG_SLIST_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_SELECTION_SORT) */
 
-#if defined(CONFIG_SLIST_INSERTION_SORT)
+#if defined(CONFIG_KARN_SLIST_INSERTION_SORT)
 
 static void slistut_setup_insertion_sort(void)
 {
@@ -1021,9 +1021,9 @@ CUTE_PNP_TEST(slistut_insertion_sort_large_mix, &slistut_insertion_sort)
 	slistut_sort_large_mix();
 }
 
-#endif /* defined(CONFIG_SLIST_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_INSERTION_SORT) */
 
-#if defined(CONFIG_SLIST_MERGE_SORT)
+#if defined(CONFIG_KARN_SLIST_MERGE_SORT)
 
 static unsigned int slistut_merge_run_len;
 
@@ -1351,4 +1351,4 @@ CUTE_PNP_TEST(slistut_runlen128_merge_sort, &slistut_runlen_merge_sort)
 	slistut_dosort_large_mix();
 }
 
-#endif /* defined(CONFIG_SLIST_MERGE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_MERGE_SORT) */

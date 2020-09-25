@@ -26,12 +26,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _FARR_H
-#define _FARR_H
+#ifndef _KARN_FARR_H
+#define _KARN_FARR_H
 
-#include <utils.h>
+#include <karn/common.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <sys/types.h>
 
 /**
@@ -78,11 +77,11 @@ struct farr {
 };
 
 /* Internal farr consistency checker */
-#define farr_assert(_array)           \
-	assert(_array);               \
-	assert((_array)->farr_size);  \
-	assert((_array)->farr_slots); \
-	assert((_array)->farr_nr)
+#define farr_assert(_array) \
+	karn_assert(_array); \
+	karn_assert((_array)->farr_size); \
+	karn_assert((_array)->farr_slots); \
+	karn_assert((_array)->farr_nr)
 
 /**
  * Retrieve the maximum number of slots a farr may contain
@@ -135,7 +134,7 @@ farr_slot_size(const struct farr *array)
 static inline char * farr_slot(const struct farr *array, unsigned int index)
 {
 	farr_assert(array);
-	assert(index < array->farr_nr);
+	karn_assert(index < array->farr_nr);
 
 	return &array->farr_slots[index * array->farr_size];
 }
@@ -173,9 +172,9 @@ static inline unsigned int farr_slot_index(const struct farr *array,
                                            const char        *slot)
 {
 	farr_assert(array);
-	assert(slot >= &array->farr_slots[0]);
-	assert(slot < &array->farr_slots[array->farr_size * array->farr_nr]);
-	assert(!((size_t)slot % array->farr_size));
+	karn_assert(slot >= &array->farr_slots[0]);
+	karn_assert(slot < &array->farr_slots[array->farr_size * array->farr_nr]);
+	karn_assert(!((size_t)slot % array->farr_size));
 
 	return (slot - &array->farr_slots[0]) / array->farr_size;
 }
@@ -235,10 +234,10 @@ static inline void farr_init(struct farr  *array,
                              size_t        slot_size,
                              unsigned int  slot_nr)
 {
-	assert(array);
-	assert(slots);
-	assert(slot_size);
-	assert(slot_nr);
+	karn_assert(array);
+	karn_assert(slots);
+	karn_assert(slot_size);
+	karn_assert(slot_nr);
 
 	array->farr_size = slot_size;
 	array->farr_nr = slot_nr;
@@ -257,7 +256,7 @@ static inline void farr_fini(struct farr *array __unused)
 	farr_assert(array);
 }
 
-#if defined(CONFIG_FARR_BUBBLE_SORT)
+#if defined(CONFIG_KARN_FARR_BUBBLE_SORT)
 
 extern void farr_bubble_sort(char            *entries,
                              size_t           entry_size,
@@ -265,9 +264,9 @@ extern void farr_bubble_sort(char            *entries,
                              farr_compare_fn *compare,
                              farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_BUBBLE_SORT) */
 
-#if defined(CONFIG_FARR_SELECTION_SORT)
+#if defined(CONFIG_KARN_FARR_SELECTION_SORT)
 
 extern void farr_selection_sort(char            *entries,
                                 size_t           entry_size,
@@ -275,9 +274,9 @@ extern void farr_selection_sort(char            *entries,
                                 farr_compare_fn *compare,
                                 farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FARR_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_SELECTION_SORT) */
 
-#if defined(CONFIG_FARR_INSERTION_SORT)
+#if defined(CONFIG_KARN_FARR_INSERTION_SORT)
 
 extern void farr_insertion_sort(char            *entries,
                                 size_t           entry_size,
@@ -285,9 +284,9 @@ extern void farr_insertion_sort(char            *entries,
                                 farr_compare_fn *compare,
                                 farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FARR_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_INSERTION_SORT) */
 
-#if defined(CONFIG_FARR_QUICK_SORT)
+#if defined(CONFIG_KARN_FARR_QUICK_SORT)
 
 extern void farr_quick_sort(char            *entries,
                             size_t           entry_size,
@@ -295,9 +294,9 @@ extern void farr_quick_sort(char            *entries,
                             farr_compare_fn *compare,
                             farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FARR_QUICK_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_QUICK_SORT) */
 
-#if defined(CONFIG_FARR_INTRO_SORT)
+#if defined(CONFIG_KARN_FARR_INTRO_SORT)
 
 extern void farr_intro_sort(char            *entries,
                             size_t           entry_size,
@@ -305,6 +304,6 @@ extern void farr_intro_sort(char            *entries,
                             farr_compare_fn *compare,
                             farr_copy_fn    *copy);
 
-#endif /* defined(CONFIG_FARR_INTRO_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_INTRO_SORT) */
 
-#endif
+#endif /* _KARN_FARR_H */

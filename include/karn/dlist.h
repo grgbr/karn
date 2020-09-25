@@ -1,5 +1,5 @@
 /**
- * @file      bnm_heap.h
+ * @file      dlist.h
  * @author    Grégor Boirie <gregor.boirie@free.fr>
  * @date      29 Aug 2017
  * @copyright GNU Public License v3
@@ -29,9 +29,8 @@
 #ifndef _KARN_DLIST_H
 #define _KARN_DLIST_H
 
-#include "utils.h"
+#include <karn/common.h>
 #include <stdbool.h>
-#include <assert.h>
 
 /**
  * Doubly linked list node
@@ -69,7 +68,7 @@ struct dlist_node {
  */
 static inline void dlist_init(struct dlist_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	node->dlist_next = node;
 	node->dlist_prev = node;
@@ -87,7 +86,7 @@ static inline void dlist_init(struct dlist_node *node)
  */
 static inline bool dlist_empty(const struct dlist_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->dlist_next == node;
 }
@@ -103,7 +102,7 @@ static inline bool dlist_empty(const struct dlist_node *node)
  */
 static inline struct dlist_node * dlist_next(const struct dlist_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->dlist_next;
 }
@@ -119,7 +118,7 @@ static inline struct dlist_node * dlist_next(const struct dlist_node *node)
  */
 static inline struct dlist_node * dlist_prev(const struct dlist_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->dlist_prev;
 }
@@ -137,11 +136,11 @@ static inline void dlist_inject(struct dlist_node *prev,
                                 struct dlist_node *restrict node,
                                 struct dlist_node *next)
 {
-	assert(node);
-	assert(prev);
-	assert(next);
-	assert(node != prev);
-	assert(node != next);
+	karn_assert(node);
+	karn_assert(prev);
+	karn_assert(next);
+	karn_assert(node != prev);
+	karn_assert(node != next);
 
 	next->dlist_prev = node;
 
@@ -285,8 +284,8 @@ static inline struct dlist_node * dlist_dqueue_back(struct dlist_node *list)
 static inline void dlist_replace(struct dlist_node *restrict old,
                                  struct dlist_node *restrict node)
 {
-	assert(!dlist_empty(old));
-	assert(node);
+	karn_assert(!dlist_empty(old));
+	karn_assert(node);
 
 	dlist_inject(old->dlist_prev, node, old->dlist_next);
 }
@@ -304,7 +303,7 @@ static inline void dlist_replace(struct dlist_node *restrict old,
 static inline void dlist_move_after(struct dlist_node *restrict at,
                                     struct dlist_node *restrict node)
 {
-	assert(at);
+	karn_assert(at);
 
 	dlist_remove(node);
 	dlist_inject(at, node, at->dlist_next);
@@ -321,8 +320,8 @@ static inline void dlist_move_after(struct dlist_node *restrict at,
 static inline void dlist_withdraw(const struct dlist_node *first,
                                   const struct dlist_node *last)
 {
-	assert(first);
-	assert(last);
+	karn_assert(first);
+	karn_assert(last);
 
 	struct dlist_node *next = last->dlist_next;
 	struct dlist_node *prev = first->dlist_prev;
@@ -344,9 +343,9 @@ static inline void dlist_embed(struct dlist_node *restrict at,
                                struct dlist_node *first,
                                struct dlist_node *last)
 {
-	assert(at);
-	assert(first);
-	assert(last);
+	karn_assert(at);
+	karn_assert(first);
+	karn_assert(last);
 
 	struct dlist_node *restrict next = at->dlist_next;
 
@@ -438,4 +437,4 @@ extern void dlist_splice(struct dlist_node *restrict at,
 	     &(_entry)->_member != (_list);                    \
 	     _entry = dlist_next_entry(_entry, _member))
 
-#endif
+#endif /* _KARN_DLIST_H */

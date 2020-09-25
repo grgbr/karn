@@ -1,11 +1,11 @@
 #ifndef _KARN_FALLOC_H
 #define _KARN_FALLOC_H
 
-#ifndef CONFIG_FALLOC
+#include <karn/dlist.h>
+
+#ifndef CONFIG_KARN_FALLOC
 #error FALLOC configuration disabled !
 #endif
-
-#include <dlist.h>
 
 struct falloc_page {
 	unsigned int      falloc_next;
@@ -29,4 +29,4 @@ extern void falloc_init(struct falloc *allocator, size_t chunk_size);
 
 extern void falloc_fini(struct falloc *allocator);
 
-#endif
+#endif /* _KARN_FALLOC_H */

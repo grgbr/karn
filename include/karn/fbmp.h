@@ -1,11 +1,12 @@
 #ifndef _KARN_FBMP_H
 #define _KARN_FBMP_H
 
-#ifndef CONFIG_FBMP
+#include <karn/common.h>
+
+#ifndef CONFIG_KARN_FBMP
 #error FBMP configuration disabled !
 #endif
 
-#include "utils.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -92,4 +93,4 @@ fbmp_destroy(uintptr_t *bitmap)
 
 extern unsigned int fbmp_find_zero(const uintptr_t *bitmap, unsigned int nr);
 
-#endif
+#endif /* _KARN_FBMP_H */

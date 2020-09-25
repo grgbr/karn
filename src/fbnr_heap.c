@@ -24,10 +24,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "fbnr_heap.h"
+#include <karn/fbnr_heap.h>
 #include <string.h>
 
-#if defined(CONFIG_FBNR_HEAP_UTILS)
+#if defined(CONFIG_KARN_FBNR_HEAP_UTILS)
 
 #define FBNR_HEAP_REGULAR_ORDER (true)
 #define FBNR_HEAP_REVERSE_ORDER (false)
@@ -108,8 +108,8 @@ static void fbnr_heap_build_tree(struct fabs_tree *tree,
                                  farr_copy_fn     *copy,
                                  bool              regular)
 {
-	assert(count);
-	assert(count <= fabs_tree_nr(tree));
+	karn_assert(count);
+	karn_assert(count <= fabs_tree_nr(tree));
 
 	unsigned int cnt = count / 2;
 
@@ -145,12 +145,12 @@ static void fbnr_heap_build_tree(struct fabs_tree *tree,
 	}
 }
 
-#endif /* defined(CONFIG_FBNR_HEAP_UTILS) */
+#endif /* defined(CONFIG_KARN_FBNR_HEAP_UTILS) */
 
 void fbnr_heap_insert(struct fbnr_heap *heap, const char *node)
 {
-	assert(!fbnr_heap_full(heap));
-	assert(node);
+	karn_assert(!fbnr_heap_full(heap));
+	karn_assert(node);
 
 	unsigned int     idx;
 	farr_compare_fn *cmp = heap->fbnr_compare;
@@ -188,8 +188,8 @@ void fbnr_heap_insert(struct fbnr_heap *heap, const char *node)
 
 void fbnr_heap_extract(struct fbnr_heap *heap, char *node)
 {
-	assert(!fbnr_heap_empty(heap));
-	assert(node);
+	karn_assert(!fbnr_heap_empty(heap));
+	karn_assert(node);
 
 	heap->fbnr_copy(node, fabs_tree_root(&heap->fbnr_tree));
 
@@ -235,9 +235,9 @@ void fbnr_heap_init(struct fbnr_heap *heap,
                     farr_compare_fn  *compare,
                     farr_copy_fn     *copy)
 {
-	assert(heap);
-	assert(compare);
-	assert(copy);
+	karn_assert(heap);
+	karn_assert(compare);
+	karn_assert(copy);
 
 	heap->fbnr_compare = compare;
 	heap->fbnr_copy = copy;
@@ -247,7 +247,7 @@ void fbnr_heap_init(struct fbnr_heap *heap,
 
 void fbnr_heap_fini(struct fbnr_heap *heap __unused)
 {
-	assert(heap);
+	karn_assert(heap);
 
 	fabs_tree_fini(&heap->fbnr_tree);
 }
@@ -257,8 +257,8 @@ struct fbnr_heap * fbnr_heap_create(size_t           node_size,
                                     farr_compare_fn *compare,
                                     farr_copy_fn    *copy)
 {
-	assert(node_size);
-	assert(node_nr);
+	karn_assert(node_size);
+	karn_assert(node_nr);
 
 	struct fbnr_heap *heap;
 
@@ -279,7 +279,7 @@ void fbnr_heap_destroy(struct fbnr_heap *heap)
 	free(heap);
 }
 
-#if defined(CONFIG_FBNR_HEAP_SORT)
+#if defined(CONFIG_KARN_FBNR_HEAP_SORT)
 
 static void fbnr_heap_botup_siftdown(const struct fabs_tree *tree,
                                      const char             *node,
@@ -364,4 +364,4 @@ void fbnr_heap_sort(char            *entries,
 	}
 }
 
-#endif /* defined(CONFIG_FBNR_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FBNR_HEAP_SORT) */

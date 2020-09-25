@@ -24,8 +24,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "dlist.h"
-#include "dbnm_heap.h"
+#include <karn/dbnm_heap.h>
 
 static struct dbnm_heap_node *
 dbnm_heap_sbl2node(struct dlist_node *sibling)
@@ -38,10 +37,10 @@ dbnm_heap_join(struct dbnm_heap_node *first,
                struct dbnm_heap_node *second,
                dbnm_heap_compare_fn  *compare)
 {
-	assert(first);
-	assert(second);
-	assert(compare);
-	assert(first->dbnm_order == second->dbnm_order);
+	karn_assert(first);
+	karn_assert(second);
+	karn_assert(compare);
+	karn_assert(first->dbnm_order == second->dbnm_order);
 
 	struct dbnm_heap_node *root;
 	struct dbnm_heap_node *subtree;
@@ -73,8 +72,8 @@ void dbnm_heap_insert(struct dbnm_heap      *heap,
                       dbnm_heap_compare_fn  *compare)
 {
 	dbnm_heap_assert(heap);
-	assert(key);
-	assert(compare);
+	karn_assert(key);
+	karn_assert(compare);
 
 	struct dlist_node *cur = dlist_next(&heap->dbnm_roots);
 
@@ -109,9 +108,9 @@ dbnm_heap_inorder_child(struct dlist_node       *child,
                         const struct dlist_node *end,
                         dbnm_heap_compare_fn    *compare)
 {
-	assert(child);
-	assert(end);
-	assert(compare);
+	karn_assert(child);
+	karn_assert(end);
+	karn_assert(compare);
 
 	struct dbnm_heap_node *inorder = dbnm_heap_sbl2node(child);
 	struct dbnm_heap_node *hcur;
@@ -133,8 +132,8 @@ struct dbnm_heap_node *
 dbnm_heap_peek(const struct dbnm_heap *heap, dbnm_heap_compare_fn *compare)
 {
 	/* TODO: optimize by always keeping a pointer to minimum root. */
-	assert(!dbnm_heap_empty(heap));
-	assert(compare);
+	karn_assert(!dbnm_heap_empty(heap));
+	karn_assert(compare);
 
 	return dbnm_heap_inorder_child(heap->dbnm_roots.dlist_next,
 	                               &heap->dbnm_roots, compare);
@@ -145,18 +144,18 @@ dbnm_heap_select_root(struct dlist_node    *first,
                       struct dlist_node    *second,
                       dbnm_heap_compare_fn *compare)
 {
-	assert(first);
-	assert(second);
-	assert(compare);
+	karn_assert(first);
+	karn_assert(second);
+	karn_assert(compare);
 
 	struct dbnm_heap_node *fst;
 	struct dbnm_heap_node *snd;
 
 	fst = dbnm_heap_sbl2node(first);
-	assert(!fst->dbnm_parent);
+	karn_assert(!fst->dbnm_parent);
 
 	snd = dbnm_heap_sbl2node(second);
-	assert(!snd->dbnm_parent);
+	karn_assert(!snd->dbnm_parent);
 
 	if (fst->dbnm_order == snd->dbnm_order) {
 		dlist_remove(first);
@@ -176,8 +175,8 @@ dbnm_heap_select_root(struct dlist_node    *first,
 static void
 dbnm_heap_reverse_children(struct dlist_node *result, struct dlist_node *eldest)
 {
-	assert(result);
-	assert(eldest);
+	karn_assert(result);
+	karn_assert(eldest);
 
 	struct dlist_node *cur = dlist_next(eldest);
 
@@ -202,16 +201,16 @@ dbnm_heap_merge_roots(struct dlist_node     *result,
                       struct dbnm_heap_node *source,
                       dbnm_heap_compare_fn  *compare)
 {
-	assert(result);
-	assert (!dlist_empty(result));
-	assert(source);
-	assert(!source->dbnm_parent);
-	assert(compare);
+	karn_assert(result);
+	karn_assert (!dlist_empty(result));
+	karn_assert(source);
+	karn_assert(!source->dbnm_parent);
+	karn_assert(compare);
 
 	struct dbnm_heap_node *tail;
 
 	tail = dbnm_heap_sbl2node(dlist_prev(result));
-	assert(tail->dbnm_order <= source->dbnm_order);
+	karn_assert(tail->dbnm_order <= source->dbnm_order);
 
 	if (tail->dbnm_order == source->dbnm_order) {
 		dlist_remove(&tail->dbnm_sibling);
@@ -226,8 +225,8 @@ dbnm_heap_merge_trees(struct dlist_node   *result,
                      struct dlist_node    *source,
                      dbnm_heap_compare_fn *compare)
 {
-	assert(!dlist_empty(result));
-	assert(!dlist_empty(source));
+	karn_assert(!dlist_empty(result));
+	karn_assert(!dlist_empty(source));
 
 	struct dlist_node     res = DLIST_INIT(res);
 	struct dbnm_heap_node *src;
@@ -261,9 +260,9 @@ dbnm_heap_remove_root(struct dbnm_heap            *heap,
                       const struct dbnm_heap_node *root,
                       dbnm_heap_compare_fn        *compare)
 {
-	assert(heap);
-	assert(root);
-	assert(compare);
+	karn_assert(heap);
+	karn_assert(root);
+	karn_assert(compare);
 
 	struct dlist_node *child = root->dbnm_child;
 
@@ -289,8 +288,8 @@ struct dbnm_heap_node *
 dbnm_heap_extract(struct dbnm_heap *heap, dbnm_heap_compare_fn *compare)
 {
 	dbnm_heap_assert(heap);
-	assert(heap->dbnm_count);
-	assert(compare);
+	karn_assert(heap->dbnm_count);
+	karn_assert(compare);
 
 	struct dlist_node     *roots = &heap->dbnm_roots;
 	struct dbnm_heap_node *key;
@@ -305,12 +304,12 @@ dbnm_heap_extract(struct dbnm_heap *heap, dbnm_heap_compare_fn *compare)
 static void dbnm_heap_swap(struct dbnm_heap_node *parent,
                            struct dbnm_heap_node *node)
 {
-	assert(parent);
-	assert(!dlist_empty(&parent->dbnm_sibling));
-	assert(parent->dbnm_child);
-	assert(parent->dbnm_order);
-	assert(node);
-	assert(node->dbnm_parent == parent);
+	karn_assert(parent);
+	karn_assert(!dlist_empty(&parent->dbnm_sibling));
+	karn_assert(parent->dbnm_child);
+	karn_assert(parent->dbnm_order);
+	karn_assert(node);
+	karn_assert(node->dbnm_parent == parent);
 
 	struct dbnm_heap_node *ancestor = parent->dbnm_parent;
 	struct dbnm_heap_node *child = dbnm_heap_sbl2node(node->dbnm_child);
@@ -320,8 +319,8 @@ static void dbnm_heap_swap(struct dbnm_heap_node *parent,
 		ancestor->dbnm_child = &node->dbnm_sibling;
 
 	if (dlist_empty(&node->dbnm_sibling)) {
-		assert(!child);
-		assert(parent->dbnm_child == &node->dbnm_sibling);
+		karn_assert(!child);
+		karn_assert(parent->dbnm_child == &node->dbnm_sibling);
 
 		dlist_replace(&parent->dbnm_sibling, &node->dbnm_sibling);
 		dlist_init(&parent->dbnm_sibling);
@@ -364,8 +363,8 @@ void dbnm_heap_remove(struct dbnm_heap      *heap,
 
 void dbnm_heap_update(struct dbnm_heap_node *key, dbnm_heap_compare_fn *compare)
 {
-	assert(key);
-	assert(compare);
+	karn_assert(key);
+	karn_assert(compare);
 
 	if (key->dbnm_parent && (compare(key->dbnm_parent, key) > 0)) {
 		/* Bubble up. */

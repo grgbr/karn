@@ -1,5 +1,5 @@
 #include "karn_pt.h"
-#include "slist.h"
+#include <karn/slist.h>
 #include <getopt.h>
 #include <errno.h>
 #include <string.h>
@@ -9,7 +9,7 @@ static unsigned int run_len = 0;
 
 typedef void (sort_fn)(struct slist *, unsigned int, slist_compare_fn *);
 
-#if defined(CONFIG_SLIST_BUBBLE_SORT)
+#if defined(CONFIG_KARN_SLIST_BUBBLE_SORT)
 
 static void
 bubble_sort(struct slist     *list,
@@ -29,7 +29,7 @@ setup_bubble_sort(const char *scheme)
 	return NULL;
 }
 
-#else /* !defined(CONFIG_SLIST_BUBBLE_SORT) */
+#else /* !defined(CONFIG_KARN_SLIST_BUBBLE_SORT) */
 
 static sort_fn *
 setup_bubble_sort(const char *scheme __unused)
@@ -42,9 +42,9 @@ setup_bubble_sort(const char *scheme __unused)
 	return NULL;
 }
 
-#endif /* defined(CONFIG_SLIST_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_BUBBLE_SORT) */
 
-#if defined(CONFIG_SLIST_SELECTION_SORT)
+#if defined(CONFIG_KARN_SLIST_SELECTION_SORT)
 
 static void
 selection_sort(struct slist     *list,
@@ -64,7 +64,7 @@ setup_selection_sort(const char *scheme)
 	return NULL;
 }
 
-#else /* !defined(CONFIG_SLIST_SELECTION_SORT) */
+#else /* !defined(CONFIG_KARN_SLIST_SELECTION_SORT) */
 
 static sort_fn *
 setup_selection_sort(const char *scheme __unused)
@@ -77,9 +77,9 @@ setup_selection_sort(const char *scheme __unused)
 	return NULL;
 }
 
-#endif /* defined(CONFIG_SLIST_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_SELECTION_SORT) */
 
-#if defined(CONFIG_SLIST_INSERTION_SORT)
+#if defined(CONFIG_KARN_SLIST_INSERTION_SORT)
 
 static void
 insertion_sort(struct slist     *list,
@@ -99,7 +99,7 @@ setup_insertion_sort(const char *scheme)
 	return NULL;
 }
 
-#else /* !defined(CONFIG_SLIST_INSERTION_SORT) */
+#else /* !defined(CONFIG_KARN_SLIST_INSERTION_SORT) */
 
 static sort_fn *
 setup_insertion_sort(const char *scheme __unused)
@@ -112,9 +112,9 @@ setup_insertion_sort(const char *scheme __unused)
 	return NULL;
 }
 
-#endif /* defined(CONFIG_SLIST_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_INSERTION_SORT) */
 
-#if defined(CONFIG_SLIST_MERGE_SORT)
+#if defined(CONFIG_KARN_SLIST_MERGE_SORT)
 
 static void
 merge_sort(struct slist *list, unsigned int nr, slist_compare_fn *compare)
@@ -135,7 +135,7 @@ setup_merge_sort(const char *scheme)
 	return NULL;
 }
 
-#else /* !defined(CONFIG_SLIST_MERGE_SORT) */
+#else /* !defined(CONFIG_KARN_SLIST_MERGE_SORT) */
 
 static sort_fn *
 setup_merge_sort(const char *scheme __unused)
@@ -148,7 +148,7 @@ setup_merge_sort(const char *scheme __unused)
 	return NULL;
 }
 
-#endif /* defined(CONFIG_SLIST_MERGE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_MERGE_SORT) */
 
 static sort_fn *
 setup_sort(const char *scheme)

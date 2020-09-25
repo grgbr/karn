@@ -1,7 +1,7 @@
-#ifndef _PBNM_HEAP_H
-#define _PBNM_HEAP_H
+#ifndef _KARN_PBNM_HEAP_H
+#define _KARN_PBNM_HEAP_H
 
-#include <utils.h>
+#include <karn/common.h>
 #include <stdbool.h>
 
 struct pbnm_heap_node {
@@ -31,17 +31,17 @@ struct pbnm_heap {
 	pbnm_heap_compare_fn  *pbnm_compare;
 };
 
-#define PBNM_HEAP_INIT(_compare)          \
-	{                                 \
-		.pbnm_roots = NULL,       \
-		.pbnm_count = 0,          \
-		.pbnm_compare = _compare  \
+#define PBNM_HEAP_INIT(_compare) \
+	{ \
+		.pbnm_roots = NULL, \
+		.pbnm_count = 0, \
+		.pbnm_compare = _compare \
 	}
 
-#define pbnm_heap_assert(_heap)                             \
-	assert(_heap);                                      \
-	assert(!(_heap)->pbnm_roots ^ (_heap)->pbnm_count); \
-	assert((_heap)->pbnm_compare)
+#define pbnm_heap_assert(_heap) \
+	karn_assert(_heap); \
+	karn_assert(!(_heap)->pbnm_roots ^ (_heap)->pbnm_count); \
+	karn_assert((_heap)->pbnm_compare)
 
 extern void pbnm_heap_insert(struct pbnm_heap      *heap,
                              struct pbnm_heap_node *key);
@@ -81,8 +81,8 @@ pbnm_heap_empty(const struct pbnm_heap* heap)
 static inline void
 pbnm_heap_init(struct pbnm_heap *heap, pbnm_heap_compare_fn *compare)
 {
-	assert(heap);
-	assert(compare);
+	karn_assert(heap);
+	karn_assert(compare);
 
 	heap->pbnm_roots = NULL;
 	heap->pbnm_count = 0;
@@ -95,4 +95,4 @@ pbnm_heap_fini(struct pbnm_heap *heap __unused)
 	pbnm_heap_assert(heap);
 }
 
-#endif
+#endif /* _KARN_PBNM_HEAP_H */

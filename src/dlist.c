@@ -1,4 +1,4 @@
-#include "dlist.h"
+#include <karn/dlist.h>
 
 void dlist_splice(struct dlist_node *restrict at,
                   struct dlist_node *first,

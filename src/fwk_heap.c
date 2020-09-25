@@ -24,16 +24,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "fwk_heap.h"
+#include <karn/fwk_heap.h>
 
-#if defined(CONFIG_FWK_HEAP_UTILS)
+#if defined(CONFIG_KARN_FWK_HEAP_UTILS)
 
 #define FWK_HEAP_REGULAR_ORDER (true)
 #define FWK_HEAP_REVERSE_ORDER (false)
 
 static unsigned int fwk_heap_parent_index(unsigned int index)
 {
-	assert(index);
+	karn_assert(index);
 
 	return index / 2;
 }
@@ -161,7 +161,7 @@ static void fwk_heap_siftdown(const struct farr *nodes,
  */
 static unsigned int fwk_heap_fast_dancestor_index(unsigned int index)
 {
-	assert(index);
+	karn_assert(index);
 
 	return index >> (__builtin_ctz(index) + 1);
 }
@@ -185,7 +185,7 @@ static void fwk_heap_make(const struct farr *nodes,
 		              compare, copy, regular);
 }
 
-#endif /* defined(CONFIG_FWK_HEAP_UTILS) */
+#endif /* defined(CONFIG_KARN_FWK_HEAP_UTILS) */
 
 static unsigned int fwk_heap_bottom_index(const struct fwk_heap *heap)
 {
@@ -216,7 +216,7 @@ static unsigned int fwk_heap_dancestor_index(const struct fwk_heap *heap,
                                              unsigned int           index)
 {
 	/* Root has no ancestor... */
-	assert(index);
+	karn_assert(index);
 
 	/* Move up untill index points to a right child. */
 	while (fwk_heap_isleft_child(heap->fwk_rbits, index))
@@ -228,8 +228,8 @@ static unsigned int fwk_heap_dancestor_index(const struct fwk_heap *heap,
 
 void fwk_heap_insert(struct fwk_heap *heap, const char *node)
 {
-	assert(!fwk_heap_full(heap));
-	assert(node);
+	karn_assert(!fwk_heap_full(heap));
+	karn_assert(node);
 
 	unsigned int       idx = fwk_heap_bottom_index(heap);
 	farr_copy_fn      *cpy = heap->fwk_copy;
@@ -279,8 +279,8 @@ void fwk_heap_insert(struct fwk_heap *heap, const char *node)
 
 void fwk_heap_extract(struct fwk_heap *heap, char *node)
 {
-	assert(!fwk_heap_empty(heap));
-	assert(node);
+	karn_assert(!fwk_heap_empty(heap));
+	karn_assert(node);
 
 	const struct farr *nodes = &heap->fwk_nodes;
 	char              *root = farr_slot(nodes, FWK_HEAP_ROOT_INDEX);
@@ -310,7 +310,7 @@ void fwk_heap_clear(struct fwk_heap *heap)
 void fwk_heap_build(struct fwk_heap *heap, unsigned int count)
 {
 	fwk_heap_assert(heap);
-	assert(count);
+	karn_assert(count);
 
 	heap->fwk_count = count;
 
@@ -328,9 +328,9 @@ int fwk_heap_init(struct fwk_heap *heap,
                   farr_compare_fn *compare,
                   farr_copy_fn    *copy)
 {
-	assert(heap);
-	assert(compare);
-	assert(copy);
+	karn_assert(heap);
+	karn_assert(compare);
+	karn_assert(copy);
 
 	heap->fwk_rbits = fbmp_create(node_nr);
 	if (!heap->fwk_rbits)
@@ -347,7 +347,7 @@ int fwk_heap_init(struct fwk_heap *heap,
 
 void fwk_heap_fini(struct fwk_heap *heap)
 {
-	assert(heap);
+	karn_assert(heap);
 
 	farr_fini(&heap->fwk_nodes);
 	fbmp_destroy(heap->fwk_rbits);
@@ -358,8 +358,8 @@ struct fwk_heap * fwk_heap_create(size_t           node_size,
                                   farr_compare_fn *compare,
                                   farr_copy_fn    *copy)
 {
-	assert(node_size);
-	assert(node_nr);
+	karn_assert(node_size);
+	karn_assert(node_nr);
 
 	struct fwk_heap *heap;
 	int              err;
@@ -387,7 +387,7 @@ void fwk_heap_destroy(struct fwk_heap *heap)
 	free(heap);
 }
 
-#if defined(CONFIG_FWK_HEAP_SORT)
+#if defined(CONFIG_KARN_FWK_HEAP_SORT)
 
 int fwk_heap_sort(char            *entries,
                   size_t           entry_size,
@@ -433,4 +433,4 @@ int fwk_heap_sort(char            *entries,
 	return 0;
 }
 
-#endif /* defined(CONFIG_FWK_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FWK_HEAP_SORT) */

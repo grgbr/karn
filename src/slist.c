@@ -24,15 +24,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "slist.h"
-#include "utils.h"
+#include <karn/slist.h>
+#include <utils/pow2.h>
 #include <errno.h>
 
 /******************************************************************************
  * Performance events accounting
  ******************************************************************************/
 
-#if defined(CONFIG_SLIST_PERF_EVENTS)
+#if defined(CONFIG_KARN_SLIST_PERF_EVENTS)
 
 /* slist performance counters */
 static struct slist_perf_events slist_perf_evts;
@@ -66,13 +66,13 @@ void slist_clear_perf_events(void)
 	slist_perf_evts.swap = 0;
 }
 
-#else /* !defined(CONFIG_SLIST_PERF_EVENTS) */
+#else /* !defined(CONFIG_KARN_SLIST_PERF_EVENTS) */
 
 static inline void slist_account_compare_event(void) { }
 
 static inline void slist_account_swap_event(void) { }
 
-#endif /* defined(CONFIG_SLIST_PERF_EVENTS) */
+#endif /* defined(CONFIG_KARN_SLIST_PERF_EVENTS) */
 
 /******************************************************************************
  * Singly linked list primitives
@@ -103,7 +103,7 @@ void slist_splice(struct slist      *restrict result,
  * Singly linked list insertion sorting
  ******************************************************************************/
 
-#if defined(CONFIG_SLIST_INSERTION_SORT)
+#if defined(CONFIG_KARN_SLIST_INSERTION_SORT)
 
 /*
  * Insert node into slist in order.
@@ -118,9 +118,9 @@ static void slist_insert_inorder(struct slist      *restrict list,
                                  struct slist_node *restrict node,
                                  slist_compare_fn  *compare)
 {
-	assert(list);
-	assert(node);
-	assert(compare);
+	karn_assert(list);
+	karn_assert(node);
+	karn_assert(compare);
 
 	struct slist_node *prev = slist_head(list);
 	struct slist_node *cur = slist_next(prev);
@@ -131,7 +131,7 @@ static void slist_insert_inorder(struct slist      *restrict list,
 	 * existing node.
 	 */
 	while (true) {
-		assert(cur);
+		karn_assert(cur);
 
 		/*
 		 * Although it seems a pretty good place to perform some
@@ -160,8 +160,8 @@ static void slist_insert_inorder(struct slist      *restrict list,
 
 void slist_insertion_sort(struct slist *list, slist_compare_fn *compare)
 {
-	assert(!slist_empty(list));
-	assert(compare);
+	karn_assert(!slist_empty(list));
+	karn_assert(compare);
 
 	struct slist_node *prev = slist_first(list);
 	struct slist_node *cur = slist_next(prev);
@@ -189,9 +189,9 @@ void slist_counted_insertion_sort(struct slist     *restrict result,
                                   unsigned int      count,
                                   slist_compare_fn *compare)
 {
-	assert(slist_empty(result));
-	assert(!slist_empty(source));
-	assert(compare);
+	karn_assert(slist_empty(result));
+	karn_assert(!slist_empty(source));
+	karn_assert(compare);
 
 	struct slist_node *prev = slist_first(source);
 	struct slist_node *cur = slist_next(prev);
@@ -217,13 +217,13 @@ void slist_counted_insertion_sort(struct slist     *restrict result,
 	             source, slist_head(source), prev);
 }
 
-#endif /* defined(CONFIG_SLIST_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_INSERTION_SORT) */
 
 /******************************************************************************
  * Singly linked list selection sorting
  ******************************************************************************/
 
-#if defined(CONFIG_SLIST_SELECTION_SORT)
+#if defined(CONFIG_KARN_SLIST_SELECTION_SORT)
 
 /*
  * Thanks to slist, implementation is always stable: swap is always performed
@@ -231,14 +231,14 @@ void slist_counted_insertion_sort(struct slist     *restrict result,
  */
 void slist_selection_sort(struct slist *list, slist_compare_fn *compare)
 {
-	assert(!slist_empty(list));
-	assert(compare);
+	karn_assert(!slist_empty(list));
+	karn_assert(compare);
 
 	/* Tail of sorted sublist. */
 	struct slist_node *tail = slist_head(list);
 
 	while (true) {
-		assert(tail);
+		karn_assert(tail);
 
 		struct slist_node *prev = slist_next(tail);
 		struct slist_node *cur;
@@ -272,19 +272,19 @@ void slist_selection_sort(struct slist *list, slist_compare_fn *compare)
 	}
 }
 
-#endif /* defined(CONFIG_SLIST_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_SELECTION_SORT) */
 
 /******************************************************************************
  * Singly linked list bubble sorting
  ******************************************************************************/
 
-#if defined(CONFIG_SLIST_BUBBLE_SORT)
+#if defined(CONFIG_KARN_SLIST_BUBBLE_SORT)
 
 /* implementation is always stable */
 void slist_bubble_sort(struct slist *list, slist_compare_fn *compare)
 {
-	assert(!slist_empty(list));
-	assert(compare);
+	karn_assert(!slist_empty(list));
+	karn_assert(compare);
 
 	struct slist_node *head = NULL;
 	struct slist_node *swap;
@@ -359,13 +359,13 @@ void slist_bubble_sort(struct slist *list, slist_compare_fn *compare)
 	} while (swap);
 }
 
-#endif /* defined(CONFIG_SLIST_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_BUBBLE_SORT) */
 
 /******************************************************************************
  * Singly linked list hybrid merge sorting
  ******************************************************************************/
 
-#if defined(CONFIG_SLIST_MERGE_SORT)
+#if defined(CONFIG_KARN_SLIST_MERGE_SORT)
 
 /*
  * Merge 2 sorted (sub)lists segments.
@@ -390,9 +390,9 @@ static struct slist_node * slist_merge_sorted_subs(struct slist      *result,
 	struct slist_node *src_cur;
 	struct slist_node *src_nxt;
 
-	assert(!slist_empty(result));
-	assert(at);
-	assert(!slist_empty(source));
+	karn_assert(!slist_empty(result));
+	karn_assert(at);
+	karn_assert(!slist_empty(source));
 
 	slist_account_compare_event();
 	if (compare(ref, slist_last(result)) >= 0) {
@@ -466,9 +466,9 @@ void slist_merge_presort(struct slist     *result,
                          struct slist     *source,
                          slist_compare_fn *compare)
 {
-	assert(!slist_empty(result));
-	assert(!slist_empty(source));
-	assert(compare);
+	karn_assert(!slist_empty(result));
+	karn_assert(!slist_empty(source));
+	karn_assert(compare);
 
 	struct slist_node *at = slist_head(result);
 
@@ -496,7 +496,7 @@ static void slist_split_merge_sort(struct slist     *list,
                                    unsigned int      subs_nr,
                                    slist_compare_fn *compare)
 {
-	assert(subs_nr);
+	karn_assert(subs_nr);
 
 	unsigned int cnt;
 	struct slist subs[subs_nr]; /* Reserve space for sublists merging. */
@@ -523,7 +523,7 @@ static void slist_split_merge_sort(struct slist     *list,
 		subs[cnt] = subs[cnt - 1];
 		slist_init(&subs[cnt - 1]);
 
-		subs_nr = max(subs_nr, cnt);
+		subs_nr = umax(subs_nr, cnt);
 	} while (!slist_empty(list));
 
 	/*
@@ -542,14 +542,14 @@ void slist_hybrid_merge_sort(struct slist     *list,
                              unsigned int      nodes_nr,
                              slist_compare_fn *compare)
 {
-	assert(!slist_empty(list));
-	assert(run_len);
-	assert(nodes_nr);
-	assert(compare);
+	karn_assert(!slist_empty(list));
+	karn_assert(run_len);
+	karn_assert(nodes_nr);
+	karn_assert(compare);
 
 	/* Perform the real merge sort. */
 	slist_split_merge_sort(list, run_len,
-	                       upper_pow2(max(nodes_nr / run_len, 2U)) + 2,
+	                       pow2_upper(umax(nodes_nr / run_len, 2U)) + 2,
 	                       compare);
 }
 
@@ -557,7 +557,7 @@ void slist_merge_sort(struct slist     *list,
                       unsigned int      nodes_nr,
                       slist_compare_fn *compare)
 {
-	assert(nodes_nr);
+	karn_assert(nodes_nr);
 
 	unsigned int run_len;
 
@@ -581,4 +581,4 @@ void slist_merge_sort(struct slist     *list,
 	slist_hybrid_merge_sort(list, run_len, nodes_nr, compare);
 }
 
-#endif /* defined(CONFIG_SLIST_MERGE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_MERGE_SORT) */

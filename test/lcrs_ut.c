@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "lcrs.h"
+#include <karn/lcrs.h>
 #include <cute/cute.h>
 
 static CUTE_PNP_SUITE(lcrsut, NULL);

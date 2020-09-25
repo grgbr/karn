@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "fbnr_heap.h"
+#include <karn/fbnr_heap.h>
 #include <cute/cute.h>
 #include <stdlib.h>
 #include <string.h>
@@ -791,7 +791,7 @@ CUTE_PNP_TEST(fbnrhut_build_mixorder20, &fbnrhut_build)
 	fbnrhut_check_build(nodes, array_nr(nodes));
 }
 
-#if defined(CONFIG_FBNR_HEAP_SORT)
+#if defined(CONFIG_KARN_FBNR_HEAP_SORT)
 
 static CUTE_PNP_SUITE(fbnrhut_sort, &fbnrhut);
 
@@ -904,4 +904,4 @@ CUTE_PNP_TEST(fbnrhut_sort_unsorted_duplicates, &fbnrhut_sort)
 	fbnrhut_check_entries(entries, check_entries, array_nr(check_entries));
 }
 
-#endif /* defined(CONFIG_FBNR_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FBNR_HEAP_SORT) */

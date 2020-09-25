@@ -27,7 +27,7 @@
 #ifndef _KARN_SBNM_HEAP_H
 #define _KARN_SBNM_HEAP_H
 
-#include <lcrs.h>
+#include <karn/lcrs.h>
 
 struct sbnm_heap_node {
 	struct lcrs_node sbnm_lcrs;
@@ -40,7 +40,7 @@ struct sbnm_heap_node {
 static inline struct sbnm_heap_node *
 sbnm_heap_node_from_lcrs(const struct lcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return lcrs_entry(node, struct sbnm_heap_node, sbnm_lcrs);
 }
@@ -54,16 +54,16 @@ struct sbnm_heap {
 	sbnm_heap_compare_fn *sbnm_compare;
 };
 
-#define sbnm_heap_assert(_heap)                                         \
-	assert(_heap);                                                  \
-	assert(lcrs_istail((_heap)->sbnm_roots) ^ (_heap)->sbnm_count); \
-	assert((_heap)->sbnm_compare)
+#define sbnm_heap_assert(_heap) \
+	karn_assert(_heap); \
+	karn_assert(lcrs_istail((_heap)->sbnm_roots) ^ (_heap)->sbnm_count); \
+	karn_assert((_heap)->sbnm_compare)
 
-#define SBNM_HEAP_INIT(_heap, _compare)    \
-	{                                  \
-		.sbnm_count   = 0,         \
+#define SBNM_HEAP_INIT(_heap, _compare) \
+	{ \
+		.sbnm_count   = 0, \
 		.sbnm_roots   = LCRS_TAIL, \
-		.sbnm_compare = _compare   \
+		.sbnm_compare = _compare \
 	}
 
 extern struct sbnm_heap_node * sbnm_heap_peek(const struct sbnm_heap *heap);
@@ -103,8 +103,8 @@ sbnm_heap_empty(const struct sbnm_heap* heap)
 static inline void
 sbnm_heap_init(struct sbnm_heap *heap, sbnm_heap_compare_fn *compare)
 {
-	assert(heap);
-	assert(compare);
+	karn_assert(heap);
+	karn_assert(compare);
 
 	heap->sbnm_count = 0;
 	heap->sbnm_roots = lcrs_mktail(NULL);
@@ -116,4 +116,4 @@ static inline void sbnm_heap_fini(struct sbnm_heap *heap __unused)
 	sbnm_heap_assert(heap);
 }
 
-#endif
+#endif /* _KARN_SBNM_HEAP_H */

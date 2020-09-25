@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "farr.h"
+#include <karn/farr.h>
 #include <cute/cute.h>
 
 static int farrut_compare_min(const char *first, const char *second)
@@ -165,7 +165,7 @@ static void farrut_sort_unsorted_duplicates(farrut_sort_fn *sort)
 
 static CUTE_PNP_SUITE(farrut, NULL);
 
-#if defined(CONFIG_FARR_BUBBLE_SORT)
+#if defined(CONFIG_KARN_FARR_BUBBLE_SORT)
 
 static CUTE_PNP_SUITE(farrut_bubble_sort, &farrut);
 
@@ -209,9 +209,9 @@ CUTE_PNP_TEST(farrut_bubble_sort_unsorted_duplicates, &farrut_bubble_sort)
 	farrut_sort_unsorted_duplicates(farr_bubble_sort);
 }
 
-#endif /* defined(CONFIG_FARR_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_BUBBLE_SORT) */
 
-#if defined(CONFIG_FARR_SELECTION_SORT)
+#if defined(CONFIG_KARN_FARR_SELECTION_SORT)
 
 static CUTE_PNP_SUITE(farrut_selection_sort, &farrut);
 
@@ -255,9 +255,9 @@ CUTE_PNP_TEST(farrut_selection_sort_unsorted_duplicates, &farrut_selection_sort)
 	farrut_sort_unsorted_duplicates(farr_selection_sort);
 }
 
-#endif /* defined(CONFIG_FARR_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_SELECTION_SORT) */
 
-#if defined(CONFIG_FARR_INSERTION_SORT)
+#if defined(CONFIG_KARN_FARR_INSERTION_SORT)
 
 static CUTE_PNP_SUITE(farrut_insertion_sort, &farrut);
 
@@ -301,9 +301,9 @@ CUTE_PNP_TEST(farrut_insertion_sort_unsorted_duplicates, &farrut_insertion_sort)
 	farrut_sort_unsorted_duplicates(farr_insertion_sort);
 }
 
-#endif /* defined(CONFIG_FARR_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_INSERTION_SORT) */
 
-#if defined(CONFIG_FARR_QUICK_SORT)
+#if defined(CONFIG_KARN_FARR_QUICK_SORT)
 
 static CUTE_PNP_SUITE(farrut_quick_sort, &farrut);
 
@@ -347,4 +347,4 @@ CUTE_PNP_TEST(farrut_quick_sort_unsorted_duplicates, &farrut_quick_sort)
 	farrut_sort_unsorted_duplicates(farr_quick_sort);
 }
 
-#endif /* defined(CONFIG_FARR_QUICK_SORT) */
+#endif /* defined(CONFIG_KARN_FARR_QUICK_SORT) */

@@ -27,7 +27,7 @@
 #ifndef _KARN_SPAIR_HEAP_H
 #define _KARN_SPAIR_HEAP_H
 
-#include <lcrs.h>
+#include <karn/lcrs.h>
 
 #define spair_heap_entry(_node, _type, _member) \
 	containerof(_node, _type, _member)
@@ -37,9 +37,9 @@ struct spair_heap {
 	struct lcrs_node *spair_root;
 };
 
-#define spair_heap_assert(_heap)                            \
-	assert(_heap);                                      \
-	assert(!(_heap)->spair_root ^ (_heap)->spair_count)
+#define spair_heap_assert(_heap) \
+	karn_assert(_heap); \
+	karn_assert(!(_heap)->spair_root ^ (_heap)->spair_count)
 
 #define SPAIR_HEAP_INIT(_heap) \
 	{ .spair_root = NULL, .spair_count = 0 }
@@ -96,4 +96,4 @@ static inline void spair_heap_fini(struct spair_heap *heap __unused)
 	spair_heap_assert(heap);
 }
 
-#endif
+#endif /* _KARN_SPAIR_HEAP_H */

@@ -26,7 +26,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "fwk_heap.h"
+#include <karn/fwk_heap.h>
 #include <cute/cute.h>
 #include <stdlib.h>
 #include <string.h>
@@ -816,7 +816,7 @@ CUTE_PNP_TEST(fwkhut_build_mixorder20, &fwkhut_build)
 	fwkhut_check_build(nodes, array_nr(nodes));
 }
 
-#if defined(CONFIG_FWK_HEAP_SORT)
+#if defined(CONFIG_KARN_FWK_HEAP_SORT)
 
 static CUTE_PNP_SUITE(fwkhut_sort, &fwkhut);
 
@@ -929,4 +929,4 @@ CUTE_PNP_TEST(fwkhut_sort_unsorted_duplicates, &fwkhut_sort)
 	fwkhut_check_entries(entries, check_entries, array_nr(check_entries));
 }
 
-#endif /* defined(CONFIG_FWK_HEAP_SORT) */
+#endif /* defined(CONFIG_KARN_FWK_HEAP_SORT) */

@@ -26,13 +26,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SLIST_H
-#define _SLIST_H
+#ifndef _KARN_SLIST_H
+#define _KARN_SLIST_H
 
-#include "utils.h"
+#include <karn/common.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <assert.h>
 
 /**
  * Singly linked list node
@@ -80,7 +79,7 @@ struct slist {
  */
 static inline void slist_init(struct slist *list)
 {
-	assert(list);
+	karn_assert(list);
 
 	list->slist_head.slist_next = NULL;
 	list->slist_tail = &list->slist_head;
@@ -98,8 +97,8 @@ static inline void slist_init(struct slist *list)
  */
 static inline bool slist_empty(const struct slist *list)
 {
-	assert(list);
-	assert(list->slist_tail);
+	karn_assert(list);
+	karn_assert(list->slist_tail);
 
 	return list->slist_head.slist_next == NULL;
 }
@@ -115,8 +114,8 @@ static inline bool slist_empty(const struct slist *list)
  */
 static inline struct slist_node * slist_head(struct slist *list)
 {
-	assert(list);
-	assert(list->slist_tail);
+	karn_assert(list);
+	karn_assert(list->slist_tail);
 
 	return &list->slist_head;
 }
@@ -132,7 +131,7 @@ static inline struct slist_node * slist_head(struct slist *list)
  */
 static inline struct slist_node * slist_next(const struct slist_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->slist_next;
 }
@@ -151,7 +150,7 @@ static inline struct slist_node * slist_next(const struct slist_node *node)
  */
 static inline struct slist_node * slist_first(const struct slist *list)
 {
-	assert(!slist_empty(list));
+	karn_assert(!slist_empty(list));
 
 	return list->slist_head.slist_next;
 }
@@ -172,7 +171,7 @@ static inline struct slist_node * slist_first(const struct slist *list)
  */
 static inline struct slist_node * slist_last(const struct slist *list)
 {
-	assert(!slist_empty(list));
+	karn_assert(!slist_empty(list));
 
 	return list->slist_tail;
 }
@@ -190,10 +189,10 @@ static inline void slist_append(struct slist      *list,
                                 struct slist_node *restrict previous,
                                 struct slist_node *restrict node)
 {
-	assert(list);
-	assert(!list->slist_head.slist_next || list->slist_tail);
-	assert(previous);
-	assert(node);
+	karn_assert(list);
+	karn_assert(!list->slist_head.slist_next || list->slist_tail);
+	karn_assert(previous);
+	karn_assert(node);
 
 	if (!previous->slist_next)
 		/* Update tail pointer if previous points to last node. */
@@ -218,10 +217,10 @@ static inline void slist_remove(struct slist            *list,
                                 struct slist_node       *restrict previous,
                                 const struct slist_node *restrict node)
 {
-	assert(!slist_empty(list));
-	assert(previous);
-	assert(node);
-	assert(previous->slist_next == node);
+	karn_assert(!slist_empty(list));
+	karn_assert(previous);
+	karn_assert(node);
+	karn_assert(previous->slist_next == node);
 
 	if (!node->slist_next)
 		list->slist_tail = previous;
@@ -255,9 +254,9 @@ extern void slist_move(struct slist      *list,
 static inline void slist_nqueue(struct slist      *list,
                                 struct slist_node *restrict node)
 {
-	assert(list);
-	assert(!list->slist_head.slist_next || list->slist_tail);
-	assert(node);
+	karn_assert(list);
+	karn_assert(!list->slist_head.slist_next || list->slist_tail);
+	karn_assert(node);
 
 	node->slist_next = NULL;
 
@@ -278,8 +277,8 @@ static inline void slist_nqueue(struct slist      *list,
  */
 static inline struct slist_node * slist_dqueue(struct slist *list)
 {
-	assert(!slist_empty(list));
-	assert(list->slist_tail);
+	karn_assert(!slist_empty(list));
+	karn_assert(list->slist_tail);
 
 	struct slist_node *node = list->slist_head.slist_next;
 
@@ -306,10 +305,10 @@ static inline void slist_withdraw(struct slist            *list,
                                   struct slist_node       *restrict first,
                                   const struct slist_node *restrict last)
 {
-	assert(list);
-	assert(!slist_empty(list));
-	assert(first);
-	assert(last);
+	karn_assert(list);
+	karn_assert(!slist_empty(list));
+	karn_assert(first);
+	karn_assert(last);
 
 	first->slist_next = last->slist_next;
 
@@ -332,11 +331,11 @@ static inline void slist_embed(struct slist      *list,
                                struct slist_node *restrict first,
                                struct slist_node *restrict last)
 {
-	assert(list);
-	assert(!list->slist_head.slist_next || list->slist_tail);
-	assert(at);
-	assert(first);
-	assert(last);
+	karn_assert(list);
+	karn_assert(!list->slist_head.slist_next || list->slist_tail);
+	karn_assert(at);
+	karn_assert(first);
+	karn_assert(last);
 
 	last->slist_next = at->slist_next;
 	if (!last->slist_next)
@@ -456,7 +455,7 @@ slist_splice(struct slist      *restrict result,
  * Performance monitoring
  ******************************************************************************/
 
-#if defined(CONFIG_SLIST_PERF_EVENTS)
+#if defined(CONFIG_KARN_SLIST_PERF_EVENTS)
 
 /* slist performance counters */
 struct slist_perf_events {
@@ -488,7 +487,7 @@ extern const struct slist_perf_events * slist_fetch_perf_events(void);
  */
 extern void slist_clear_perf_events(void);
 
-#else /* !defined(CONFIG_SLIST_PERF_EVENTS) */
+#else /* !defined(CONFIG_KARN_SLIST_PERF_EVENTS) */
 
 struct slist_perf_events { };
 
@@ -501,7 +500,7 @@ static inline const struct slist_perf_events * slist_fetch_perf_events(void)
 	return NULL;
 }
 
-#endif /* defined(CONFIG_SLIST_PERF_EVENTS) */
+#endif /* defined(CONFIG_KARN_SLIST_PERF_EVENTS) */
 
 /******************************************************************************
  * Slist sorting
@@ -524,7 +523,7 @@ static inline const struct slist_perf_events * slist_fetch_perf_events(void)
 typedef int (slist_compare_fn)(const struct slist_node *restrict first,
                                const struct slist_node *restrict second);
 
-#if defined(CONFIG_SLIST_INSERTION_SORT)
+#if defined(CONFIG_KARN_SLIST_INSERTION_SORT)
 /**
  * Sort specified list according to the insertion sort scheme.
  *
@@ -550,9 +549,9 @@ extern void slist_counted_insertion_sort(struct slist     *restrict result,
                                          struct slist     *restrict source,
                                          unsigned int      count,
                                          slist_compare_fn *compare);
-#endif /* defined(CONFIG_SLIST_INSERTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_INSERTION_SORT) */
 
-#if defined(CONFIG_SLIST_SELECTION_SORT)
+#if defined(CONFIG_KARN_SLIST_SELECTION_SORT)
 /**
  * Sort specified list according to the insertion sort scheme.
  *
@@ -562,9 +561,9 @@ extern void slist_counted_insertion_sort(struct slist     *restrict result,
  * @ingroup slist
  */
 extern void slist_selection_sort(struct slist *list, slist_compare_fn *compare);
-#endif /* defined(CONFIG_SLIST_SELECTION_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_SELECTION_SORT) */
 
-#if defined(CONFIG_SLIST_BUBBLE_SORT)
+#if defined(CONFIG_KARN_SLIST_BUBBLE_SORT)
 /**
  * Sort specified list according to the bubble sort scheme.
  *
@@ -574,9 +573,9 @@ extern void slist_selection_sort(struct slist *list, slist_compare_fn *compare);
  * @ingroup slist
  */
 extern void slist_bubble_sort(struct slist *list, slist_compare_fn *compare);
-#endif /* defined(CONFIG_SLIST_BUBBLE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_BUBBLE_SORT) */
 
-#if defined(CONFIG_SLIST_MERGE_SORT)
+#if defined(CONFIG_KARN_SLIST_MERGE_SORT)
 /**
  * Sort 2 presorted slists into a single one.
  *
@@ -659,6 +658,6 @@ extern void slist_hybrid_merge_sort(struct slist     *list,
 extern void slist_merge_sort(struct slist     *list,
                              unsigned int      nodes_nr,
                              slist_compare_fn *compare);
-#endif /* defined(CONFIG_SLIST_MERGE_SORT) */
+#endif /* defined(CONFIG_KARN_SLIST_MERGE_SORT) */
 
-#endif /* _SLIST_H */
+#endif /* _KARN_SLIST_H */

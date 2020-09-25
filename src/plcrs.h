@@ -1,8 +1,7 @@
-#ifndef _PLCRS_H
-#define _PLCRS_H
+#ifndef _KARN_PLCRS_H
+#define _KARN_PLCRS_H
 
-#include "utils.h"
-#include <assert.h>
+#include <karn/common.h>
 
 struct plcrs_node {
 	struct plcrs_node  *plcrs_sibling;
@@ -14,8 +13,8 @@ static inline void
 plcrs_link_sibling(struct plcrs_node       *restrict node,
                    const struct plcrs_node *restrict next)
 {
-	assert(node);
-	assert(node != next);
+	karn_assert(node);
+	karn_assert(node != next);
 
 	node->plcrs_sibling = (struct plcrs_node *)next;
 }
@@ -23,7 +22,7 @@ plcrs_link_sibling(struct plcrs_node       *restrict node,
 static inline struct plcrs_node *
 plcrs_next_sibling(const struct plcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->plcrs_sibling;
 }
@@ -31,7 +30,7 @@ plcrs_next_sibling(const struct plcrs_node *node)
 static inline struct plcrs_node **
 plcrs_sibling_ref(const struct plcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return &((struct plcrs_node*)node)->plcrs_sibling;
 }
@@ -39,7 +38,7 @@ plcrs_sibling_ref(const struct plcrs_node *node)
 static inline struct plcrs_node *
 plcrs_parent_node(const struct plcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->plcrs_parent;
 }
@@ -47,7 +46,7 @@ plcrs_parent_node(const struct plcrs_node *node)
 static inline struct plcrs_node *
 plcrs_youngest_sibling(const struct plcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	return node->plcrs_youngest;
 }
@@ -56,9 +55,9 @@ static inline void
 plcrs_join_tree(struct plcrs_node *restrict tree,
                 struct plcrs_node *restrict parent)
 {
-	assert(tree);
-	assert(parent);
-	assert(tree != parent);
+	karn_assert(tree);
+	karn_assert(parent);
+	karn_assert(tree != parent);
 
 	tree->plcrs_sibling = parent->plcrs_youngest;
 	tree->plcrs_parent = parent;
@@ -69,7 +68,7 @@ plcrs_join_tree(struct plcrs_node *restrict tree,
 static inline void
 plcrs_init_node(struct plcrs_node *node)
 {
-	assert(node);
+	karn_assert(node);
 
 	node->plcrs_sibling = NULL;
 	node->plcrs_parent = NULL;
@@ -79,4 +78,4 @@ plcrs_init_node(struct plcrs_node *node)
 #define plcrs_entry(_node, _type, _member) \
 	containerof(_node, _type, _member)
 
-#endif
+#endif /* _KARN_PLCRS_H */

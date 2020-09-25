@@ -1,115 +1,136 @@
-config FBMP
+config KARN_ASSERT
+	bool "Build Karn with assertions"
+	default n
+
+config KARN_BTRACE
+	bool "Build Karn with backtrace support"
+	default n
+
+config KARN_TEST
+	bool "Build Karn unit tests"
+	default n
+
+config KARN_PERF
+	bool "Build Karn performance tests"
+	depends on KARN_TEST
+	default n
+
+config KARN_FBMP
 	bool "Fixed length bitmap"
-	default n
+	default y
 
-config FALLOC
+config KARN_FALLOC
 	bool "Fixed length chunk allocator"
-	default n
+	default y
 
-config LCRS
+config KARN_LCRS
 	bool "Left child right sibling tree"
 	default n
 
-config SLIST
+config KARN_SLIST
 	bool "Singly linked list"
-	default n
+	default y
 
-config SLIST_BUBBLE_SORT
+config KARN_SLIST_PERF_EVENTS
+	bool
+	default KARN_PERF
+
+config KARN_SLIST_BUBBLE_SORT
 	bool "Bubble sort on singly linked list"
-	select SLIST
+	select KARN_SLIST
 	default y
 
-config SLIST_SELECTION_SORT
+config KARN_SLIST_SELECTION_SORT
 	bool "Selection sort on singly linked list"
-	select SLIST
+	select KARN_SLIST
 	default y
 
-config SLIST_INSERTION_SORT
+config KARN_SLIST_INSERTION_SORT
 	bool "Insertion sort on singly linked list"
-	select SLIST
+	select KARN_SLIST
 	default y
 
-config SLIST_MERGE_SORT
+config KARN_SLIST_MERGE_SORT
 	bool "Hybrid merge sort on singly linked list"
-	select SLIST
-	select SLIST_INSERTION_SORT
+	select KARN_SLIST
+	select KARN_SLIST_INSERTION_SORT
 	default y
 
-config DLIST
+config KARN_DLIST
 	bool "Doubly linked list"
-	default n
+	default y
 
-config FBNR_HEAP_UTILS
+config KARN_FBNR_HEAP_UTILS
 	bool "Fixed length array based binary heap utilities"
 	default n
 
-config FBNR_HEAP
+config KARN_FBNR_HEAP
 	bool "Fixed length array based binary heap"
-	select FBNR_HEAP_UTILS
+	select KARN_FBNR_HEAP_UTILS
 	default y
 
-config FBNR_HEAP_SORT
+config KARN_FBNR_HEAP_SORT
 	bool "Fixed length array based binary heap sorting"
-	select FBNR_HEAP_UTILS
+	select KARN_FBNR_HEAP_UTILS
 	default y
 
-config PBNM_HEAP
+config KARN_PBNM_HEAP
 	bool "Parented LCRS based binomial heap"
 	default y
 
-config SBNM_HEAP
+config KARN_SBNM_HEAP
 	bool "Singly linked list based binomial heap"
-	select LCRS
+	select KARN_LCRS
 	default y
 
-config DBNM_HEAP
+config KARN_DBNM_HEAP
 	bool "Doubly linked list based binomial heap"
-	select DLIST
+	select KARN_DLIST
 	default y
 
-config SPAIR_HEAP
+config KARN_SPAIR_HEAP
 	bool "Singly linked list based pairing heap"
-	select LCRS
+	select KARN_LCRS
 	default y
 
-config FWK_HEAP_UTILS
+config KARN_FWK_HEAP_UTILS
 	bool "Fixed length array based weak heap utilities"
-	select FBMP
+	select KARN_FBMP
 	default n
 
-config FWK_HEAP
+config KARN_FWK_HEAP
 	bool "Fixed length array based weak heap"
-	select FWK_HEAP_UTILS
+	select KARN_FWK_HEAP_UTILS
 	default y
 
-config FWK_HEAP_SORT
+config KARN_FWK_HEAP_SORT
 	bool "Fixed length array based weak heap sorting"
-	select FWK_HEAP_UTILS
+	select KARN_FWK_HEAP_UTILS
 	default y
 
-config FARR_BUBBLE_SORT
+config KARN_FARR_BUBBLE_SORT
 	bool "Fixed length array based bubble sorting"
 	default y
 
-config FARR_SELECTION_SORT
+config KARN_FARR_SELECTION_SORT
 	bool "Fixed length array based selection sorting"
 	default y
 
-config FARR_INSERTION_SORT
+config KARN_FARR_INSERTION_SORT
 	bool "Fixed length array based insertion sorting"
 	default y
 
-config FARR_QUICK_SORT_UTILS
+config KARN_FARR_QUICK_SORT_UTILS
 	bool "Fixed length array based quick sorting common utilities"
 	default n
 
-config FARR_QUICK_SORT
+config KARN_FARR_QUICK_SORT
 	bool "Fixed length array based quick sorting"
-	select FARR_QUICK_SORT_UTILS
+	select KARN_FARR_QUICK_SORT_UTILS
 	default y
 
-config FARR_INTRO_SORT
+config KARN_FARR_INTRO_SORT
 	bool "Fixed length array based introspective sorting"
-	select FARR_QUICK_SORT_UTILS
-	select FBNR_HEAP_SORT
+	select KARN_FARR_QUICK_SORT_UTILS
+	select KARN_FBNR_HEAP_SORT
 	default y
