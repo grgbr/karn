@@ -15,6 +15,12 @@ struct pavl_node {
 	signed char       balance;
 };
 
+struct pavl_scan {
+	struct pavl_node *parent;
+	struct pavl_node *top;
+	enum pavl_side    side;
+};
+
 typedef int (pavl_compare_node_key_fn)(const struct pavl_node *node,
                                        const void             *key,
                                        const void             *data);
@@ -45,6 +51,16 @@ pavl_tree_count(const struct pavl_tree *tree)
 
 	return tree->count;
 }
+
+extern struct pavl_node *
+pavl_scan_key(const struct pavl_tree *tree,
+              const void             *key,
+              struct pavl_scan       *scan);
+
+extern void
+pavl_append_scan_node(struct pavl_tree       *tree,
+                      struct pavl_node       *node,
+                      const struct pavl_scan *scan);
 
 extern int
 pavl_append_node(struct pavl_tree *tree,

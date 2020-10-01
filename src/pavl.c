@@ -157,13 +157,7 @@ pavl_init_leaf_node(struct pavl_node *node, const struct pavl_node *parent)
  * Insertion handling
  ******************************************************************************/
 
-struct pavl_scan {
-	struct pavl_node *parent;
-	struct pavl_node *top;
-	enum pavl_side    side;
-};
-
-static struct pavl_node *
+struct pavl_node *
 pavl_scan_key(const struct pavl_tree *tree,
               const void             *key,
               struct pavl_scan       *scan)
@@ -228,10 +222,10 @@ pavl_post_append_rebalance(struct pavl_tree       *tree,
 	}
 }
 
-static void
-pavl_post_scan_append_node(struct pavl_tree       *tree,
-                           struct pavl_node       *node,
-                           const struct pavl_scan *scan)
+void
+pavl_append_scan_node(struct pavl_tree       *tree,
+                      struct pavl_node       *node,
+                      const struct pavl_scan *scan)
 {
 	karn_assert(scan);
 
@@ -262,7 +256,7 @@ pavl_append_node(struct pavl_tree *tree,
 	if (pavl_scan_key(tree, key, &scan))
 		return -EEXIST;
 
-	pavl_post_scan_append_node(tree, node, &scan);
+	pavl_append_scan_node(tree, node, &scan);
 
 	return 0;
 }
@@ -307,7 +301,7 @@ pavl_insert_node(struct pavl_tree *tree,
 
 	old = pavl_scan_key(tree, key, &scan);
 	if (!old) {
-		pavl_post_scan_append_node(tree, node, &scan);
+		pavl_append_scan_node(tree, node, &scan);
 		return NULL;
 	}
 
